@@ -12,6 +12,7 @@ import {
   snap,
   useRoomProps,
 } from "@/office/props-drag"
+import { FLOOR_GROUPS, HANG } from "@/office/props-catalog"
 import { ITEMS } from "@/office/sprite-data"
 import type { ItemName } from "@/office/sprites"
 
@@ -20,109 +21,6 @@ import type { ItemName } from "@/office/sprites"
 // 휴게 공간에만 놓인다. 놓인 자리는 옮긴 자리와 같은 설정 파일에 남고
 // (열쇠 "add:<id>:<name>", 값은 칸 왼쪽 위에서 잰 자리), 두 번 누르면 치운다.
 
-const HANG: ItemName[] = [
-  "window",
-  "clock",
-  "calendar",
-  "corkboard",
-  "poster",
-  "frame",
-  "catPainting",
-  "chalkboard",
-  "pegboard",
-  "dartboard",
-  "wallShelf",
-  "wallHooks",
-  "hangingPlant",
-  "mirror",
-  "sconce",
-  "bunting",
-  "stringLights",
-  "wreath",
-  "exitSign",
-  "wallSpeaker",
-  "wallFan",
-  "fireExtinguisher",
-  "wallTV",
-  "airConditioner",
-]
-// 바닥에 두는 소품을 쓰임새별 탭으로 나눈다. 새 소품은 맞는 무리에 넣는다.
-const FLOOR_GROUPS = {
-  floor: [
-    "bookshelf",
-    "lockers",
-    "cabinet",
-    "whiteboard",
-    "sofa",
-    "rockingChair",
-    "fireplace",
-    "bench",
-    "ottoman",
-    "stool",
-    "teaTable",
-    "kotatsu",
-    "floorCushion",
-    "beanBag",
-    "rug",
-    "coatRack",
-    "umbrellaStand",
-  ],
-  appliance: [
-    "vendingMachine",
-    "waterCooler",
-    "miniFridge",
-    "coffeeMachine",
-    "printer",
-    "microwave",
-    "electricKettle",
-    "robotVacuum",
-    "floorFan",
-    "floorLamp",
-    "heater",
-    "radiator",
-  ],
-  hobby: [
-    "arcade",
-    "piano",
-    "guitar",
-    "recordPlayer",
-    "easel",
-    "telescope",
-    "bicycle",
-    "globe",
-    "fishTank",
-  ],
-  plant: [
-    "monstera",
-    "plant",
-    "snakePlant",
-    "ficus",
-    "cactus",
-    "bonsai",
-    "tulips",
-    "christmasTree",
-  ],
-  cat: [
-    "catBed",
-    "catHouse",
-    "catTunnel",
-    "scratcher",
-    "yarn",
-    "toyMouse",
-    "boxStack",
-    "catFoodBag",
-    "foodBowl",
-  ],
-  misc: [
-    "box",
-    "giftBoxes",
-    "laundryBasket",
-    "backpack",
-    "broom",
-    "stepLadder",
-    "trash",
-  ],
-} satisfies Record<string, ItemName[]>
 const MIME = "application/x-kttn-prop"
 const WALL_ROOM = "wall"
 
