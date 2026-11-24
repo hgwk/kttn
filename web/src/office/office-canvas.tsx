@@ -33,6 +33,8 @@ import {
 } from "@/office/office-walk"
 import { coatFor, drawCat } from "@/office/sprites"
 import { DeskOverlays } from "@/office/desk-overlays"
+import { trips } from "@/office/visit-sync"
+import { rejoin } from "@/office/walk-return"
 import {
   idlePose,
   perkedUp,
@@ -182,11 +184,8 @@ export function OfficeCanvas({
           walker.leaving = true
         }
       }
-      // 퇴근했다가 다시 돌아온 세션은 자리에 앉힌다.
-      if (agent.state !== "ended" && walker.out) {
-        walker.out = false
-        walker.leaving = false
-      }
+      // 퇴근했다가 다시 돌아온 세션은 문에서 걸어 들어와 앉는다.
+      if (agent.state !== "ended") rejoin(walker, room, index, door)
       if (still) {
         walker.path.length = 0
         walker.visit = undefined
@@ -201,7 +200,8 @@ export function OfficeCanvas({
       const gone = agent.state === "ended" && !walking
       // 대사 상자는 고양이를 따라다닌다(산책·찾아가기·캣타워). 퇴근한 고양이는 자리에 둔다.
       const speech = speechRefs.current.get(agent.key)
-      if (speech) {
+      // 휴게 공간 소품 곁에 있으면 그 고양이(visit-cats.tsx)가 대사를 옮긴다.
+      if (speech && !(awayOnVisit(walker) && trips.get(agent.key)?.prop)) {
         // 문으로 들고 나는 고양이는 그림 밖에 있어 안 보이므로, 그동안은 대사를
         // 자리 위에 둔다(빈 바닥에 상자만 떠 있지 않게).
         const at =

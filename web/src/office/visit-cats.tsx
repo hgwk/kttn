@@ -25,6 +25,20 @@ const POSE: Record<VisitAction, CatPose> = {
   play: "walk",
 }
 
+// 이 고양이의 대사 상자를 휴게 공간의 고양이 머리 위로 옮긴다. 상자는 책상
+// 구역 기준 백분율 자리라 그 바깥(100% 넘게)으로도 놓인다.
+function follow(key: string, cat: DOMRect, ratio: number) {
+  const speech = document.querySelector<HTMLElement>(
+    `[data-speech-for="${CSS.escape(key)}"]`
+  )
+  const box = speech?.parentElement?.getBoundingClientRect()
+  if (!speech || !box?.width || !box.height) return
+  const x = cat.left + cat.width / 2
+  const y = cat.bottom - 15 * OFFICE_SCALE * ratio
+  speech.style.left = `${((x - box.left) / box.width) * 100}%`
+  speech.style.top = `${((y - box.top) / box.height) * 100}%`
+}
+
 function VisitCat({
   agent,
   action,
@@ -92,6 +106,7 @@ function VisitCat({
         t
       )
       el.style.visibility = ""
+      follow(agent.key, el.getBoundingClientRect(), ratio)
       el.style.transform = `${nap ? "translateX(-50%) " : ""}translate(${shift.x}px, ${shift.y}px)`
       // 걷는 동안은 다른 소품보다 앞에 둔다.
       el.style.zIndex = walking ? "35" : ""

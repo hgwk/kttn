@@ -51,6 +51,7 @@ export function DeskOverlays({
           // 다른 상자들보다도 앞으로 나와 잘린 줄을 다 펼친다. 폭은 그대로 두어
           // 바닥 끝 밖으로 나가지 않고 위로만 길어진다.
           data-cat-speech=""
+          data-speech-for={agent.key}
           // 확인이 필요한 고양이. 화면 밖이면 그쪽 화살표가 깜빡인다(scroll-hint.tsx).
           data-alert={agent.state === "needs_you" ? "" : undefined}
           className="group/speech absolute z-40 w-max max-w-[180px] -translate-x-1/2 -translate-y-full has-[form]:z-[60] data-near:z-50"
