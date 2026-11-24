@@ -108,6 +108,10 @@ To install it yourself instead, pick one:
   That is fine: kttn downloads its binary the first time it runs. To fetch it
   during the install instead, add `--allow-scripts=@hgwk/kttn`.
 
+  Setup copies the binary to `~/.local/bin/kttn` so the hooks and the login
+  service survive npm updates; after `npm update -g @hgwk/kttn`, run `kttn`
+  again to move to the new version.
+
 - **GitHub Releases**: download `kttn_<version>_<os>_<arch>.tar.gz` from
   https://github.com/hgwk/kttn/releases, check it against `SHA256SUMS`, and put
   `kttn` in a folder on your PATH.

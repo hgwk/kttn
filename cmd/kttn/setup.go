@@ -153,10 +153,14 @@ func refreshConfig(path string, cfg *config.Config, out io.Writer) error {
 	return config.Save(path, *cfg)
 }
 
-// stableBinary returns a path that outlives this run. npx runs kttn from a
-// cache it may clear, so that copy moves to ~/.local/bin/kttn first.
+// stableBinary returns a path that outlives this run and npm. A binary
+// run from npm's tree (the npx cache, or node_modules of a global install)
+// is replaced or deleted by npm on update, cache cleanup or uninstall, and
+// the hooks and the login service would then point at nothing; so that copy
+// moves to ~/.local/bin/kttn first.
 func stableBinary(m machine) (string, error) {
-	if !strings.Contains(filepath.ToSlash(m.exe), "/_npx/") {
+	path := filepath.ToSlash(m.exe)
+	if !strings.Contains(path, "/_npx/") && !strings.Contains(path, "/node_modules/") {
 		return m.exe, nil
 	}
 	target := filepath.Join(m.home, ".local", "bin", "kttn")

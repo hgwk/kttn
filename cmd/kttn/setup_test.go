@@ -105,3 +105,24 @@ func TestSetupUsesThePlainCommandWhenKttnIsOnThePath(t *testing.T) {
 		t.Fatal("copied a binary that was already stable")
 	}
 }
+
+func TestAGlobalNpmInstallAlsoMovesToAStablePath(t *testing.T) {
+	m, _, _ := fakeMachine(t)
+	global := filepath.Join(t.TempDir(), "lib", "node_modules", "@hgwk", "kttn", "bin", "native", "kttn")
+	os.MkdirAll(filepath.Dir(global), 0o755)
+	os.WriteFile(global, []byte("binary"), 0o755)
+	m.exe = global
+	var out bytes.Buffer
+	if err := runSetup(strings.NewReader("Lab\n\n"), &out, m); err != nil {
+		t.Fatal(err)
+	}
+	stable := filepath.Join(m.home, ".local", "bin", "kttn")
+	plist, _ := os.ReadFile(m.service.Path())
+	settings, _ := os.ReadFile(claudehooks.SettingsPath())
+	if !strings.Contains(string(plist), stable) || strings.Contains(string(plist), "node_modules") {
+		t.Fatalf("service points into npm's tree:\n%s", plist)
+	}
+	if strings.Contains(string(settings), "node_modules") {
+		t.Fatalf("hooks point into npm's tree:\n%s", settings)
+	}
+}

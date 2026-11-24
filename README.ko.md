@@ -104,6 +104,10 @@ kttn은 macOS와 Linux(arm64, x86-64)에서 돕니다. **Windows는 지원하지
   괜찮습니다. kttn은 처음 실행할 때 바이너리를 받습니다. 설치할 때 바로 받으려면
   `--allow-scripts=@hgwk/kttn`을 붙이세요.
 
+  설정은 바이너리를 `~/.local/bin/kttn`으로 복사해 훅과 자동 시작이 npm 업데이트에도
+  끊기지 않게 합니다. `npm update -g @hgwk/kttn` 뒤에는 `kttn`을 한 번 더 실행해
+  새 버전으로 바꾸세요.
+
 - **GitHub Releases**: https://github.com/hgwk/kttn/releases 에서
   `kttn_<version>_<os>_<arch>.tar.gz`를 받아 `SHA256SUMS`로 확인하고, `kttn`을
   PATH에 있는 폴더에 둡니다.
