@@ -24,6 +24,7 @@ import { lang, t } from "@/i18n"
 import { OfficeSettingsContext, useOfficeSettings } from "@/office/office-settings"
 import { PropPalette } from "@/office/props-palette"
 import { usePetting } from "@/office/petting"
+import { useDanceKeys } from "@/office/dance"
 import { CatBook } from "@/office/cat-book"
 import { useCatalog } from "@/office/catalog"
 import { OfficePaper } from "@/office/office-paper"
@@ -74,6 +75,8 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
   const [full, setFull] = useState(false)
   // 집사가 곁에 선 고양이를 스페이스로 쓰다듬은 오늘 횟수(petting.ts)
   const pets = usePetting()
+  // 비밀 키(위 위 아래 아래 왼 오 왼 오 B A)로 고양이들이 춤춘다(dance.ts).
+  useDanceKeys()
   // 서버 도감(하루 집계를 읽는다). 도감 창이 읽어 와 넣는다.
   const catalog = useCatalog()
 

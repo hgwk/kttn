@@ -30,6 +30,8 @@ import {
 import { usePixelLoop } from "@/office/use-pixel-loop"
 import { type SessionAgent } from "@/lib/agent-office"
 import { recentMoment } from "@/lib/agent-office-acts"
+import { danceStep } from "@/lib/agent-office-dance"
+import { dancing } from "@/office/dance"
 import { useTowerNearby } from "@/office/use-tower"
 
 /**
@@ -126,8 +128,11 @@ export function OfficeCanvas({
       const tie = familyColor(agent.family)
       const coat = coatFor(agent.key)
       if (!gone && !away) {
-        const hop =
-          agent.state === "needs_you" && !walking
+        // 비밀 키를 누르면 걷지 않는 고양이들이 잠깐 춤춘다(dance.ts).
+        const dance = !walking && dancing(t) ? danceStep(t) : null
+        const hop = dance
+          ? dance.hop
+          : agent.state === "needs_you" && !walking
             ? Math.abs(Math.round(Math.sin(t / 160) * 2))
             : 0
         drawCat(
@@ -136,18 +141,20 @@ export function OfficeCanvas({
           walker.y - hop,
           coat,
           tie,
-          walking
-            ? "walk"
-            : // 쉬는 동료 곁에 같이 엎드려 잔다(쉬는 고양이끼리 만남).
-              walker.visit?.nap
-              ? "sleep"
-              : visited.has(agent.key)
-                ? "alert"
-                : // 오류로 멈추면 X자 눈으로 고개를 숙인다(조는 고양이와 구분).
-                  agent.trouble
-                  ? "dizzy"
-                  : idlePose(agent, nowRef.current, towerRef.current, seated),
-          walking ? walker.dir : "front",
+          dance
+            ? dance.pose
+            : walking
+              ? "walk"
+              : // 쉬는 동료 곁에 같이 엎드려 잔다(쉬는 고양이끼리 만남).
+                walker.visit?.nap
+                ? "sleep"
+                : visited.has(agent.key)
+                  ? "alert"
+                  : // 오류로 멈추면 X자 눈으로 고개를 숙인다.
+                    agent.trouble
+                    ? "dizzy"
+                    : idlePose(agent, nowRef.current, towerRef.current, seated),
+          dance ? dance.dir : walking ? walker.dir : "front",
           t
         )
         const visit = walker.visit
