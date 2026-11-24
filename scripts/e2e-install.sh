@@ -57,6 +57,25 @@ if [ "$(command -v launchctl)" != "$T/stub/launchctl" ] || [ "$(command -v syste
 fi
 pass "isolation: temp HOME, CLAUDE_CONFIG_DIR, KTTN_CONFIG/STATE, npm dirs, stub launchctl first on PATH"
 
+# Right after a release the registry lags a few minutes; testing the old
+# latest against this checkout's checks would fail for no real reason. So
+# latest is pinned to the version npm serves once it has caught up.
+if [ "$WANT" = latest ]; then
+  CHECKOUT=$(json "$REPO/package.json" 'd.version' | tr -d '"')
+  older() { node -e 'const [a,b]=process.argv.slice(1).map(v=>v.split(".").map(Number));process.exit((a[0]-b[0]||a[1]-b[1]||a[2]-b[2])<0?0:1)' "$1" "$2"; }
+  for i in $(seq 1 20); do
+    NPM_LATEST=$(npm view @hgwk/kttn version 2>/dev/null)
+    [ -n "$NPM_LATEST" ] && ! older "$NPM_LATEST" "$CHECKOUT" && break
+    echo "      npm latest is ${NPM_LATEST:-unknown} but the checkout is $CHECKOUT (registry lag?); retry $i/20 in 30s"
+    sleep 30
+  done
+  if [ -z "$NPM_LATEST" ] || older "$NPM_LATEST" "$CHECKOUT"; then
+    echo "REFUSE: npm latest (${NPM_LATEST:-unknown}) is older than the checkout ($CHECKOUT); run again later, or pass a version or local" >&2
+    exit 1
+  fi
+  WANT=$NPM_LATEST
+fi
+
 # --- install: the one-command setup -----------------------------------------
 # settings.json is a symlink into a dotfiles folder, as many people keep it.
 mkdir -p "$T/dotfiles"
