@@ -75,7 +75,8 @@ export function OfficeSounds({
     const fresh = levels
       .map((entry) => `${entry.key}@${entry.at}`)
       .filter((id) => !heard.current.has(id))
-    for (const id of fresh) heard.current.add(id)
+    // 지금 목록에 있는 것만 남긴다(탭을 오래 열어 둬도 쌓이지 않게).
+    heard.current = new Set(levels.map((entry) => `${entry.key}@${entry.at}`))
     const cues = soundCues(
       prev.current,
       agents,
@@ -89,44 +90,69 @@ export function OfficeSounds({
 
   const toggle = () => {
     const next = !on
+    // 소리는 사용자가 누른 순간에만 열 수 있다(자동 재생 막기). 이 브라우저가
+    // 소리를 못 내면 켜지 않는다.
+    if (next) {
+      try {
+        audio.current ??= new AudioContext()
+      } catch {
+        return
+      }
+      const ctx = audio.current
+      void ctx.resume().then(() => play(ctx, "done", 0))
+    }
     setOn(next)
     try {
       localStorage.setItem(STORE, next ? "on" : "off")
     } catch {
       // 저장소를 못 쓰면 이 탭에서만 켠다.
     }
-    // 소리는 사용자가 누른 순간에만 열 수 있다(자동 재생 막기).
-    if (next) {
-      audio.current ??= new AudioContext()
-      void audio.current.resume().then(() => {
-        if (audio.current) play(audio.current, "done", 0)
-      })
-    }
   }
 
-  // 켜 둔 채 새로 열면 첫 클릭이나 키 입력 때 소리를 연다.
+  // 켜 둔 채 새로 열면 클릭이나 키 입력 때 소리를 연다. Esc나 수식키처럼
+  // 브라우저가 사용자 동작으로 치지 않는 입력이면 열리지 않으므로, 열릴
+  // 때까지 다음 입력에서 다시 해 본다.
   useEffect(() => {
     if (!on) return
     const wake = () => {
-      audio.current ??= new AudioContext()
-      void audio.current.resume()
+      try {
+        audio.current ??= new AudioContext()
+      } catch {
+        return
+      }
+      const ctx = audio.current
+      void ctx.resume().then(() => {
+        if (ctx.state === "running") stop()
+      })
     }
-    window.addEventListener("pointerdown", wake, { once: true })
-    window.addEventListener("keydown", wake, { once: true })
-    return () => {
+    const stop = () => {
       window.removeEventListener("pointerdown", wake)
       window.removeEventListener("keydown", wake)
     }
+    if (audio.current?.state === "running") return
+    window.addEventListener("pointerdown", wake)
+    window.addEventListener("keydown", wake)
+    return stop
   }, [on])
+
+  // 화면을 떠나면 소리 장치를 닫는다(다시 열 때 쌓이지 않게).
+  useEffect(
+    () => () => {
+      void audio.current?.close()
+      audio.current = null
+    },
+    []
+  )
 
   return (
     <button
       type="button"
       className={TOOL_BUTTON}
+      // 켜졌는지는 눌림 상태(빨간 바탕)로 알린다.
       aria-pressed={on}
       onClick={toggle}
     >
-      {on ? t("sound.on") : t("sound.off")}
+      {t("sound.label")}
     </button>
   )
 }
