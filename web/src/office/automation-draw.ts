@@ -54,8 +54,8 @@ function drawStation(
   t: number
 ) {
   const { x, y } = stationSpot(index)
-  drawItem(ctx, "darkDesk", x - 15, y + 12)
-  drawItem(ctx, "monitor", x - 8, y + 1)
+  drawItem(ctx, "darkDesk", x - 16, y + 13)
+  drawItem(ctx, "monitor", x - 9, y + 2)
   const sx = x - 6
   const sy = y + 3
   if (automation.state === "running") {

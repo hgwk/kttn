@@ -71,10 +71,10 @@ export function DeskOverlays({
           agentKey={agent.key}
           name={names.get(agent.key) ?? agent.sessionShort}
           style={{
-            left: `${((seat.x - 15) / layout.w) * 100}%`,
+            left: `${((seat.x - 16) / layout.w) * 100}%`,
             top: `${((seat.y - 8) / layout.h) * 100}%`,
-            width: `${(30 / layout.w) * 100}%`,
-            height: `${(27 / layout.h) * 100}%`,
+            width: `${(32 / layout.w) * 100}%`,
+            height: `${(26 / layout.h) * 100}%`,
           }}
         />
       )

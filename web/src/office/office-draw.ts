@@ -96,7 +96,7 @@ export function drawChair(
   index: number
 ) {
   const { x, y } = seatFor(layout, index)
-  drawItem(ctx, "chair", x + CAT_DX - 6, y - 6)
+  drawItem(ctx, "chair", x + CAT_DX - 7, y - 5)
 }
 
 export function drawDesk(
@@ -107,9 +107,9 @@ export function drawDesk(
   t: number
 ) {
   const { x, y } = seatFor(layout, index)
-  drawItem(ctx, "desk", x - 15, y + 4)
-  drawItem(ctx, "keyboard", x + CAT_DX - 7, y + 6)
-  drawMonitorBack(ctx, x - 15, y - 3, ledColor(state, t))
+  drawItem(ctx, "desk", x - 16, y + 4)
+  drawItem(ctx, "keyboard", x + CAT_DX - 6, y + 6)
+  drawMonitorBack(ctx, x - 16, y - 2, ledColor(state, t))
 }
 
 // 모니터는 고양이 쪽을 보고 있어 보는 사람에게는 뒷면이 보인다. 뒷면 그림 위에
@@ -121,7 +121,7 @@ function drawMonitorBack(
   led: string | null
 ) {
   drawItem(ctx, "monitorBack", mx, my)
-  if (led) rect(ctx, mx + 12, my + 6, 2, 1, led)
+  if (led) rect(ctx, mx + 13, my + 8, 2, 1, led)
 }
 
 // 뒷면 LED로 하는 일을 보인다. 확인 필요와 명령 실행은 깜빡인다.

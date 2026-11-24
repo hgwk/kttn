@@ -24,8 +24,10 @@ it commercially freely.") The font's own name table also gives its copyright as
 
 ## Sprites
 
-**Under review.** The cats, furniture, office tiles and app icon in
-`web/src/office/sprite-art/` are pixel art drawn on character grids. An earlier
-version of the office used a third-party asset pack; whether any current grid
-was converted or traced from it is being checked. This section will be updated
-with the answer.
+The cats, furniture, office tiles and app icon in `web/src/office/sprite-art/`
+are original pixel art, drawn for this project on character grids. The first
+version of the office used PNGs from a third-party asset pack; those were
+removed and replaced with these grids, and the desk, dark desk, monitor,
+monitor back, keyboard and chair, the pieces that might have carried that
+pack's influence, were later redrawn from scratch at new sizes and shapes. No
+external art is included.
