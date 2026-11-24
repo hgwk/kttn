@@ -1,4 +1,4 @@
-import { t } from "@/i18n"
+import { t, type MessageKey } from "@/i18n"
 import { useEffect, useRef, useState } from "react"
 
 import { useCatNames } from "@/office/cat-names"
@@ -8,33 +8,28 @@ import { coatFor, drawCat } from "@/office/sprites"
 import type { SessionAgent } from "@/lib/agent-office"
 import { baseCatName, levelFor } from "@/lib/agent-office-names"
 import { apiFetch } from "@/lib/screen-key"
+import { titlesFor, type TitleId } from "@/lib/agent-office-titles"
+import {
+  setCatalog,
+  useCatalog,
+  type Catalog,
+  type CatRecord,
+} from "@/office/catalog"
 
 // 고양이 도감. 서버가 남긴 세션 기록(/api/cats: 처음 본 날, 마지막으로 본 날,
 // 누적 도구 수, 처음 붙은 이름)으로 퇴근한 고양이까지 보인다. 고양이 이름은
 // 화면이 정하므로(보이는 고양이끼리 겹치지 않게) 처음 본 이름을 서버에 알려
 // 남긴다. 서버에 도감이 없으면(이전 판) 버튼을 숨긴다.
 
-type CatRecord = {
-  key: string
-  source: string
-  project: string
-  folder: string
-  model: string
-  /** 세션 이름(work-eb 같은 것, 최근 값) */
-  session_name: string
-  /** 처음 붙은 고양이 이름(화면이 알려 준 값). 없으면 빈 문자열 */
-  cat_name: string
-  first_seen: string
-  last_seen: string
-  tools: number
-}
-
-async function loadCats(): Promise<CatRecord[] | null> {
+async function loadCats(): Promise<Catalog | null> {
   try {
     const response = await apiFetch("/api/cats", { cache: "no-store" })
     if (!response.ok) return null
-    const body = (await response.json()) as { cats?: CatRecord[] }
-    return Array.isArray(body.cats) ? body.cats : null
+    const body = (await response.json()) as Partial<Catalog>
+    if (!Array.isArray(body.cats)) return null
+    const peak = body.peak
+    const valid = peak && typeof peak.count === "number"
+    return { cats: body.cats, peak: valid ? peak : undefined }
   } catch {
     return null
   }
@@ -60,6 +55,20 @@ function CatPicture({ record }: { record: CatRecord }) {
   )
 }
 
+/** 도감 카드의 칭호 줄 */
+function TitleChips({ ids }: { ids: TitleId[] }) {
+  if (!ids.length) return null
+  return (
+    <p className="flex flex-wrap gap-0.5">
+      {ids.map((id) => (
+        <span key={id} className="bg-amber-300 px-0.5 text-[10px]">
+          {t(`title.${id}` as MessageKey)}
+        </span>
+      ))}
+    </p>
+  )
+}
+
 // 서버 시각은 UTC라 이 컴퓨터 날짜로 바꿔 보인다(YYYY-MM-DD).
 const day = (iso: string) => {
   const date = new Date(iso)
@@ -69,7 +78,8 @@ const day = (iso: string) => {
 /** 안내 줄의 도감 버튼과 도감 창 */
 export function CatBook({ agents }: { agents: SessionAgent[] }) {
   const names = useCatNames()
-  const [cats, setCats] = useState<CatRecord[] | null>(null)
+  const catalog = useCatalog()
+  const cats = catalog?.cats ?? null
   const [open, setOpen] = useState(false)
   // 이미 서버에 이름을 알린 세션
   const told = useRef(new Set<string>())
@@ -95,7 +105,7 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
       })
       if (response.ok) {
         told.current.clear()
-        setCats(await loadCats())
+        setCatalog(await loadCats())
       }
     } catch {
       // 다음 새로 고침에 다시 읽는다.
@@ -104,7 +114,8 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
 
   useEffect(() => {
     let live = true
-    const refresh = () => void loadCats().then((list) => live && setCats(list))
+    const refresh = () =>
+      void loadCats().then((next) => live && setCatalog(next))
     refresh()
     const timer = window.setInterval(refresh, open ? 5_000 : 60_000)
     return () => {
@@ -160,6 +171,15 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
           <header className="flex items-center justify-between bg-[#2b2a36] px-2 py-1 text-[#f7f2e8]">
             <h3 id="cat-book-title" className="text-xs">
               {t("book.title", { n: cats.length })}
+              {/* 사무실 기록: 동시에 일한 고양이 수의 최고 */}
+              {catalog?.peak?.count ? (
+                <span className="ml-2 opacity-80">
+                  {t("book.peak", {
+                    n: catalog.peak.count,
+                    date: day(catalog.peak.at),
+                  })}
+                </span>
+              ) : null}
             </h3>
             <button
               type="button"
@@ -203,6 +223,16 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
                       {" | "}
                       {t("book.first", { date: day(cat.first_seen) })}
                     </p>
+                    <TitleChips
+                      ids={titlesFor(
+                        {
+                          tools: cat.tools,
+                          firstSeen: cat.first_seen,
+                          nightOwl: cat.night_owl,
+                        },
+                        Date.now()
+                      )}
+                    />
                     <p
                       className={
                         working.has(cat.key) ? "text-emerald-700" : "opacity-60"

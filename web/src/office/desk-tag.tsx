@@ -1,4 +1,4 @@
-import { t } from "@/i18n"
+import { t, type MessageKey } from "@/i18n"
 import {
   familyColor,
   seatFor,
@@ -6,6 +6,8 @@ import {
 } from "@/office/office-draw"
 import { levelFor, peerTag, type SessionAgent } from "@/lib/agent-office"
 import { modelLabel } from "@/lib/agent-office-acts"
+import { titlesFor } from "@/lib/agent-office-titles"
+import { useCatRecord } from "@/office/catalog"
 
 /**
  * 책상 앞 이름표. 고양이 이름(세션들이 부르는 이름), 레벨, 할 일 수를 단다.
@@ -23,6 +25,16 @@ export function DeskTag({
   index: number
 }) {
   const seat = seatFor(layout, index)
+  const record = useCatRecord(agent.key)
+  const titles = titlesFor(
+    {
+      tools: Math.max(agent.toolCount, record?.tools ?? 0),
+      firstSeen: record?.first_seen,
+      nightOwl: record?.night_owl,
+    },
+    Date.now()
+  )
+  const top = titles[0]
   return (
     <span
       aria-hidden="true"
@@ -46,6 +58,17 @@ export function DeskTag({
       <span className="ml-1 opacity-80">
         Lv.{levelFor(agent.toolCount).level}
       </span>
+      {/* 가장 높은 칭호 하나(도감 기록과 지금 도구 수로, 전부는 도감에) */}
+      {top ? (
+        <span
+          title={titles
+            .map((id) => t(`title.${id}` as MessageKey))
+            .join(", ")}
+          className="pointer-events-auto ml-1 bg-amber-300 px-0.5 text-[#2b2a36]"
+        >
+          {t(`title.${top}` as MessageKey)}
+        </span>
+      ) : null}
       {/* 세션이 만든 할 일. 마우스를 올리면 목록이 보인다. */}
       {agent.tasks.length ? (
         <span
