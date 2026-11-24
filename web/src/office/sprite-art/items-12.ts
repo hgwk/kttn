@@ -46,7 +46,7 @@ export const ITEMS_12 = {
     ".kkkkkkkkkkk",
     "kSSSSSSSSSk.",
     "kkkkkkkkkkk.",
-    ".k8888888888",
+    ".k888888888k",
     ".kkkkkkkkkkk",
     "kFFFFFFFFFFk",
     "kkkkkkkkkkkk",
@@ -74,7 +74,7 @@ export const ITEMS_12 = {
     "kNwwwNkFwwwFkSwwwSk",
     "kNNNNNkFFFFFkSSSSSk",
     "kNNNNNkFFFFFkSSSSSk",
-    "kJJJJJkHHHHHk33333k",
+    "kUUUUUkHHHHHk33333k",
     "kkkkkkkkkkkkkkkkkkk",
   ],
 } satisfies Record<string, Grid>

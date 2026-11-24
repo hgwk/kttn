@@ -44,7 +44,7 @@ export const ITEMS_6 = {
     "kkk.k000000k",
     "....kkkkkkkk",
   ],
-  // 고양이 집. 호두나무 세모 지붕 아래 둥근 문, 안은 어둡다.
+  // 고양이 집. 호두나무 세모 지붕 아래 네모난 문, 안은 어둡다.
   catHouse: [
     ".......kk.......",
     "......kddk......",
@@ -88,7 +88,7 @@ export const ITEMS_6 = {
     ".kEk..........kEk.",
     ".kkk..........kkk.",
   ],
-  // 라디에이터. 회색 방열판 여섯 줄과 밸브.
+  // 라디에이터. 회색 방열판 일곱 줄과 빨간 밸브.
   radiator: [
     ".kkkkkkkkkkkkkk.",
     "kgkgkgkgkgkgkgGk",

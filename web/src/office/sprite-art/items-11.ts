@@ -63,7 +63,7 @@ export const ITEMS_11 = {
     "kNkqxSxqxSxqkNk",
     "kNkxqxqxqxqxkNk",
     "kNkkkkkkkkkkkNk",
-    "kJJJJJJJJJJJJJk",
+    "kUUUUUUUUUUUUUk",
     ".kkkkkkkkkkkkk.",
   ],
   // 고양이 화장실. 회색 통 안에 모래, 옆에 삽.

@@ -1,6 +1,6 @@
 import type { Grid } from "./palette"
 
-// 가구와 기기 5/5. 소품 팔레트로 놓는 벽 장식과 바닥 소품. sprite-data.ts가
+// 가구와 기기 5. 소품 팔레트로 놓는 벽 장식과 바닥 소품. sprite-data.ts가
 // 합쳐 ITEMS로 낸다.
 export const ITEMS_5 = {
   // 벽 달력. 고리 둘에 빨간 머리띠, 날짜 칸 가운데 오늘만 빨갛다.
@@ -69,7 +69,7 @@ export const ITEMS_5 = {
     "kNNkxSxxSxkNNk",
     "kNNkkkkkkkkNNk",
     "kNNNNNNNNNNNNk",
-    "kJJJJJJJJJJJJk",
+    "kUUUUUUUUUUUUk",
     "kkkkkkkkkkkkkk",
   ],
   // 산세베리아. 칼처럼 곧게 선 잎 다섯 장, 키 큰 화분.

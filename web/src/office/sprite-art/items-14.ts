@@ -48,7 +48,7 @@ export const ITEMS_14 = {
   catHammock: [
     "kk..............kk",
     "kbk....k..k....kbk",
-    "kbkk..kfkkfk..kkbk",
+    "kbkk..knkknk..kkbk",
     "kbk.kkkkkkkkkk.kbk",
     "kbk.k88888888k.kbk",
     "kbk..k888888k..kbk",

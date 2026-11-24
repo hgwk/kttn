@@ -84,7 +84,7 @@ export const ITEMS_9 = {
   // 쌓인 상자. 테이프 붙인 골판지 상자 셋, 맨 위에 고양이 귀가 빼꼼.
   boxStack: [
     "......k...k.....",
-    ".....kfk.kfk....",
+    ".....knk.knk....",
     "...kkkkkkkkkkk..",
     "...k333w33334k..",
     "...k333w33334k..",
@@ -116,7 +116,7 @@ export const ITEMS_9 = {
     "......kbk.....",
     ".kkkkkkkkkkkk.",
     "kNNNNNNNNNNNNk",
-    ".kJJJJJJJJJJk.",
+    ".kUUUUUUUUUUk.",
     "..kkkkkkkkkk..",
   ],
   // 튤립 화분. 빨강·노랑·분홍 꽃 셋과 곧은 줄기.

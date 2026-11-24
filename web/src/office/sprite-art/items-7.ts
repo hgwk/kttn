@@ -89,7 +89,7 @@ export const ITEMS_7 = {
     "kEEkNkNNkNNkNNkNNk.",
     "kEEkNkNNkNNkNNkNNk.",
     "kEEkNkNNkNNkNNkNNk.",
-    ".kkJJkJJkJJkJJkJJk.",
+    ".kkUUkUUkUUkUUkUUk.",
     "..kkkkkkkkkkkkkkk..",
   ],
   // 사료 포대. 위를 접은 골판지색 포대에 생선 그림과 이름표.

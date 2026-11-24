@@ -85,7 +85,7 @@ export const ITEMS_13 = {
     "kqkqkqkqk",
     "kkkkkkkkk",
     "kwwwwwwgk",
-    "kww0wwwgk",
+    "kwwFwwwgk",
     "kwwwwwwgk",
     "kwqqqqwgk",
     "kwqqqqwgk",

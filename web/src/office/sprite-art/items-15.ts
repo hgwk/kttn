@@ -36,17 +36,17 @@ export const ITEMS_15 = {
     ".kgggggk",
     ".kkkkkkk",
   ],
-  // 회의 탁자. 길쭉한 흰 위판 위 서류와 물컵, 짧은 다리 둘.
+  // 회의 탁자(34칸, 책상보다 길다). 흰 위판 위 서류와 물컵, 짧은 다리 둘.
   meetingTable: [
-    "...kkkk....kk.....kk...",
-    "...kwqwk..kWWk...kwwk..",
-    "kkkkkkkkkkkkkkkkkkkkkkk",
-    "kwwwwwwwwwwwwwwwwwwwwgk",
-    "kggggggggggggggggggggGk",
-    "kkkkkkkkkkkkkkkkkkkkkkk",
-    "..kGk.............kGk..",
-    "..kGk.............kGk..",
-    ".kkkkk...........kkkkk.",
+    "...kkkk....kk................kk...",
+    "...kwqwk..kWWk..............kwwk..",
+    "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "kwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwgk",
+    "kgggggggggggggggggggggggggggggggGk",
+    "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
+    "..kGk........................kGk..",
+    "..kGk........................kGk..",
+    ".kkkkk......................kkkkk.",
   ],
   // 프로젝터 스크린. 세 다리 받침에 세운 흰 화면, 위에 말림통.
   projectorScreen: [
