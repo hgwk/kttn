@@ -9,6 +9,7 @@ import { ITEMS_1 } from "./sprite-art/items-1"
 import { ITEMS_2 } from "./sprite-art/items-2"
 import { ITEMS_3 } from "./sprite-art/items-3"
 import { ITEMS_4 } from "./sprite-art/items-4"
+import { ITEMS_5 } from "./sprite-art/items-5"
 
 export { BASE_PALETTE, INK } from "./sprite-art/palette"
 export type { CatKeys, Grid } from "./sprite-art/palette"
@@ -20,6 +21,12 @@ export { TILES } from "./sprite-art/tiles"
 export { clockAt } from "./sprite-art/clock"
 
 /** 가구와 기기. 이름별 그림이며 크기는 그림에서 읽는다. */
-export const ITEMS = { ...ITEMS_1, ...ITEMS_2, ...ITEMS_3, ...ITEMS_4 }
+export const ITEMS = {
+  ...ITEMS_1,
+  ...ITEMS_2,
+  ...ITEMS_3,
+  ...ITEMS_4,
+  ...ITEMS_5,
+}
 
 export type ItemName = keyof typeof ITEMS
