@@ -66,8 +66,9 @@ function subscribe(listener: () => void) {
 }
 
 const snap = (value: number) => Math.round(value / GRID) * GRID
+// 칸 끝에 닿으면 칸 경계로 붙이되, 서버는 정수만 받으므로 반올림한다.
 const clamp = (value: number, lo: number, hi: number) =>
-  Math.min(Math.max(value, lo), hi)
+  Math.round(Math.min(Math.max(value, lo), hi))
 
 /**
  * 끌어서 옮길 수 있는 소품 하나. room·item이 저장 열쇠다. axis가 "x"면 좌우로만
