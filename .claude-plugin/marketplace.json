@@ -1,0 +1,17 @@
+{
+  "name": "kttn",
+  "owner": {
+    "name": "hgwk"
+  },
+  "plugins": [
+    {
+      "name": "kttn",
+      "version": "0.1.0",
+      "source": "./plugin",
+      "description": "Shows your Claude Code sessions as pixel cats in an office on this computer."
+    }
+  ],
+  "metadata": {
+    "description": "kttn: an office of pixel cats for your Claude Code sessions."
+  }
+}
