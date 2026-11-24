@@ -17,9 +17,11 @@ const (
 )
 
 // propOffset is how far a dragged prop sits from its default place, in px.
+// Hidden marks a prop the user threw away; omitted when false.
 type propOffset struct {
-	X int `json:"x"`
-	Y int `json:"y"`
+	X      int  `json:"x"`
+	Y      int  `json:"y"`
+	Hidden bool `json:"hidden,omitempty"`
 }
 
 // props is the layout people made by dragging lounge props and wall decor:
@@ -69,8 +71,9 @@ func (f *propsFile) save(p props) error {
 func parseProps(raw []byte) (props, bool) {
 	var body struct {
 		Rooms map[string]map[string]struct {
-			X *float64 `json:"x"`
-			Y *float64 `json:"y"`
+			X      *float64 `json:"x"`
+			Y      *float64 `json:"y"`
+			Hidden bool     `json:"hidden"`
 		} `json:"rooms"`
 	}
 	if json.Unmarshal(raw, &body) != nil || body.Rooms == nil {
@@ -90,7 +93,7 @@ func parseProps(raw []byte) (props, bool) {
 			if math.Abs(x) > maxPropOffset || math.Abs(y) > maxPropOffset {
 				return props{}, false
 			}
-			room[key] = propOffset{X: int(x), Y: int(y)}
+			room[key] = propOffset{X: int(x), Y: int(y), Hidden: at.Hidden}
 		}
 		out.Rooms[seed] = room
 	}

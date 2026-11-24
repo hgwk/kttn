@@ -52,6 +52,16 @@ func TestDraggedPropsAreSavedAndServedBack(t *testing.T) {
 	if body2 := get(h, "127.0.0.1:5886", "/api/props").Body.String(); body2 != body {
 		t.Fatalf("a refused PUT changed the layout: %s", body2)
 	}
+	if code := put(same, `{"rooms":{"wall":{"decor:0:clock":{"x":0,"y":0,"hidden":true},"decor:1:poster":{"x":4,"y":0,"hidden":false}}}}`); code != 204 {
+		t.Fatalf("hidden put: %d", code)
+	}
+	hidden := get(h, "127.0.0.1:5886", "/api/props").Body.String()
+	if !strings.Contains(hidden, `"decor:0:clock":{"x":0,"y":0,"hidden":true}`) || !strings.Contains(hidden, `"decor:1:poster":{"x":4,"y":0}`) {
+		t.Fatalf("hidden round trip: %s", hidden)
+	}
+	if code := put(same, `{"rooms":{"r":{"k":{"x":0,"y":0,"hidden":"yes"}}}}`); code != 400 {
+		t.Fatalf("non-bool hidden accepted: %d", code)
+	}
 	os.WriteFile(path, []byte("broken"), 0o600)
 	if body := get(h, "127.0.0.1:5886", "/api/props").Body.String(); strings.TrimSpace(body) != `{"rooms":{}}` {
 		t.Fatalf("broken file: %s", body)
