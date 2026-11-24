@@ -162,6 +162,7 @@ export function findPath(
  * 길(route)을 따라 pos를 한 걸음(step) 옮긴다. 가는 사이 소품을 옮기거나 책상이
  * 늘어 다음 자리에 설 수 없게 되면 지금 자리에서 끝 점까지 길을 다시 찾는다.
  * 다시 찾은 길도 없으면 route를 비운다(그 자리에서 도착한 것으로 친다).
+ * 길을 다시 찾았으면 true. 부르는 쪽은 연달아 다시 찾는 횟수를 세어 멈춘다.
  */
 export function stepRoute(
   map: WalkMap,
@@ -178,9 +179,10 @@ export function stepRoute(
   if (!canStand(map, x, y) && canStand(map, pos.x, pos.y)) {
     const again = findPath(map, pos, route[route.length - 1], CELL)
     route.splice(0, route.length, ...(again ?? []))
-    return
+    return true
   }
   pos.x = x
   pos.y = y
   if (k === 1) route.shift()
+  return false
 }

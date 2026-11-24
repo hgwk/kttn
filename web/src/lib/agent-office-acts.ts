@@ -66,7 +66,7 @@ export function idleActivity(
   const hasTower = typeof tower === "boolean" ? tower : tower.tower
   const props = typeof tower === "boolean" ? 0 : tower.props
   // 졸 차례 셋 가운데 둘은 찾아갈 소품이 있으면 그 소품에 간다. 캣타워 차례와
-  // 다른 고양이 몫은 그대로라 캣타워 그림(tower-cats.tsx)과 어긋나지 않는다.
+  // 다른 고양이 몫은 그대로라 휴게 공간 그림(visit-cats.tsx)과 어긋나지 않는다.
   const visit = (act: IdleActivity): IdleActivity =>
     act === "doze" && props > 0 && fnv(`${agent.key}:${slot}:visit`) % 3 !== 0
       ? "prop"

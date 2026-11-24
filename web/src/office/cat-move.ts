@@ -63,7 +63,7 @@ function leave(walker: Walker, room: OfficeLayout, index: number) {
   } else {
     // 캣타워·소품에 가 있으면 먼저 돌아 나오게 둔다(advanceVisit이 되돌린다).
     if (visit.kind && visit.stage !== "back") return
-    walker.path = pathOut(visit.back[0], room)
+    walker.path = pathOut(visit.lane, room)
     walker.visit = undefined
   }
   walker.leaving = true

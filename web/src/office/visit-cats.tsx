@@ -8,9 +8,9 @@ import { OFFICE_SCALE } from "@/office/pixel"
 import type { VisitAction } from "@/office/props-catalog"
 import { coatFor, drawCat, type CatDir, type CatPose } from "@/office/sprites"
 import type { Spots } from "@/office/use-tower"
-import { trips } from "@/office/visit-sync"
+import { cutTrip, perchFor, spotFor, trips } from "@/office/visit-sync"
 import { type SessionAgent } from "@/lib/agent-office"
-import { idleActivity, propPick } from "@/lib/agent-office-acts"
+import { idleActivity } from "@/lib/agent-office-acts"
 
 // 휴게 공간에 나온 고양이. 쉬는 고양이가 캣타워에 올라앉거나 소품을 찾아가
 // 하는 일을 그린다. 책상 구역 그림판의 고양이가 아래 끝에 닿아 사라지면
@@ -81,6 +81,10 @@ function VisitCat({
   exit: () => DOMRect | undefined
 }) {
   const ref = useRef<HTMLCanvasElement>(null)
+  // 그리는 고리에서 읽는 지금 상태. 깨면 걸어 나가 돌아간다(그림판이 화면 밖이라
+  // 멈춰 있어도).
+  const awake = useRef(false)
+  awake.current = agent.state !== "sleeping"
   useEffect(() => {
     let frame = 0
     // 지금 옮겨 둔 만큼. 제자리를 잴 때 뺀다.
@@ -95,9 +99,7 @@ function VisitCat({
       if (
         trip?.kind !== kind ||
         t >= trip.until ||
-        t < trip.arrived ||
-        // 층이 모자라면(캣타워에 셋 이상) 올라가지 않는다.
-        (action === "perch" && perch >= PERCHES.length)
+        t < trip.arrived
       ) {
         el.style.visibility = "hidden"
         return
@@ -114,6 +116,7 @@ function VisitCat({
       const dist = Math.abs(dx) + Math.abs(dy)
       const walkMs = dist / OFFICE_SCALE / WALK_SPEED
       trip.outMs = walkMs
+      if (awake.current) cutTrip(trip, t)
       const into = t - trip.arrived
       const left = trip.until - t
       const done = walkMs ? Math.min(1, into / walkMs, left / walkMs) : 1
@@ -186,7 +189,6 @@ export function VisitCats({
 }) {
   const doors = useRef(new Map<string, HTMLElement>())
   const exits = useRef(new Map<string, () => DOMRect | undefined>())
-  let perched = 0
   return agents.map((agent, index) => {
     const trip = trips.get(agent.key)
     // 현황은 몇 초 늦게 오므로 나들이가 끝난 직후에도 잠깐 둔다.
@@ -201,12 +203,22 @@ export function VisitCats({
     if (kind === "tower") {
       spot = nearby.towerEl
       action = "perch"
-      perch = perched++
+      perch = perchFor(agent.key, now)
+      // 층이 모자라면(캣타워에 셋 이상) 올라가지 않고 돌아간다.
+      if (perch >= PERCHES.length) spot = undefined
     } else {
-      spot = nearby.spots[propPick(agent.key, now, nearby.spots.length)]
+      spot = nearby.spots[spotFor(agent.key, now, nearby.spots.length)]
       action = spot?.dataset.visit as VisitAction | undefined
     }
-    if (!spot || !action) return null
+    if (!spot || !action) {
+      // 나와 있는데 갈 곳이 없어졌으면(소품을 치움 등) 바로 돌아가게 한다.
+      // 그대로 두면 아무 데도 안 그려진 채 대사만 굳는다.
+      if (out && trip) {
+        cutTrip(trip, Date.now())
+        trip.shown = false
+      }
+      return null
+    }
     const end = pathsToTower(layout, index).go.at(-1) ?? { x: 0, y: 0 }
     let exit = exits.current.get(agent.key)
     if (!exit) {

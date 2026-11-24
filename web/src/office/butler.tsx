@@ -79,6 +79,7 @@ export function Butler({
     const map = () => readWalkMap(floor, latest.current.scale)
     // 고양이를 누르면 그 책상 앞까지 걸어갈 길과, 도착해서 할 일.
     let route: { x: number; y: number }[] = []
+    let reroutes = 0
     let arrive: (() => void) | null = null
     const bubble = sayRef.current
     let labelTimer = 0
@@ -170,7 +171,10 @@ export function Butler({
       // 다시 찾는다(butler-walk.ts의 stepRoute).
       if (route.length && !dx && !dy) {
         const next = route[0]
-        stepRoute(map(), pos, route, WALK_SPEED * dt)
+        // 다시 찾은 길의 첫 걸음도 막혀 제자리에서 맴돌면 거기서 멈춘다.
+        const again = stepRoute(map(), pos, route, WALK_SPEED * dt)
+        reroutes = again ? reroutes + 1 : 0
+        if (reroutes > 3) route = []
         dir = facing(pos, next)
         walking = true
         walkedMs += dt * 1000

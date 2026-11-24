@@ -25,7 +25,10 @@ export type Visit = {
    * 동안은 휴게 공간 쪽(visit-cats.tsx)이 그린다.
    */
   kind?: "tower" | "prop"
+  /** 돌아오는 길(걸으면서 줄지 않게 꺼낼 때마다 복사한다) */
   back: Point[]
+  /** 돌아오는 길 첫 점(줄 아래 통로). 나들이 중에 퇴근하면 여기서 문으로 간다. */
+  lane: Point
 }
 export type Walker = Point & {
   path: Point[]
@@ -121,7 +124,13 @@ export function startIdleWalk(
     walker.strolled = slot
     const paths = pathsToStroll(layout, index)
     walker.path = paths.go
-    walker.visit = { stage: "go", to: "", until: 0, back: paths.back }
+    walker.visit = {
+      stage: "go",
+      to: "",
+      until: 0,
+      back: paths.back,
+      lane: { ...paths.back[0] },
+    }
     return
   }
   if (activity !== "tower" && activity !== "prop") return
@@ -134,6 +143,7 @@ export function startIdleWalk(
     to: "",
     until: (slot + 1) * slotMs,
     back: paths.back,
+    lane: { ...paths.back[0] },
     kind: activity,
   }
 }
@@ -154,7 +164,7 @@ export function advanceVisit(
   const rest = agent?.state === "sleeping"
   if (visit.kind && agent && holdTrip(agent.key, visit, t, rest)) {
     visit.stage = "back"
-    walker.path = visit.back
+    walker.path = [...visit.back]
     return
   }
   if (visit.stage === "go" && walker.path.length === 0) {
@@ -163,14 +173,14 @@ export function advanceVisit(
     walker.dir = "left"
   } else if (visit.stage === "stay" && t >= visit.until) {
     visit.stage = "back"
-    walker.path = visit.back
+    walker.path = [...visit.back]
   } else if (visit.stage === "back" && walker.path.length === 0) {
     walker.visit = undefined
     return
   }
   if (visit.to && visit.stage !== "back" && !present(visit.to)) {
     visit.stage = "back"
-    walker.path = visit.back
+    walker.path = [...visit.back]
   }
 }
 
@@ -184,7 +194,13 @@ export function startVisit(
 ) {
   const paths = pathsToVisit(layout, from, to)
   walker.path = paths.go
-  walker.visit = { stage: "go", to: toKey, until: 0, back: paths.back }
+  walker.visit = {
+    stage: "go",
+    to: toKey,
+    until: 0,
+    back: paths.back,
+    lane: { ...paths.back[0] },
+  }
 }
 
 /** 캣타워나 소품에 가 있는 동안. 책상 구역에는 그리지 않는다(휴게 공간에 그린다). */
