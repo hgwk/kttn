@@ -15,20 +15,24 @@ const today = () => new Date().toLocaleDateString("sv")
 
 function read() {
   if (cached?.day === today()) return cached
-  let saved: { day?: string; n?: number } = {}
+  // 저장된 값은 손으로 고치거나 다른 판이 남겼을 수 있으므로 모양을 확인한다
+  // ("null"이나 숫자가 아닌 n이면 0부터).
+  let saved: { day?: unknown; n?: unknown } = {}
   try {
-    saved = JSON.parse(localStorage.getItem(STORE) ?? "{}")
+    const value: unknown = JSON.parse(localStorage.getItem(STORE) ?? "{}")
+    if (value && typeof value === "object") saved = value
   } catch {
     // 저장소를 못 쓰면 이 탭에서만 센다.
   }
-  cached = {
-    day: today(),
-    n: saved.day === today() && typeof saved.n === "number" ? saved.n : 0,
-  }
+  const n = saved.n
+  const valid = typeof n === "number" && Number.isInteger(n) && n >= 0
+  cached = { day: today(), n: saved.day === today() && valid ? n : 0 }
   return cached
 }
 
 function bump() {
+  // 다른 탭이 센 것까지 이어 세도록 저장소에서 다시 읽는다.
+  cached = null
   const next = { day: today(), n: read().n + 1 }
   cached = next
   try {
@@ -107,7 +111,8 @@ function nearCat() {
   for (const speech of document.querySelectorAll<HTMLElement>(
     "[data-cat-speech]"
   )) {
-    if (speech.hidden) continue
+    // 숨긴 상자(만남 중인 쪽)와 퇴근한 고양이(빈 책상)는 뺀다.
+    if (speech.hidden || speech.dataset.ended !== undefined) continue
     // 대사 상자 아래 끝이 고양이 머리라 그보다 조금 아래를 고양이 자리로 본다.
     const r = speech.getBoundingClientRect()
     const distance = Math.hypot(
@@ -132,6 +137,9 @@ export function usePetting() {
       if (event.key !== " " || event.repeat) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
       if (typing(event.target)) return
+      // 키보드로 버튼(책상, 말풍선 등)에 가 있으면 스페이스는 그 버튼을 누른다.
+      const target = event.target as Element | null
+      if (target?.closest?.("button, a, [role=button]")) return
       const speech = nearCat()
       if (!speech) return
       event.preventDefault()

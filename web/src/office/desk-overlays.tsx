@@ -57,6 +57,8 @@ export function DeskOverlays({
           // 바닥 끝 밖으로 나가지 않고 위로만 길어진다.
           data-cat-speech=""
           data-speech-for={agent.key}
+          // 퇴근한 고양이(쓰다듬기에서 뺀다, petting.ts)
+          data-ended={agent.state === "ended" ? "" : undefined}
           // 쉬는 동료가 곁에 찾아와 있는 동안은 찾아온 고양이 대사만 보인다
           // (두 상자가 겹친다. 찾아온 쪽이 둘 다를 말한다).
           hidden={met.get(agent.key)?.host && met.get(agent.key)?.stay}
