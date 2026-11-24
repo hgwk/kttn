@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"time"
 
@@ -33,6 +34,7 @@ func runServe(args []string, stderr io.Writer) error {
 		Token:        cfg.Token,
 		StatePath:    server.StatePath(),
 		EmbedOrigins: cfg.Embedders(),
+		PropsPath:    filepath.Join(filepath.Dir(config.Path()), "props.json"),
 		Focus:        func(pid int) error { return terminal.Focus(terminal.Exec, pid) },
 		Send: func(pid int, state, text string) error {
 			return terminal.Send(terminal.Exec, pid, state, text)

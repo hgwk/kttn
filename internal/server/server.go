@@ -39,6 +39,9 @@ type Options struct {
 	Send func(pid int, state, text string) error
 	// EmbedOrigins may show the office in an iframe; every other site may not.
 	EmbedOrigins []string
+	// PropsPath keeps where people dragged lounge props; empty keeps them
+	// nowhere (GET answers an empty layout, PUT is refused).
+	PropsPath string
 }
 
 // Snapshot is what the screen polls.
@@ -86,6 +89,11 @@ func New(opts Options) http.Handler {
 	})
 	mux.HandleFunc("POST /api/focus", focusHandler(opts))
 	mux.HandleFunc("POST /api/message", messageHandler(opts))
+	if opts.PropsPath != "" {
+		getProps, putProps := propsHandlers(&propsFile{path: opts.PropsPath})
+		mux.HandleFunc("GET /api/props", getProps)
+		mux.HandleFunc("PUT /api/props", putProps)
+	}
 	mux.Handle("GET /", staticHandler())
 	return withLoopback(withFrameAncestors(opts.EmbedOrigins, mux))
 }
