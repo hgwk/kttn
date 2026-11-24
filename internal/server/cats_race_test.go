@@ -16,7 +16,7 @@ func TestAClearRacingASaveLeavesTheCatalogEmpty(t *testing.T) {
 	for round := 0; round < 50; round++ {
 		path := filepath.Join(t.TempDir(), "cats.json")
 		b := newCatBook(path, time.Now)
-		b.record(office.Agent{Key: "claude|a", Source: "claude"})
+		b.record(office.Agent{Key: "claude|a", Source: "claude"}, 1)
 		var wg sync.WaitGroup
 		errs := make(chan error, 8)
 		for i := 0; i < 4; i++ {

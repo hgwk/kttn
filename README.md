@@ -96,8 +96,9 @@ session, in memory and in its local state file.
 **Cat catalog.** The server also remembers every session it saw, after it ends,
 in `~/.local/state/kttn/cats.json` (mode 600, next to the session state): the
 repository, folder, model and session names, the name the screen gave the cat,
-when it was first and last seen, and how many tools it used. Nothing else from
-the session is in it. It keeps the latest 1,000 cats seen within 90 days, and
+when it was first and last seen, how many tools it used, and whether it worked
+between midnight and 5 a.m.; plus the most sessions the office has had at once.
+Nothing else from the session is in it. It keeps the latest 1,000 cats seen within 90 days, and
 **Clear catalog** on the screen (pressed twice) empties it.
 
 ## Install

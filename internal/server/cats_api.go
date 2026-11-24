@@ -36,7 +36,7 @@ func catName(raw string) (string, bool) {
 func catsHandlers(b *catBook) (list, name, clear http.HandlerFunc) {
 	list = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
-		writeJSON(w, http.StatusOK, map[string][]cat{"cats": b.list()})
+		writeJSON(w, http.StatusOK, b.read())
 	}
 	name = func(w http.ResponseWriter, r *http.Request) {
 		if !screenAction(r) {

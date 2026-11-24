@@ -34,7 +34,25 @@ type cat struct {
 	FirstSeen string `json:"first_seen"`
 	LastSeen  string `json:"last_seen"`
 	Tools     int    `json:"tools"`
+	// NightOwl is set once the cat was seen at work between midnight and
+	// 05:00 on this computer's clock, and stays set.
+	NightOwl bool `json:"night_owl"`
 }
+
+// peak is the most cats at work at once, and when that was first reached.
+type peak struct {
+	Count int    `json:"count"`
+	At    string `json:"at"`
+}
+
+// catalog is the catalog file and the GET /api/cats answer.
+type catalog struct {
+	Cats []cat `json:"cats"`
+	Peak *peak `json:"peak,omitempty"`
+}
+
+// resting states are not work: night_owl counts only the others.
+var resting = map[string]bool{"idle": true, "done": true, "ended": true}
 
 // catBook is the catalog file: every session the office has seen, kept even
 // while no screen is open. Writes are gathered like the session state's.
@@ -43,6 +61,7 @@ type catBook struct {
 	now   func() time.Time
 	mu    sync.Mutex
 	cats  map[string]*cat
+	peak  *peak
 	timer *time.Timer
 	// saving lets one save run at a time: the timer's save and clear's
 	// share one temp file, and an older list written last would bring a
@@ -52,27 +71,30 @@ type catBook struct {
 
 func newCatBook(path string, now func() time.Time) *catBook {
 	b := &catBook{path: path, now: now, cats: map[string]*cat{}}
-	var saved struct {
-		Cats []cat `json:"cats"`
-	}
+	var saved catalog
 	if raw, err := os.ReadFile(path); err == nil && json.Unmarshal(raw, &saved) == nil {
 		for i := range saved.Cats {
 			if c := saved.Cats[i]; c.Key != "" {
 				b.cats[c.Key] = &c
 			}
 		}
+		if saved.Peak != nil && saved.Peak.Count > 0 {
+			b.peak = saved.Peak
+		}
 	}
 	b.prune()
 	return b
 }
 
-// record notes a session after an event. Headless runs are skipped: they
-// leave as soon as they end and would crowd everything else out.
-func (b *catBook) record(a office.Agent) {
+// record notes a session after an event, and live is how many sessions are
+// at the office right now. Headless runs are skipped: they leave as soon as
+// they end and would crowd everything else out.
+func (b *catBook) record(a office.Agent, live int) {
 	if a.Headless || a.Key == "" {
 		return
 	}
-	now := b.now().UTC().Format(timeForm)
+	clock := b.now()
+	now := clock.UTC().Format(timeForm)
 	b.mu.Lock()
 	c, ok := b.cats[a.Key]
 	if !ok {
@@ -87,8 +109,26 @@ func (b *catBook) record(a office.Agent) {
 		c.SessionName = a.Name
 	}
 	c.Tools = max(c.Tools, a.ToolCount)
+	if clock.Hour() < 5 && !resting[a.State] {
+		c.NightOwl = true
+	}
+	if b.peak == nil || live > b.peak.Count {
+		b.peak = &peak{Count: live, At: now}
+	}
 	b.mu.Unlock()
 	b.schedule()
+}
+
+// read is the whole catalog: the cats, the first seen first, and the peak.
+func (b *catBook) read() catalog {
+	b.mu.Lock()
+	var top *peak
+	if b.peak != nil && b.peak.Count > 0 {
+		p := *b.peak
+		top = &p
+	}
+	b.mu.Unlock()
+	return catalog{Cats: b.list(), Peak: top}
 }
 
 // list is every kept cat, the first seen first.
@@ -130,10 +170,11 @@ func (b *catBook) name(key, name string, replace bool) (cat, bool) {
 	return out, ok
 }
 
-// clear forgets every cat and writes the empty catalog at once.
+// clear forgets every cat and the peak, and writes the empty catalog at once.
 func (b *catBook) clear() error {
 	b.mu.Lock()
 	b.cats = map[string]*cat{}
+	b.peak = nil
 	b.mu.Unlock()
 	return b.save()
 }
@@ -196,7 +237,7 @@ func (b *catBook) save() error {
 		b.timer = nil
 	}
 	b.mu.Unlock()
-	raw, err := json.Marshal(map[string][]cat{"cats": b.list()})
+	raw, err := json.Marshal(b.read())
 	if err != nil {
 		return err
 	}

@@ -106,7 +106,7 @@ func New(opts Options) *Handler {
 		agent := opts.Store.Apply(event)
 		state.schedule()
 		if cats != nil {
-			cats.record(agent)
+			cats.record(agent, liveSessions(opts.Store))
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
 	})
@@ -142,6 +142,18 @@ func New(opts Options) *Handler {
 	}
 	mux.Handle("GET /", staticHandler())
 	return &Handler{Handler: withLoopback(withFrameAncestors(opts.EmbedOrigins, mux)), state: state, cats: cats}
+}
+
+// liveSessions counts the sessions at the office now: not gone home, not a
+// headless run.
+func liveSessions(store *office.Store) int {
+	n := 0
+	for _, a := range store.Snapshot() {
+		if a.State != "ended" && !a.Headless {
+			n++
+		}
+	}
+	return n
 }
 
 // reportBody admits a report from a local program (the hook)
