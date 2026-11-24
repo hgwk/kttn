@@ -10,6 +10,10 @@ import (
 // helps is what `kttn <command> --help` prints. Asking for help never runs
 // the command.
 var helps = map[string]string{
+	"setup": `kttn setup   (or just: kttn)
+  Set up everything in one go: ask for the office name and language (first run
+  only), hook Claude Code, start kttn serve at login and open the office.
+  Running it again keeps the settings and refreshes the hooks and the service.`,
 	"init": `kttn init [--yes] [--office-name NAME] [--lang ko|en|ja] [--port N] [--preview]
   Ask for the office settings and save them with a fresh token.
   --yes takes the flags and saved values without asking.`,
@@ -22,12 +26,13 @@ var helps = map[string]string{
   or $CLAUDE_CONFIG_DIR/settings.json). Keeps every other setting and hook and
   saves the previous file as settings.json.bak. Use this or the plugin, not both.`,
 	"uninstall": `kttn uninstall
-  Remove the kttn hook from Claude Code's user settings, leaving the rest.`,
+  Remove the kttn hook from Claude Code's user settings, leaving the rest, and
+  stop starting kttn serve at login. The config and session state stay.`,
 	"version": `kttn version
   Print the version.`,
 }
 
-var commandOrder = []string{"init", "serve", "hook", "install", "uninstall", "version"}
+var commandOrder = []string{"setup", "init", "serve", "hook", "install", "uninstall", "version"}
 
 func usage(w io.Writer) {
 	fmt.Fprintln(w, "usage:")

@@ -128,3 +128,25 @@ func TestThePluginRegistersTheSameEvents(t *testing.T) {
 		}
 	}
 }
+
+func TestAnAbsoluteKttnPathReplacesThePlainCommandAndBack(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+	Install(path)
+	cmd := CommandFor("/Users/me/.local/bin/kttn")
+	if cmd != "'/Users/me/.local/bin/kttn' hook" {
+		t.Fatalf("command %q", cmd)
+	}
+	InstallCommand(path, cmd)
+	stop := hooksOf(t, path)["Stop"]
+	if len(stop) != 1 || stop[0].Hooks[0].Command != cmd {
+		t.Fatalf("Stop %+v", stop)
+	}
+	if n, _ := Uninstall(path); n != len(Events) {
+		t.Fatalf("uninstall found %d", n)
+	}
+	for _, other := range []string{"kttn-helper hook", "/bin/notkttn hook", "kttn hooks"} {
+		if ours(other) {
+			t.Errorf("%q taken for ours", other)
+		}
+	}
+}

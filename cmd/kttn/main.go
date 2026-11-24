@@ -17,8 +17,7 @@ func main() {
 // prints that command's help and does nothing else.
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		usage(stderr)
-		return 2
+		args = []string{"setup"}
 	}
 	name, rest := args[0], args[1:]
 	if wantsHelp([]string{name}) {
@@ -37,14 +36,21 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return report(stderr, name, runServe(rest, stderr))
 	case "init":
 		return report(stderr, name, runInit(rest, stdin, stdout))
-	case "install", "uninstall":
+	case "setup", "install", "uninstall":
 		if len(rest) > 0 {
 			return report(stderr, name, fmt.Errorf("unexpected argument %q", rest[0]))
 		}
 		if name == "install" {
 			return report(stderr, name, runInstall(stdout))
 		}
-		return report(stderr, name, runUninstall(stdout))
+		m, err := newMachine()
+		if err != nil {
+			return report(stderr, name, err)
+		}
+		if name == "setup" {
+			return report(stderr, name, runSetup(stdin, stdout, m))
+		}
+		return report(stderr, name, runRemove(stdout, m))
 	case "version", "--version":
 		fmt.Fprintln(stdout, "kttn", version)
 		return 0
@@ -52,6 +58,9 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	usage(stderr)
 	return 2
 }
+
+// newMachine reaches the real computer; tests replace it.
+var newMachine = realMachine
 
 func report(stderr io.Writer, command string, err error) int {
 	if err != nil {

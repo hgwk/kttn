@@ -33,9 +33,23 @@ also carries the first 300 characters of the answer the session just finished,
 so the cat can say what it did. The server keeps only the latest one per
 session, in memory and in its local state file.
 
+## Quick start
+
+```sh
+npx @hgwk/kttn
+```
+
+That one command asks for an office name and a language, hooks Claude Code,
+starts the office at login (a LaunchAgent on macOS, a systemd user service on
+Linux) and opens it in your browser. Run it again any time: it keeps your
+settings and refreshes the hooks and the login service. `kttn uninstall`
+takes the hooks and the login service out again.
+
+kttn runs on macOS and Linux (arm64 and x86-64). **Windows is not supported.**
+
 ## Install
 
-kttn runs on macOS and Linux (arm64 and x86-64). Pick one:
+To install it yourself instead, pick one:
 
 - **npm** (puts `kttn` on your PATH; downloads the binary for your platform
   from GitHub Releases and checks its SHA-256):
@@ -56,7 +70,7 @@ kttn runs on macOS and Linux (arm64 and x86-64). Pick one:
   go build -o ~/.local/bin/kttn ./cmd/kttn             # any folder on your PATH
   ```
 
-Then set it up and start the office:
+Then run `kttn` (the same setup as the quick start), or do it by hand:
 
 ```sh
 kttn init    # office name, language, port, answer preview; writes ~/.config/kttn/config.json
@@ -94,10 +108,12 @@ worktree creation.
 
 | Command | What it does |
 | --- | --- |
+| `kttn` or `kttn setup` | One-command setup: office name and language on the first run, Claude Code hooks, start at login, open the office. |
 | `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
 | `kttn serve [--port N]` | Runs the office on `127.0.0.1`. |
 | `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. |
-| `kttn install` / `kttn uninstall` | Adds or removes the hook in Claude Code's user settings, for use without the plugin. |
+| `kttn install` | Adds the hook to Claude Code's user settings, for use without the plugin. |
+| `kttn uninstall` | Removes the hook and stops starting the office at login. The config and session state stay. |
 | `kttn version` | Prints the version. |
 
 Config lives in `~/.config/kttn/config.json` (mode 600; `KTTN_CONFIG` moves
@@ -141,6 +157,11 @@ Hook reports (`/api/events`) must be JSON, must carry the token,
 and must not carry an `Origin` header, so a web page in your browser cannot forge
 sessions. Screen actions (`/api/focus`, `/api/message`) must be JSON from a page
 on the same address, so another site cannot type into your terminal.
+
+Only the office itself and the pages listed in `embed_origins` in the config
+may show the office in an iframe (`frame-ancestors`). The default list is
+`http://127.0.0.1:3000` and `http://localhost:3000`; set `"embed_origins": []`
+to allow none.
 
 ## Development
 

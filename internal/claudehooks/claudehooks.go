@@ -11,10 +11,29 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-// Command is what every registered hook runs.
+// Command is what a registered hook runs when kttn is on the PATH.
 const Command = "kttn hook"
+
+// CommandFor is the hook command for a kttn binary outside the PATH.
+func CommandFor(exe string) string {
+	return "'" + strings.ReplaceAll(exe, "'", `'\''`) + "' hook"
+}
+
+// ours recognises a command Install wrote: `kttn hook`, or a kttn binary's
+// path (quoted or not) followed by ` hook`.
+func ours(command string) bool {
+	if command == Command {
+		return true
+	}
+	exe, ok := strings.CutSuffix(command, " hook")
+	if !ok {
+		return false
+	}
+	return filepath.Base(strings.Trim(exe, "'\"")) == "kttn"
+}
 
 // Events are the hook events the office understands, the same list the plugin
 // registers. WorktreeCreate is never hooked: a hook there replaces Claude
@@ -44,30 +63,39 @@ func SettingsPath() string {
 	return filepath.Join(home, ".claude", "settings.json")
 }
 
-type command struct {
+type hookCommand struct {
 	Type    string `json:"type"`
 	Command string `json:"command"`
 	Timeout int    `json:"timeout,omitempty"`
 }
 
 type entry struct {
-	Matcher string    `json:"matcher,omitempty"`
-	Hooks   []command `json:"hooks"`
+	Matcher string        `json:"matcher,omitempty"`
+	Hooks   []hookCommand `json:"hooks"`
 }
 
 // Install adds one `kttn hook` entry per event, replacing any it added
 // before. It reports how many events it wrote.
 func Install(path string) (int, error) {
-	return rewrite(path, true)
+	return InstallCommand(path, Command)
+}
+
+// InstallCommand is Install with the command to register, for a kttn
+// binary that is not on the PATH.
+func InstallCommand(path, command string) (int, error) {
+	return rewrite(path, command)
 }
 
 // Uninstall removes the entries Install added and reports how many events
 // had one.
 func Uninstall(path string) (int, error) {
-	return rewrite(path, false)
+	return rewrite(path, "")
 }
 
-func rewrite(path string, add bool) (int, error) {
+// rewrite takes out every entry Install wrote and, when command is set,
+// adds one running command per event.
+func rewrite(path string, command string) (int, error) {
+	add := command != ""
 	raw, err := os.ReadFile(path)
 	if errors.Is(err, fs.ErrNotExist) {
 		if !add {
@@ -100,11 +128,11 @@ func rewrite(path string, add bool) (int, error) {
 			touched++
 		}
 		if add {
-			ours := entry{Hooks: []command{{Type: "command", Command: Command, Timeout: 2}}}
+			hook := entry{Hooks: []hookCommand{{Type: "command", Command: command, Timeout: 2}}}
 			if toolEvents[event] {
-				ours.Matcher = "*"
+				hook.Matcher = "*"
 			}
-			encoded, _ := json.Marshal(ours)
+			encoded, _ := json.Marshal(hook)
 			kept = append(kept, encoded)
 			touched++
 		}
@@ -128,7 +156,7 @@ func withoutOurs(entries []json.RawMessage) []json.RawMessage {
 	kept := []json.RawMessage{}
 	for _, raw := range entries {
 		var e entry
-		if json.Unmarshal(raw, &e) == nil && len(e.Hooks) == 1 && e.Hooks[0].Command == Command {
+		if json.Unmarshal(raw, &e) == nil && len(e.Hooks) == 1 && ours(e.Hooks[0].Command) {
 			continue
 		}
 		kept = append(kept, raw)
