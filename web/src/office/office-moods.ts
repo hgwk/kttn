@@ -63,3 +63,36 @@ export function strollingKeys(walkers: Map<string, Walker>) {
     .sort()
     .join("\n")
 }
+
+/** 실제로 만나는 중인 쉬는 고양이 한 쌍(그림판의 걸음 기준) */
+export type Meeting = { other: string; nap: boolean; host: boolean; stay: boolean }
+
+/**
+ * 지금 쉬는 동료를 찾아간(cat-move.ts의 만남) 고양이들을 줄마다
+ * "찾아간 key, 상대 key, 같이 자는지, 머무는 중인지"로 이은 값. 대사와
+ * 말풍선 숨김이 시각 계산이 아니라 실제 걸음을 따르게 한다(바뀔 때만 고친다).
+ */
+export function meetingKeys(walkers: Map<string, Walker>) {
+  return [...walkers]
+    .filter(([, walker]) => walker.visit?.stayMs && walker.visit.to)
+    .map(([key, walker]) => {
+      const visit = walker.visit!
+      const nap = visit.nap ? "1" : "0"
+      const stay = visit.stage === "stay" ? "1" : "0"
+      return [key, visit.to, nap, stay].join("\t")
+    })
+    .sort()
+    .join("\n")
+}
+
+/** meetingKeys 값을 고양이 key별 만남으로 푼다(찾아간 쪽과 맞는 쪽 둘 다). */
+export function parseMeetings(text: string) {
+  const out = new Map<string, Meeting>()
+  for (const line of text ? text.split("\n") : []) {
+    const [visitor, host, nap, stay] = line.split("\t")
+    const base = { nap: nap === "1", stay: stay === "1" }
+    out.set(visitor, { ...base, other: host, host: false })
+    out.set(host, { ...base, other: visitor, host: true })
+  }
+  return out
+}

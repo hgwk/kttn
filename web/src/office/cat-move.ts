@@ -156,10 +156,18 @@ export function moveCat(
       walker.path = pathToNewSeat(walker, room, index)
     else setOff(walker, agent, index, frame)
   }
+  // 쉬는 동료와의 만남(stayMs)은 둘 중 하나라도 깨면 끝내고 돌아온다.
+  const meeting = Boolean(walker.visit?.stayMs)
+  const awake = meeting && agent.state !== "sleeping"
   advanceVisit(
     walker,
     t,
-    (key) => seated.some((other) => other.key === key),
+    (key) =>
+      !awake &&
+      seated.some(
+        (other) =>
+          other.key === key && (!meeting || other.state === "sleeping")
+      ),
     agent
   )
   step(walker, frame.dt)

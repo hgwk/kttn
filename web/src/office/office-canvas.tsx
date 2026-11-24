@@ -24,6 +24,7 @@ import { trips } from "@/office/visit-sync"
 import {
   idlePose,
   perkedUp,
+  meetingKeys,
   strollingKeys,
 } from "@/office/office-moods"
 import { usePixelLoop } from "@/office/use-pixel-loop"
@@ -74,6 +75,9 @@ export function OfficeCanvas({
   const speechRefs = useRef(new Map<string, HTMLDivElement>())
   const [strollers, setStrollers] = useState("")
   const strollersRef = useRef("")
+  // 실제로 만나는 중인 쉬는 고양이들(대사와 말풍선 숨김이 따른다)
+  const [meetings, setMeetings] = useState("")
+  const meetingsRef = useRef("")
   const [hasTower, towerRef] = useTowerNearby(boxRef)
 
   const canvasRef = usePixelLoop(agents, (ctx, current, dt, t, still) => {
@@ -165,6 +169,11 @@ export function OfficeCanvas({
       strollersRef.current = strolling
       setStrollers(strolling)
     }
+    const meeting = meetingKeys(walkers)
+    if (meeting !== meetingsRef.current) {
+      meetingsRef.current = meeting
+      setMeetings(meeting)
+    }
     for (const key of walkers.keys()) {
       if (seated.some((agent) => agent.key === key)) continue
       walkers.delete(key)
@@ -202,6 +211,7 @@ export function OfficeCanvas({
           levelUps={levelUps}
           tower={hasTower}
           strollers={strollers}
+          meetings={meetings}
           speechRefs={speechRefs}
         />
       </div>

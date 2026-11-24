@@ -6,9 +6,9 @@ import { CatSpeech } from "@/office/cat-speech"
 import { DeskTag } from "@/office/desk-tag"
 import { CAT_DX, officeLayout, seatFor } from "@/office/office-draw"
 import type { SessionAgent } from "@/lib/agent-office"
-import { mingle } from "@/lib/agent-office-acts"
 import type { Spots } from "@/office/use-tower"
 import { VisitCats } from "@/office/visit-cats"
+import { parseMeetings } from "@/office/office-moods"
 
 /**
  * 책상 구역 캔버스 위에 얹는 것들: 고양이 대사 상자, 누를 수 있는 책상 자리,
@@ -21,6 +21,7 @@ export function DeskOverlays({
   levelUps,
   tower,
   strollers,
+  meetings,
   speechRefs,
 }: {
   /** 자리에 앉은 고양이(MAX_DESKS 이하) */
@@ -31,10 +32,13 @@ export function DeskOverlays({
   tower: Spots
   /** 산책 중인 세션 키를 줄바꿈으로 이은 것 */
   strollers: string
+  /** 실제로 만나는 중인 쉬는 고양이들(office-moods.ts의 meetingKeys) */
+  meetings: string
   /** 세션 키별 대사 상자. 걷는 고양이를 따라 옮길 때 쓴다. */
   speechRefs: RefObject<Map<string, HTMLDivElement>>
 }) {
   const names = useCatNames()
+  const met = parseMeetings(meetings)
   return (
     <>
     <VisitCats agents={agents} now={now} nearby={tower} layout={layout} />
@@ -55,7 +59,7 @@ export function DeskOverlays({
           data-speech-for={agent.key}
           // 쉬는 동료가 곁에 찾아와 있는 동안은 찾아온 고양이 대사만 보인다
           // (두 상자가 겹친다. 찾아온 쪽이 둘 다를 말한다).
-          hidden={mingle(agent, now, agents)?.role === "host"}
+          hidden={met.get(agent.key)?.host && met.get(agent.key)?.stay}
           // 확인이 필요한 고양이. 화면 밖이면 그쪽 화살표가 깜빡인다(scroll-hint.tsx).
           data-alert={agent.state === "needs_you" ? "" : undefined}
           className="group/speech absolute z-40 w-max max-w-[180px] -translate-x-1/2 -translate-y-full has-[form]:z-[60] data-near:z-50"
@@ -75,6 +79,7 @@ export function DeskOverlays({
               tower={tower}
               mates={agents}
               strolling={strollers.split("\n").includes(agent.key)}
+              meet={met.get(agent.key)}
               nameOf={(key) =>
                 names.get(key) ??
                 agents.find((other) => other.key === key)?.sessionShort ??
