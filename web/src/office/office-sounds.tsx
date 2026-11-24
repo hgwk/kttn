@@ -99,7 +99,10 @@ export function OfficeSounds({
         return
       }
       const ctx = audio.current
-      void ctx.resume().then(() => play(ctx, "done", 0))
+      void ctx
+        .resume()
+        .then(() => play(ctx, "done", 0))
+        .catch(() => {})
     }
     setOn(next)
     try {
@@ -121,9 +124,12 @@ export function OfficeSounds({
         return
       }
       const ctx = audio.current
-      void ctx.resume().then(() => {
-        if (ctx.state === "running") stop()
-      })
+      void ctx
+        .resume()
+        .then(() => {
+          if (ctx.state === "running") stop()
+        })
+        .catch(() => {})
     }
     const stop = () => {
       window.removeEventListener("pointerdown", wake)
