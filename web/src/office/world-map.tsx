@@ -12,7 +12,6 @@ import {
   shortFolder,
   type OfficeNest,
   type AgentState,
-  type OfficeAutomation,
 } from "@/lib/agent-office"
 import type { FolderNode, RepoOffice } from "@/lib/agent-office-layout"
 import { cn } from "@/lib/utils"
@@ -60,48 +59,6 @@ function Road() {
       aria-hidden="true"
       className="absolute top-0 left-1.5 h-3.5 w-3.5 border-b-2 border-l-2 border-[#b08850]"
     />
-  )
-}
-
-/** 마을 안 기계실. 실패가 있으면 빨강, 돌고 있으면 초록, 아니면 쉬는 색이다. */
-function MachineSpot({ automations }: { automations: OfficeAutomation[] }) {
-  const failed = automations.some((automation) => automation.state === "failed")
-  const running = automations.some(
-    (automation) => automation.state === "running"
-  )
-  const color = failed
-    ? "#dc2626"
-    : running
-      ? TONE_COLOR.busy
-      : automations.length
-        ? TONE_COLOR.rest
-        : TONE_COLOR.empty
-  return (
-    <li className="relative grid gap-1.5 pl-5">
-      <Road />
-      <a
-        href="#office-automations"
-        className={SPOT_LINK}
-        // 기계실은 늘 화면 오른쪽에 있으니 화면을 움직이지 않는다.
-        onClick={(event) => event.preventDefault()}
-      >
-        <span
-          aria-hidden="true"
-          className={cn(
-            "size-3 shrink-0 border-2 border-[#2b2a36]",
-            failed && "animate-pulse motion-reduce:animate-none"
-          )}
-          style={{ backgroundColor: color }}
-        />
-        <PixelIcon name="gear" />
-        <span>{t("automation.machineRoom")}</span>
-        {automations.length ? (
-          <span className="shrink-0 bg-[#2b2a36] px-1 text-[10px] text-[#f7f2e8]">
-            {t("automation.machines", { n: automations.length })}
-          </span>
-        ) : null}
-      </a>
-    </li>
   )
 }
 
@@ -187,14 +144,9 @@ function Spot({
  */
 export function WorldMap({
   offices,
-  homeProject,
-  automations,
   onPick,
 }: {
   offices: RepoOffice[]
-  /** 기계실이 들어 있는 마을(설정의 홈 저장소). */
-  homeProject: string
-  automations: OfficeAutomation[]
   onPick?: (anchor: string) => void
 }) {
   const { buildingName } = useOfficeSettings()
@@ -211,13 +163,8 @@ export function WorldMap({
       town
       inner={inner}
       extra={
-        office.project === homeProject || children.length ? (
-          <>
-            {office.project === homeProject ? (
-              <MachineSpot automations={automations} />
-            ) : null}
-            {children.map((child) => renderTown(child, true))}
-          </>
+        children.length ? (
+          <>{children.map((child) => renderTown(child, true))}</>
         ) : undefined
       }
     />

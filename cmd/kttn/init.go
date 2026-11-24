@@ -24,19 +24,17 @@ func runInit(args []string, in io.Reader, out io.Writer) error {
 	fs := flag.NewFlagSet("init", flag.ContinueOnError)
 	yes := fs.Bool("yes", false, "do not ask; use flags and saved values")
 	name := fs.String("office-name", cfg.OfficeName, "building and home office name")
-	repo := fs.String("home-repo", cfg.HomeRepo, "repository whose office holds the machine room")
 	lang := fs.String("lang", cfg.Lang, "screen language: ko, en or ja (empty follows the browser)")
 	port := fs.Int("port", cfg.Port, "port for kttn serve")
 	preview := fs.Bool("preview", cfg.Preview, "show the opening of each finished answer")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	cfg.OfficeName, cfg.HomeRepo, cfg.Lang, cfg.Port, cfg.Preview = *name, *repo, *lang, *port, *preview
+	cfg.OfficeName, cfg.Lang, cfg.Port, cfg.Preview = *name, *lang, *port, *preview
 
 	if !*yes {
 		ask := prompter{in: bufio.NewReader(in), out: out}
 		cfg.OfficeName = ask.text("Office name (사무실 이름)", cfg.OfficeName)
-		cfg.HomeRepo = ask.text("Home repository for the machine room (blank: none)", cfg.HomeRepo)
 		cfg.Lang = ask.text("Screen language ko/en/ja (blank: follow the browser)", cfg.Lang)
 		cfg.Port = ask.number("Port", cfg.Port)
 		fmt.Fprintln(out, "Answer preview sends the first 300 characters of each finished answer to the")

@@ -38,7 +38,6 @@ func runServe(args []string) error {
 		},
 		Settings: server.Settings{
 			OfficeName: cfg.OfficeName,
-			HomeRepo:   cfg.HomeRepo,
 			Lang:       cfg.Lang,
 			Configured: found,
 		},

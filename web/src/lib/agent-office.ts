@@ -1,6 +1,5 @@
 // 에이전트 사무실 화면의 자료 모양과 상태 이름. 실시간 세션 상태는
-// 서버(kttn serve)가 훅 신호를 받아 메모리에 들고 있고(agent-office-store), 자동화 실행은
-// 자동화 신호 주소(POST /api/automation)로 받는다. 이 모듈은 둘을 화면용으로
+// 서버(kttn serve)가 훅 신호를 받아 들고 있고, 이 모듈은 그것을 화면용으로
 // 바꾸기만 한다.
 
 import { t } from "../i18n/index.ts"
@@ -62,19 +61,8 @@ export type SessionAgent = {
 // 결과 한 줄의 최대 길이. 전체 답변은 받지 않고 앞부분만 보인다.
 export const RESULT_MAX = 160
 
-export type OfficeAutomation = {
-  key: string
-  label: string
-  state: "running" | "ok" | "failed" | "held"
-  /** 판정 보류로 남은 후보 수. held가 아니거나 기록이 없으면 0. */
-  heldCount: number
-  startedAt: string
-  endedAt: string | null
-}
-
 export type OfficeSnapshot = {
   agents: SessionAgent[]
-  automations: OfficeAutomation[]
   generatedAt: string
 }
 
@@ -190,23 +178,6 @@ export function toSessionAgents(raw: unknown, now: number) {
   })
 }
 
-/**
- * 실행 상태를 자동화실 상태로 바꾼다. 판정 보류(미판정 후보 때문에 계약대로
- * 실패로 끝난 실행)는 장애와 나눠 held로 둔다. failureCause는 콘솔 실행
- * 이력과 같은 RUNTIME_FAILURE_CAUSE_SQL 판정이다.
- */
-export function automationState(
-  status: string,
-  failureCause: string | null = null
-): OfficeAutomation["state"] {
-  if (status === "running" || status === "queued") return "running"
-  if (status === "ok" || status === "skipped") return "ok"
-  if (status === "failed" && failureCause === "judge_items_unresolved") {
-    return "held"
-  }
-  return "failed"
-}
-
 // 목록에서 먼저 볼 순서. 확인을 기다리는 세션이 맨 앞, 퇴근한 세션이 맨 뒤다.
 const URGENCY: Record<AgentState, number> = {
   needs_you: 0,
@@ -270,17 +241,6 @@ export function officeCounts(agents: SessionAgent[]): OfficeCounts {
   return counts
 }
 
-/** 자동화실 순서. 실행 중, 실패, 판정 보류, 끝남 순이며 같은 무리 안의 순서는 그대로 둔다. */
-export function byAutomationAttention(automations: OfficeAutomation[]) {
-  const rank = { running: 0, failed: 1, held: 2, ok: 3 }
-  return automations
-    .map((automation, index) => ({ automation, index }))
-    .sort(
-      (a, b) =>
-        rank[a.automation.state] - rank[b.automation.state] || a.index - b.index
-    )
-    .map(({ automation }) => automation)
-}
 
 export * from "./agent-office-tree.ts"
 export * from "./agent-office-names.ts"

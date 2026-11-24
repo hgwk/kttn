@@ -1,5 +1,5 @@
-// Package server is `kttn serve`: it receives hook events and automation
-// reports, and serves the office's state and screen, on this computer only.
+// Package server is `kttn serve`: it receives hook events and serves the
+// office's state and screen, on this computer only.
 package server
 
 import (
@@ -13,13 +13,12 @@ import (
 	"github.com/hgwk/kttn/internal/terminal"
 )
 
-// maxEventBytes bounds one hook or automation body; both carry short labels.
+// maxEventBytes bounds one hook body; the hook keeps labels short.
 const maxEventBytes = 4096
 
 // Settings are the onboarding values the screen shows.
 type Settings struct {
 	OfficeName string `json:"officeName"`
-	HomeRepo   string `json:"homeRepo"`
 	Lang       string `json:"lang"`
 	// Configured is false until `kttn init` has run; the screen then shows how.
 	Configured bool `json:"configured"`
@@ -27,9 +26,8 @@ type Settings struct {
 
 // Options configures a server.
 type Options struct {
-	Store       *office.Store
-	Automations *office.Automations
-	Settings    Settings
+	Store    *office.Store
+	Settings Settings
 	// Token, when set, must arrive as "Authorization: Bearer <token>".
 	Token string
 	// StatePath is the restart file; empty keeps state in memory only.
@@ -43,10 +41,9 @@ type Options struct {
 
 // Snapshot is what the screen polls.
 type Snapshot struct {
-	Agents      []office.Agent      `json:"agents"`
-	Automations []office.Automation `json:"automations"`
-	Settings    Settings            `json:"settings"`
-	GeneratedAt string              `json:"generatedAt"`
+	Agents      []office.Agent `json:"agents"`
+	Settings    Settings       `json:"settings"`
+	GeneratedAt string         `json:"generatedAt"`
 }
 
 // New builds the handler and loads saved sessions.
@@ -59,9 +56,6 @@ func New(opts Options) http.Handler {
 	}
 	if opts.Send == nil {
 		opts.Send = func(int, string, string) error { return terminal.ErrNoTab }
-	}
-	if opts.Automations == nil {
-		opts.Automations = office.NewAutomations(opts.Now)
 	}
 	state := &stateFile{path: opts.StatePath, store: opts.Store}
 	state.load()
@@ -80,24 +74,10 @@ func New(opts Options) http.Handler {
 		state.schedule()
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
 	})
-	mux.HandleFunc("POST /api/automation", func(w http.ResponseWriter, r *http.Request) {
-		body, ok := reportBody(w, r, opts.Token)
-		if !ok {
-			return
-		}
-		run, err := office.ParseAutomation(body, opts.Now())
-		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
-			return
-		}
-		opts.Automations.Record(run)
-		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
-	})
 	mux.HandleFunc("GET /api/snapshot", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, Snapshot{
 			Agents:      opts.Store.Snapshot(),
-			Automations: opts.Automations.Snapshot(),
 			Settings:    opts.Settings,
 			GeneratedAt: opts.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
 		})
@@ -108,7 +88,7 @@ func New(opts Options) http.Handler {
 	return withLoopback(mux)
 }
 
-// reportBody admits a report from a local program (the hook, an automation)
+// reportBody admits a report from a local program (the hook)
 // and decodes it. It writes the refusal itself when it says no.
 func reportBody(w http.ResponseWriter, r *http.Request, token string) (any, bool) {
 	if !hookRequest(r) {

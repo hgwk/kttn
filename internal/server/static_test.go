@@ -45,35 +45,23 @@ func TestTheInstallableAppIsServedToThisComputer(t *testing.T) {
 	}
 }
 
-func TestAutomationReportsReachTheSnapshot(t *testing.T) {
+func TestTheSnapshotCarriesTheOnboardingSettings(t *testing.T) {
 	store := office.NewStore(time.Now, func(int) bool { return true })
-	h := New(Options{Store: store, Settings: Settings{OfficeName: "우리 팀", HomeRepo: "myrepo", Lang: "ko"}})
-	send := func(headers map[string]string, body string) int {
-		req := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/api/automation", strings.NewReader(body))
-		for k, v := range headers {
-			req.Header.Set(k, v)
-		}
-		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, req)
-		return rec.Code
-	}
-	if code := send(jsonType, `{"key":"nightly","label":"Nightly build","state":"running"}`); code != 200 {
-		t.Fatalf("report: %d", code)
-	}
-	if code := send(jsonType, `{"key":"x","state":"exploded"}`); code != 400 {
-		t.Fatalf("bad state: %d", code)
-	}
-	browser := map[string]string{"Content-Type": "application/json", "Origin": "http://evil.example"}
-	if code := send(browser, `{"key":"y","state":"ok"}`); code != 403 {
-		t.Fatalf("browser report: %d", code)
-	}
+	h := New(Options{Store: store, Settings: Settings{OfficeName: "우리 팀", Lang: "ko", Configured: true}})
 	body := get(h, "127.0.0.1", "/api/snapshot").Body.String()
-	for _, want := range []string{`"label":"Nightly build"`, `"state":"running"`, `"officeName":"우리 팀"`, `"homeRepo":"myrepo"`} {
+	for _, want := range []string{`"officeName":"우리 팀"`, `"lang":"ko"`, `"configured":true`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("snapshot lacks %s: %s", want, body)
 		}
 	}
-	if strings.Contains(body, `"key":"y"`) {
-		t.Fatal("refused report reached the snapshot")
+	if strings.Contains(body, "automations") {
+		t.Fatalf("machine room still in the snapshot: %s", body)
+	}
+	req := httptest.NewRequest(http.MethodPost, "http://127.0.0.1/api/automation", strings.NewReader(`{"key":"x","state":"ok"}`))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code == http.StatusOK {
+		t.Fatal("the automation endpoint still answers")
 	}
 }

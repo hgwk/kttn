@@ -73,7 +73,7 @@ Code's own worktree creation.
 
 | Command | What it does |
 | --- | --- |
-| `kttn init [--yes] [--office-name NAME] [--home-repo REPO] [--lang ko\|en\|ja] [--port N] [--preview]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
+| `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
 | `kttn serve [--port N]` | Runs the office on `127.0.0.1`. |
 | `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. |
 
@@ -84,22 +84,6 @@ Sessions survive a restart through `~/.local/state/kttn/sessions.json`
 
 The screen language follows `?lang=` in the address, then the config, then the
 browser, and falls back to English.
-
-## Machine room: automation runs
-
-Anything on your computer can show its runs in the machine room by posting JSON
-to the server, with the same token as the hook:
-
-```sh
-curl -s http://127.0.0.1:5886/api/automation \
-  -H 'Content-Type: application/json' \
-  -H "Authorization: Bearer $(jq -r .token ~/.config/kttn/config.json)" \
-  -d '{"key":"nightly-42","label":"Nightly build","state":"running","started_at":"2026-11-24T09:00:00Z"}'
-```
-
-`state` is `running`, `ok`, `failed` or `held` (`held_count` says how many items
-wait). Send the same `key` again with `ended_at` when the run ends. Finished runs
-stay for 30 minutes; the room shows up to 8.
 
 ## Terminal tabs
 
@@ -130,7 +114,7 @@ turn. Message text is never logged.
 
 The server listens on `127.0.0.1` only and refuses any request addressed to a
 host name other than `127.0.0.1` or `localhost`, which blocks DNS rebinding.
-Reports (`/api/events`, `/api/automation`) must be JSON, must carry the token,
+Hook reports (`/api/events`) must be JSON, must carry the token,
 and must not carry an `Origin` header, so a web page in your browser cannot forge
 sessions. Screen actions (`/api/focus`, `/api/message`) must be JSON from a page
 on the same address, so another site cannot type into your terminal.

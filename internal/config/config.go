@@ -20,8 +20,6 @@ const DefaultPort = 5886
 type Config struct {
 	// OfficeName names the building and the home-folder office.
 	OfficeName string `json:"office_name"`
-	// HomeRepo is the repository whose office holds the machine room.
-	HomeRepo string `json:"home_repo"`
 	// Lang is the screen language: ko, en or ja. Empty follows the browser.
 	Lang string `json:"lang"`
 	Port int    `json:"port"`

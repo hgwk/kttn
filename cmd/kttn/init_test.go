@@ -14,7 +14,7 @@ func TestInitAsksSavesAndKeepsItsAnswersAsNextDefaults(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	t.Setenv("KTTN_CONFIG", path)
 	var out bytes.Buffer
-	answers := "우리 팀\nmyrepo\nja\n\ny\n"
+	answers := "우리 팀\nja\n\ny\n"
 	if err := runInit(nil, strings.NewReader(answers), &out); err != nil {
 		t.Fatal(err)
 	}
@@ -22,12 +22,12 @@ func TestInitAsksSavesAndKeepsItsAnswersAsNextDefaults(t *testing.T) {
 	if err != nil || !found {
 		t.Fatalf("not saved: %v", err)
 	}
-	if cfg.OfficeName != "우리 팀" || cfg.HomeRepo != "myrepo" || cfg.Lang != "ja" || !cfg.Preview || cfg.Token == "" || cfg.Port == 0 {
+	if cfg.OfficeName != "우리 팀" || cfg.Lang != "ja" || !cfg.Preview || cfg.Token == "" || cfg.Port == 0 {
 		t.Fatalf("got %+v", cfg)
 	}
 	token := cfg.Token
 	// A second run with blank answers keeps everything, the token included.
-	if err := runInit(nil, strings.NewReader("\n\n\n\n\n"), &out); err != nil {
+	if err := runInit(nil, strings.NewReader("\n\n\n\n"), &out); err != nil {
 		t.Fatal(err)
 	}
 	again, _, _ := config.Load(path)

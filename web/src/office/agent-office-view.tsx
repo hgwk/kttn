@@ -1,10 +1,6 @@
 import { PixelIcon } from "@/office/pixel-icon"
 import { useEffect, useRef, useState } from "react"
 
-import {
-  AutomationRoom,
-  MachineRoom,
-} from "@/office/automation-room"
 import { EmptyOffice } from "@/office/empty-office"
 import { OfficeStage } from "@/office/office-stage"
 import {
@@ -52,7 +48,6 @@ export function AgentOfficeView({ initial }: { initial: ServerSnapshot }) {
     <OfficeSettingsContext
       value={{
         buildingName: initial.settings.officeName,
-        homeRepo: initial.settings.homeRepo,
       }}
     >
       <OfficeView initial={initial} />
@@ -61,7 +56,7 @@ export function AgentOfficeView({ initial }: { initial: ServerSnapshot }) {
 }
 
 function OfficeView({ initial }: { initial: ServerSnapshot }) {
-  const { buildingName, homeRepo } = useOfficeSettings()
+  const { buildingName } = useOfficeSettings()
   const [snapshot, setSnapshot] = useState(initial)
   const [stale, setStale] = useState(false)
   // 폴링 사이에 레벨이 오른 세션과 그 시각
@@ -147,12 +142,9 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
         </h3>
         <WorldMap
           offices={offices}
-          homeProject={homeRepo}
-          automations={snapshot.automations}
           onPick={showRoom}
         />
       </section>
-      <MachineRoom automations={snapshot.automations} now={now} />
     </>
   )
   // 방금 레벨이 오른 세션
@@ -209,11 +201,6 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
             ) : null}
             <HudItem icon="star" label={t("hud.today")}
               value={t("hud.toolCalls", { n: totalTools })} />
-            <HudItem
-              icon="gear"
-              label={t("hud.automations")}
-              value={snapshot.automations.length}
-            />
           </div>
         </Hud>
 
@@ -245,7 +232,6 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
           ) : (
             <div className="grid min-h-0 min-w-0 gap-4 overflow-y-auto">
               <EmptyOffice />
-              <AutomationRoom automations={snapshot.automations} now={now} />
             </div>
           )}
         </OfficeStage>

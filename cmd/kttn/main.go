@@ -12,7 +12,7 @@ import (
 
 func usage() {
 	fmt.Fprintf(os.Stderr, `usage:
-  kttn init  [--yes] [--office-name NAME] [--home-repo REPO] [--lang ko|en|ja] [--port %d] [--preview]
+  kttn init  [--yes] [--office-name NAME] [--lang ko|en|ja] [--port %d] [--preview]
   kttn serve [--port PORT]
   kttn hook  [--url URL] [--source claude] [--timeout 300ms]
 

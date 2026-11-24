@@ -3,8 +3,6 @@ import test from "node:test"
 
 import {
   SLEEP_AFTER_MS,
-  automationState,
-  byAutomationAttention,
   byUrgency,
   catNames,
   compactFolderTree,
@@ -83,18 +81,6 @@ test("drops malformed rows and payloads instead of guessing", () => {
   assert.deepEqual(agents[0].minions, [{ id: "x", label: "" }])
 })
 
-test("automation states collapse runtime statuses", () => {
-  assert.equal(automationState("running"), "running")
-  assert.equal(automationState("queued"), "running")
-  assert.equal(automationState("ok"), "ok")
-  assert.equal(automationState("skipped"), "ok")
-  assert.equal(automationState("failed"), "failed")
-  assert.equal(automationState("cancelled"), "failed")
-  assert.equal(automationState("failed", "judge_items_unresolved"), "held")
-  assert.equal(automationState("failed", "provider_unavailable"), "failed")
-  assert.equal(automationState("cancelled", "judge_items_unresolved"), "failed")
-})
-
 function agentsOf(rows) {
   return toSessionAgents({ agents: rows }, now)
 }
@@ -156,25 +142,6 @@ test("says how long a state has lasted, and nothing for bad times", () => {
   assert.equal(stateDuration("2026-11-19T06:00:00Z", now), "3시간째")
   assert.equal(stateDuration("", now), "")
   assert.equal(stateDuration("2026-11-19T09:05:00Z", now), "")
-})
-
-test("puts running, then failed automations ahead of finished ones", () => {
-  const run = (key, state) => ({
-    key,
-    label: key,
-    state,
-    startedAt: "",
-    endedAt: null,
-  })
-  assert.deepEqual(
-    byAutomationAttention([
-      run("ok1", "ok"),
-      run("fail", "failed"),
-      run("ok2", "ok"),
-      run("live", "running"),
-    ]).map((item) => item.key),
-    ["live", "fail", "ok1", "ok2"]
-  )
 })
 
 test("folds empty single-child folders into one line but keeps the root", () => {

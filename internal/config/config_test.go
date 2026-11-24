@@ -13,7 +13,7 @@ func TestConfigRoundTripsAndStaysPrivate(t *testing.T) {
 	if err != nil || found || cfg.Port != DefaultPort {
 		t.Fatalf("missing file: %+v %v %v", cfg, found, err)
 	}
-	want := Config{OfficeName: "우리 팀", HomeRepo: "myrepo", Lang: "ja", Port: 5999, Token: "t", Preview: true}
+	want := Config{OfficeName: "우리 팀", Lang: "ja", Port: 5999, Token: "t", Preview: true}
 	if err := Save(path, want); err != nil {
 		t.Fatal(err)
 	}
