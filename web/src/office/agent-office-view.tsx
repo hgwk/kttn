@@ -24,6 +24,7 @@ import { OfficeSettingsContext, useOfficeSettings } from "@/office/office-settin
 import { PropPalette } from "@/office/props-palette"
 import { usePetting } from "@/office/petting"
 import { CatBook } from "@/office/cat-book"
+import { useCatalog } from "@/office/catalog"
 import { OfficePaper } from "@/office/office-paper"
 
 const POLL_MS = 2000
@@ -70,6 +71,8 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
   const [full, setFull] = useState(false)
   // 집사가 곁에 선 고양이를 스페이스로 쓰다듬은 오늘 횟수(petting.ts)
   const pets = usePetting()
+  // 서버 도감(하루 집계를 읽는다). 도감 창이 읽어 와 넣는다.
+  const catalog = useCatalog()
 
   useEffect(() => {
     const sync = () => setFull(document.fullscreenElement === areaRef.current)
@@ -160,10 +163,15 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
       .filter((entry) => now - Date.parse(entry.at) < LEVEL_UP_MS)
       .map((entry) => entry.key)
   )
-  const totalTools = snapshot.agents.reduce(
-    (sum, agent) => sum + agent.toolCount,
-    0
+  // 오늘 쓴 도구 수. 서버 도감의 하루 집계(day)가 있으면 그 합을, 없으면
+  // (이전 서버) 지금 있는 세션들의 누적 도구 수 합을 쓴다.
+  const today = new Date(now).toLocaleDateString("sv")
+  const counted = (catalog?.cats ?? []).filter(
+    (cat) => cat.day?.date === today
   )
+  const totalTools = counted.length
+    ? counted.reduce((sum, cat) => sum + (cat.day?.tools ?? 0), 0)
+    : snapshot.agents.reduce((sum, agent) => sum + agent.toolCount, 0)
 
   return (
     <CatNamesContext value={names}>
