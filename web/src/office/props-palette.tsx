@@ -25,7 +25,7 @@ import type { ItemName } from "@/office/sprites"
 const MIME = "application/x-kttn-prop"
 const WALL_ROOM = "wall"
 
-const size = (name: ItemName) => ({
+const propSize = (name: ItemName) => ({
   w: ITEMS[name][0].length * OFFICE_SCALE,
   h: ITEMS[name].length * OFFICE_SCALE,
 })
@@ -43,7 +43,7 @@ function drop(event: globalThis.DragEvent) {
   event.preventDefault()
   const box = target.getBoundingClientRect()
   const ratio = box.width / (target.offsetWidth || box.width) || 1
-  const { w, h } = size(name)
+  const { w, h } = propSize(name)
   const fit = (value: number, span: number, room: number) =>
     Math.round(Math.min(Math.max(value, 0), Math.max(0, room - span)))
   const x = fit(
@@ -164,13 +164,30 @@ export function PropPalette() {
   )
 }
 
-/** 한 칸에 들여온 소품들. 칸 왼쪽 위에서 잰 자리에 놓고, 끌어서 옮긴다. */
-export function AddedProps({ room }: { room: string }) {
+/**
+ * 한 칸에 들여온 소품들. 칸 왼쪽 위에서 잰 자리에 놓고, 끌어서 옮긴다. 칸
+ * 크기(size)를 주면 그 안에 다 들어가는 소품만 그린다. 휴게 공간은 둘레 방에
+ * 따라 줄거나 접히므로, 넘치는 소품은 벽에 박혀 보이지 않게 숨겼다가 자리가
+ * 다시 나면 보인다.
+ */
+export function AddedProps({
+  room,
+  size,
+}: {
+  room: string
+  size?: { w: number; h: number }
+}) {
   const props = useRoomProps(room)
   const keys = Object.keys(props ?? {}).filter((key) => key.startsWith(ADDED))
   return keys.map((key) => {
     const name = key.split(":").at(-1) as ItemName
     if (!(name in ITEMS)) return null
+    const at = props?.[key]
+    const { w, h } = propSize(name)
+    const out = (v: number, span: number, room: number) =>
+      v < 0 || v + span > room
+    if (size && at && (out(at.x, w, size.w) || out(at.y, h, size.h)))
+      return null
     const hang = HANG.includes(name)
     return (
       <Movable

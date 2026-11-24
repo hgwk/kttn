@@ -7,7 +7,7 @@ import {
   type ReactNode,
 } from "react"
 import { VISIT } from "@/office/props-catalog"
-import { GONE, gone, lightTrash, puff, trashAt } from "@/office/props-trash"
+import { gone, lightTrash, puff, trashAt } from "@/office/props-trash"
 import type { ItemName } from "@/office/sprites"
 
 // 사무실 소품(휴게 공간 가구, 위쪽 벽 장식)을 마우스로 옮긴다. 옮긴 자리는
@@ -17,7 +17,8 @@ import type { ItemName } from "@/office/sprites"
 //   격자에 맞춰 놓인다. 두 번 누르면 기본 자리로 돌아간다. 집사 길(data-obstacle)은
 //   화면에서 다시 읽으므로 옮긴 자리를 알아서 피한다.
 
-type Offset = { x: number; y: number }
+/** 기본 자리에서 떨어진 거리(px). hidden이면 휴지통에 치운 기본 소품이다. */
+type Offset = { x: number; y: number; hidden?: boolean }
 type Rooms = Record<string, Record<string, Offset>>
 
 const GRID = 8
@@ -63,8 +64,8 @@ export const ADDED = "add:"
 /** 소품 자리를 바꾼다(null이면 지운다). 들여온 소품은 (0, 0)이어도 남긴다. */
 export function setOffset(room: string, item: string, offset: Offset | null) {
   const next = { ...(rooms[room] ?? {}) }
-  if (offset && (offset.x || offset.y || item.startsWith(ADDED)))
-    next[item] = offset
+  const kept = offset?.x || offset?.y || offset?.hidden || item.startsWith(ADDED)
+  if (offset && kept) next[item] = offset
   else delete next[item]
   rooms = { ...rooms, [room]: next }
   emit()
@@ -252,7 +253,7 @@ export function Movable({
     // 휴지통에 놓으면 치운다(props-trash.ts).
     if (trashAt(event.clientX, event.clientY, event.currentTarget)) {
       puff(event.clientX, event.clientY)
-      const off = item.startsWith(ADDED) ? null : { x: GONE, y: GONE }
+      const off = item.startsWith(ADDED) ? null : { x: 0, y: 0, hidden: true }
       setOffset(room, item, off)
     }
     save()

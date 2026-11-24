@@ -1,13 +1,14 @@
 // 소품 치우기. 휴게 공간의 휴지통 소품([data-trash]) 위로 소품을 끌어다 놓으면
 // 먼지 구름이 일며 사라진다. 들여온 소품은 설정 파일에서 지우고, 원래 있던
-// 소품은 치웠다는 표시(GONE 자리)를 남긴다. 치운 기본 소품은 소품 목록에서
-// 다시 들여온다. 서버는 자리를 ±2000px까지만 받으므로 그 끝을 표시로 쓴다.
+// 소품은 치웠다는 표시(hidden)를 남긴다. 치운 기본 소품은 소품 목록에서
+// 다시 들여온다.
 
-export const GONE = -2000
+// 예전(0.2.0)에 치움 표시로 쓰던 자리. 그때 남은 설정 파일도 치운 것으로 읽는다.
+const OLD_GONE = -2000
 
 /** 치운 기본 소품인지 */
-export const gone = (offset?: { x: number; y: number }) =>
-  offset?.x === GONE && offset.y === GONE
+export const gone = (offset?: { x: number; y: number; hidden?: boolean }) =>
+  offset?.hidden === true || (offset?.x === OLD_GONE && offset.y === OLD_GONE)
 
 /** 화면 자리(x, y) 아래의 휴지통. 끌고 있는 소품 자신은 뺀다. */
 export function trashAt(x: number, y: number, self: Element) {
