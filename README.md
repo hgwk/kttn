@@ -197,7 +197,8 @@ pane on that tty. It tries, in order:
 
 A terminal that is not installed or not running is skipped; one that is not
 running is never launched. AppleScript asks for automation permission the first
-time. For tmux, `tmux` must be on the `PATH` of `kttn serve`.
+time. The login service runs with `/opt/homebrew/bin` and `/usr/local/bin` on its
+`PATH`, so a Homebrew `tmux` is found.
 
 Messages are limited to 2,000 characters, control characters are removed, and
 nothing is sent to a session that is waiting on a permission prompt (the text

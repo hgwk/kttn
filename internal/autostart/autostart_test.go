@@ -2,6 +2,7 @@ package autostart
 
 import (
 	"encoding/xml"
+	"errors"
 	"os"
 	"strings"
 	"testing"
@@ -15,6 +16,7 @@ func (r *recorder) run(name string, args ...string) (string, error) {
 }
 
 func TestMacRegistersOneLaunchAgentAndReplacesItOnRerun(t *testing.T) {
+	bootstrapWait = 0
 	r := &recorder{}
 	s := Service{GOOS: "darwin", Home: t.TempDir(), UID: 501, Run: r.run}
 	exe := "/Users/me/.local/bin/kttn & <co>"
@@ -33,7 +35,7 @@ func TestMacRegistersOneLaunchAgentAndReplacesItOnRerun(t *testing.T) {
 	if err := xml.Unmarshal(raw, new(struct{})); err != nil {
 		t.Fatalf("plist is not XML: %v", err)
 	}
-	for _, want := range []string{"<string>/Users/me/.local/bin/kttn &amp; &lt;co&gt;</string>", "<string>serve</string>", "<key>KeepAlive</key>", ".local/state/kttn/serve.log"} {
+	for _, want := range []string{"<string>/Users/me/.local/bin/kttn &amp; &lt;co&gt;</string>", "<string>serve</string>", "<key>KeepAlive</key>", ".local/state/kttn/serve.log", "<string>/opt/homebrew/bin:"} {
 		if !strings.Contains(string(raw), want) {
 			t.Errorf("plist lacks %s", want)
 		}
@@ -65,7 +67,7 @@ func TestLinuxRegistersAUserUnit(t *testing.T) {
 		t.Fatal(err)
 	}
 	raw, _ := os.ReadFile(s.Path())
-	if !strings.Contains(string(raw), `ExecStart="/opt/my \"kttn\"/kttn" serve`) || !strings.Contains(string(raw), "WantedBy=default.target") {
+	if !strings.Contains(string(raw), "Environment=PATH=/opt/homebrew/bin:") || !strings.Contains(string(raw), `ExecStart="/opt/my \"kttn\"/kttn" serve`) || !strings.Contains(string(raw), "WantedBy=default.target") {
 		t.Fatalf("unit:\n%s", raw)
 	}
 	if !strings.HasSuffix(s.Path(), ".config/systemd/user/kttn.service") || len(r.calls) != 3 || !strings.Contains(r.calls[2], "restart kttn.service") {
@@ -83,5 +85,35 @@ func TestOtherSystemsAreRefused(t *testing.T) {
 	s := Service{GOOS: "windows", Home: t.TempDir(), Run: (&recorder{}).run}
 	if err := s.Register("kttn"); err != ErrUnsupported {
 		t.Fatalf("got %v", err)
+	}
+}
+
+// launchd can refuse a bootstrap right after bootout while the old agent is
+// still going away; setup retries instead of failing.
+func TestBootstrapIsRetriedWhileTheOldAgentGoesAway(t *testing.T) {
+	bootstrapWait = 0
+	fails := 2
+	var calls []string
+	s := Service{GOOS: "darwin", Home: t.TempDir(), UID: 501, Run: func(name string, args ...string) (string, error) {
+		calls = append(calls, args[0])
+		if args[0] == "bootstrap" && fails > 0 {
+			fails--
+			return "", errors.New("Bootstrap failed: 5: Input/output error")
+		}
+		return "", nil
+	}}
+	if err := s.Register("/bin/kttn"); err != nil {
+		t.Fatalf("register: %v (calls %v)", err, calls)
+	}
+	if strings.Count(strings.Join(calls, " "), "bootstrap") != 3 {
+		t.Fatalf("calls %v", calls)
+	}
+}
+
+func TestRemoveStopsALoadedAgentWhoseFileIsGone(t *testing.T) {
+	r := &recorder{}
+	s := Service{GOOS: "darwin", Home: t.TempDir(), UID: 501, Run: r.run}
+	if removed, _ := s.Remove(); removed || len(r.calls) != 1 || !strings.Contains(r.calls[0], "bootout") {
+		t.Fatalf("removed %v calls %v", removed, r.calls)
 	}
 }

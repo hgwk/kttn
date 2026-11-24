@@ -190,8 +190,8 @@ kttn은 세션의 프로세스로 탭을 찾습니다: 프로세스 → tty → 
 | Terminal.app | AppleScript, 탭의 `tty`로 | 지원 안 함(손쉬운 사용 권한 필요) |
 
 설치되지 않았거나 꺼진 터미널은 건너뛰고, 꺼진 터미널을 새로 띄우지 않습니다.
-AppleScript는 처음에 자동화 권한을 묻습니다. tmux를 쓰려면 `kttn serve`의 `PATH`에
-`tmux`가 있어야 합니다.
+AppleScript는 처음에 자동화 권한을 묻습니다. 자동 시작 서비스는 `PATH`에
+`/opt/homebrew/bin`과 `/usr/local/bin`을 넣어 돌므로 Homebrew로 설치한 `tmux`도 찾습니다.
 
 메시지는 2,000자까지이고, 제어 문자는 지우며, 권한 확인을 기다리는 세션(글이 그
 질문의 답이 됨)이나 끝난 세션에는 보내지 않습니다. 일하는 중인 세션은 메시지를

@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Label names the LaunchAgent; the systemd unit is kttn.service.
@@ -27,6 +28,18 @@ type Service struct {
 	UID  int
 	Run  Run
 }
+
+// ServicePath is the PATH the login service runs with. launchd's default
+// (/usr/bin:/bin:/usr/sbin:/sbin) has no Homebrew, so tmux would never be
+// found and its sessions could not be focused or messaged.
+const ServicePath = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+
+// bootstrapTries and bootstrapWait cover launchd still tearing down the old
+// agent right after bootout, when bootstrap fails with an I/O error.
+var (
+	bootstrapTries = 6
+	bootstrapWait  = 500 * time.Millisecond
+)
 
 // ErrUnsupported means kttn cannot start at login on this system.
 var ErrUnsupported = errors.New("starting at login is supported on macOS and Linux only")
@@ -54,10 +67,16 @@ func (s Service) Register(exe string) error {
 		domain := "gui/" + strconv.Itoa(s.UID)
 		// A loaded agent must be booted out before bootstrap takes the new file.
 		_, _ = s.Run("launchctl", "bootout", domain+"/"+Label)
-		if _, err := s.Run("launchctl", "bootstrap", domain, s.Path()); err != nil {
-			return fmt.Errorf("launchctl bootstrap: %w", err)
+		var err error
+		for try := 0; try < bootstrapTries; try++ {
+			if try > 0 {
+				time.Sleep(bootstrapWait)
+			}
+			if _, err = s.Run("launchctl", "bootstrap", domain, s.Path()); err == nil {
+				return nil
+			}
 		}
-		return nil
+		return fmt.Errorf("launchctl bootstrap: %w", err)
 	case "linux":
 		if err := s.write(s.unit(exe)); err != nil {
 			return err
@@ -82,13 +101,15 @@ func (s Service) Remove() (bool, error) {
 	if s.GOOS != "darwin" && s.GOOS != "linux" {
 		return false, ErrUnsupported
 	}
-	if _, err := os.Stat(s.Path()); errors.Is(err, os.ErrNotExist) {
-		return false, nil
-	}
+	// Stop the service even when its file is already gone: a loaded agent
+	// keeps running without it.
 	if s.GOOS == "darwin" {
 		_, _ = s.Run("launchctl", "bootout", "gui/"+strconv.Itoa(s.UID)+"/"+Label)
 	} else {
 		_, _ = s.Run("systemctl", "--user", "disable", "--now", "kttn.service")
+	}
+	if _, err := os.Stat(s.Path()); errors.Is(err, os.ErrNotExist) {
+		return false, nil
 	}
 	if err := os.Remove(s.Path()); err != nil {
 		return true, err
@@ -131,6 +152,11 @@ func (s Service) plist(exe string) []byte {
 	<true/>
 	<key>KeepAlive</key>
 	<true/>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>` + ServicePath + `</string>
+	</dict>
 	<key>StandardOutPath</key>
 	<string>` + xmlText(s.LogPath()) + `</string>
 	<key>StandardErrorPath</key>
@@ -150,6 +176,7 @@ func (s Service) unit(exe string) []byte {
 Description=kttn office for Claude Code sessions
 
 [Service]
+Environment=PATH=` + ServicePath + `
 ExecStart=` + systemdQuote(exe) + ` serve
 Restart=always
 StandardOutput=append:` + s.LogPath() + `
