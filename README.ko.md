@@ -246,6 +246,17 @@ npm --prefix web run dev    # 화면을 바로 고쳐 보며 개발, /api는 ktt
 
 소스 파일은 300줄 이하로 유지합니다.
 
+`v*` 태그를 올리기 전에, 그 커밋을 깨끗하게 `git archive`한 곳에서 확인합니다.
+
+1. `cmd/kttn/install.go`, `package.json`, `plugin/.claude-plugin/plugin.json`,
+   `.claude-plugin/marketplace.json`의 버전이 같습니다.
+2. `go vet ./...` 다음 `go test ./... -count=1 -race`를 세 번 돌립니다. 릴리스
+   워크플로가 쓰는 명령 그대로이고, 한 번은 운 좋게 경쟁 상태를 지나칠 수 있습니다.
+3. `npm --prefix web ci` 다음 `test`, `typecheck`, `build`.
+4. `scripts/e2e-install.sh local`을 `KTTN_E2E_CLAUDE=0`으로 한 번, PATH에
+   `claude`가 있는 상태로 한 번.
+5. 릴리스가 나온 뒤 npm 대상으로 `scripts/e2e-install.sh`.
+
 ## 아직
 
 - 터미널 대신 Claude Code Channels로 메시지 보내기. Channels는 연구 미리보기이고

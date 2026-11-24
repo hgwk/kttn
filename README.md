@@ -257,6 +257,17 @@ npm --prefix web run dev    # screen with hot reload, proxying /api to kttn serv
 
 Source files stay at or below 300 lines.
 
+Before pushing a `v*` tag, check a clean `git archive` of the commit:
+
+1. The version matches in `cmd/kttn/install.go`, `package.json`,
+   `plugin/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`.
+2. `go vet ./...`, then `go test ./... -count=1 -race` three times: the
+   release workflow's own command, and one lucky run can hide a race.
+3. `npm --prefix web ci`, then `test`, `typecheck` and `build`.
+4. `scripts/e2e-install.sh local`, once with `KTTN_E2E_CLAUDE=0` and once with
+   `claude` on the PATH.
+5. After the release is published, `scripts/e2e-install.sh` against npm.
+
 ## Not yet
 
 - Messaging through Claude Code Channels instead of the terminal. Channels is a

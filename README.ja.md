@@ -254,6 +254,17 @@ npm --prefix web run dev    # 画面をその場で直しながら開発、/api 
 
 ソースファイルは 300 行以下に保ちます。
 
+`v*` タグを push する前に、そのコミットをきれいに `git archive` した場所で確認します。
+
+1. `cmd/kttn/install.go`、`package.json`、`plugin/.claude-plugin/plugin.json`、
+   `.claude-plugin/marketplace.json` のバージョンがそろっている。
+2. `go vet ./...` のあと `go test ./... -count=1 -race` を 3 回。リリースの
+   ワークフローと同じコマンドで、1 回だけだと競合状態を運よく見逃すことがあります。
+3. `npm --prefix web ci` のあと `test`、`typecheck`、`build`。
+4. `scripts/e2e-install.sh local` を `KTTN_E2E_CLAUDE=0` で 1 回、PATH に
+   `claude` がある状態で 1 回。
+5. リリースが出たあと、npm を相手に `scripts/e2e-install.sh`。
+
 ## まだのこと
 
 - ターミナルの代わりに Claude Code Channels でメッセージを送ること。Channels は
