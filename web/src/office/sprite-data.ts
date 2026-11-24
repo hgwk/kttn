@@ -10,6 +10,7 @@ import { ITEMS_2 } from "./sprite-art/items-2"
 import { ITEMS_3 } from "./sprite-art/items-3"
 import { ITEMS_4 } from "./sprite-art/items-4"
 import { ITEMS_5 } from "./sprite-art/items-5"
+import { ITEMS_6 } from "./sprite-art/items-6"
 
 export { BASE_PALETTE, INK } from "./sprite-art/palette"
 export type { CatKeys, Grid } from "./sprite-art/palette"
@@ -27,6 +28,7 @@ export const ITEMS = {
   ...ITEMS_3,
   ...ITEMS_4,
   ...ITEMS_5,
+  ...ITEMS_6,
 }
 
 export type ItemName = keyof typeof ITEMS
