@@ -1,0 +1,108 @@
+import type { Grid } from "./palette"
+
+// 가구와 기기 11. 소품 팔레트로 놓는 식물·고양이 소품. sprite-data.ts가
+// 합쳐 ITEMS로 낸다.
+export const ITEMS_11 = {
+  // 해바라기 화분. 노란 꽃잎 가운데 갈색 씨, 잎 두 장.
+  sunflower: [
+    "...k.kk.k...",
+    "..kSkSSkSk..",
+    ".kSSkkkkSSk.",
+    "kSSk4434kSSk",
+    ".kSk4344kSk.",
+    "kSSk4434kSSk",
+    ".kSSkkkkSSk.",
+    "..kSkSSkSk..",
+    "...k.kF.k...",
+    ".kk..kFk.kk.",
+    "kFHk.kFkkHFk",
+    ".kFFkkFkFFk.",
+    "..kkkFFkkk..",
+    "..kkkkkkkk..",
+    "..kCCCCCKk..",
+    "...kCCCKk...",
+    "...kkkkkk...",
+  ],
+  // 야자 화분. 깃털처럼 퍼진 잎이 사방으로 늘어진 키 큰 나무.
+  palm: [
+    "..kk......kk..",
+    ".kFFk....kFFk.",
+    "kFHkkk..kkkHFk",
+    "kFk.kFkkFk.kFk",
+    ".k.kFHFFHFk.k.",
+    "..kFHkFFkHFk..",
+    ".kFHk.kbk.kHFk",
+    "kFHk..kbk..kHF",
+    "kFk...kbk...kF",
+    ".k....kbk....k",
+    "......kbk.....",
+    "....kkkkkk....",
+    "....kCCCKk....",
+    "....kCCCKk....",
+    ".....kkkk.....",
+  ],
+  // 다육이 셋. 납작한 화분 셋에 동글동글한 다육이.
+  succulents: [
+    "..kk......kk......",
+    ".kFHk.kk.kHFk.kk..",
+    "kFHFkkFFkkFHFkFFk.",
+    ".kFkkFHHFkkFkkFHFk",
+    "kkkkkkkkkkkkkkkkkk",
+    "kCCCKkkwwwkkCCCKk.",
+    "kCCCKkkwwwkkCCCKk.",
+    ".kkkk..kkk..kkkk..",
+  ],
+  // 고양이 이동장. 손잡이 달린 상자, 앞 철망 너머로 노란 눈 둘.
+  catCarrier: [
+    ".....kkkkk.....",
+    "....k.....k....",
+    "..kkkkkkkkkkk..",
+    ".kNNNNNNNNNNNk.",
+    "kNkkkkkkkkkkkNk",
+    "kNkxqxqxqxqxkNk",
+    "kNkqxSxqxSxqkNk",
+    "kNkxqxqxqxqxkNk",
+    "kNkkkkkkkkkkkNk",
+    "kJJJJJJJJJJJJJk",
+    ".kkkkkkkkkkkkk.",
+  ],
+  // 고양이 화장실. 회색 통 안에 모래, 옆에 삽.
+  litterBox: [
+    "..............kk",
+    "..............kg",
+    "kkkkkkkkkkkkkkgk",
+    "kgggggggggggkgk.",
+    "kgk33433343kgk..",
+    "kgk34333433kkgk.",
+    "kgggggggggggkggk",
+    "kGGGGGGGGGGGk.kk",
+    ".kkkkkkkkkkk....",
+  ],
+  // 깃털 낚싯대. 휜 막대 끝 줄에 분홍 깃털.
+  featherWand: [
+    "kk..........",
+    "kbk.........",
+    ".kbk........",
+    "..kbk.......",
+    "...kbkkk....",
+    "....kk..k...",
+    ".........k..",
+    "........kIk.",
+    ".......kITk.",
+    "......kITIk.",
+    ".......kIk..",
+    "........k...",
+  ],
+  // 고양이 물 분수. 흰 둥근 통 위로 물이 솟아 넘친다.
+  catFountain: [
+    "....kWk....",
+    "...kWZWk...",
+    "..kkWZWkk..",
+    ".kWWZZZWWk.",
+    "kkkkkkkkkkk",
+    "kwwwwwwwwwk",
+    "kwwwNwwwwwk",
+    "kgggggggggk",
+    ".kkkkkkkkk.",
+  ],
+} satisfies Record<string, Grid>
