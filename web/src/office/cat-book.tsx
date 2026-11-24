@@ -73,6 +73,8 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
   const [open, setOpen] = useState(false)
   // 이미 서버에 이름을 알린 세션
   const told = useRef(new Set<string>())
+  // 지금 이름을 보내는 중인 세션(같은 이름을 겹쳐 보내지 않는다)
+  const sending = useRef(new Set<string>())
   // 초기화는 두 번 눌러야 한다(한 번 누르면 3초 동안 확인 단계)
   const [armed, setArmed] = useState(false)
   useEffect(() => {
@@ -112,19 +114,29 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
   }, [open])
 
   // 처음 보는 고양이의 이름을 서버에 남긴다(서버는 이름이 비어 있을 때만 채운다).
+  // 서버 도감에 있고 이름이 빈 고양이에게만 보낸다(초기화 직후나 기록하지 않는
+  // 세션에 보내면 404다). 성공했을 때만 보낸 것으로 쳐서, 실패하면 다음 새로
+  // 고침 때 다시 보낸다.
   useEffect(() => {
     if (!cats) return
     const recorded = new Map(cats.map((cat) => [cat.key, cat.cat_name]))
     for (const agent of agents) {
       const name = names.get(agent.key)
-      if (!name || recorded.get(agent.key) || told.current.has(agent.key))
-        continue
-      told.current.add(agent.key)
+      const key = agent.key
+      // 서버가 기록하지 않는 세션(claude -p 같은 headless)은 목록에 없어 빠진다.
+      if (!name || recorded.get(key) !== "") continue
+      if (told.current.has(key) || sending.current.has(key)) continue
+      sending.current.add(key)
       void apiFetch("/api/cats/name", {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ key: agent.key, cat_name: name }),
-      }).catch(() => {})
+        body: JSON.stringify({ key, cat_name: name }),
+      })
+        .then((response) => {
+          if (response.ok) told.current.add(key)
+        })
+        .catch(() => {})
+        .finally(() => sending.current.delete(key))
     }
   }, [agents, cats, names])
 
