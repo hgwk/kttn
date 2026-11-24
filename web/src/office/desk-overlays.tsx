@@ -50,7 +50,7 @@ export function DeskOverlays({
           data-cat-speech=""
           // 확인이 필요한 고양이. 화면 밖이면 그쪽 화살표가 깜빡인다(scroll-hint.tsx).
           data-alert={agent.state === "needs_you" ? "" : undefined}
-          className="group/speech absolute z-40 w-max max-w-[min(160px,92%)] -translate-x-1/2 -translate-y-full has-[form]:z-[60] data-near:z-50"
+          className="group/speech absolute z-40 w-max max-w-[180px] -translate-x-1/2 -translate-y-full has-[form]:z-[60] data-near:z-50"
           style={{
             left: `${((seat.x + CAT_DX) / layout.w) * 100}%`,
             top: `${((seat.y - 14) / layout.h) * 100}%`,

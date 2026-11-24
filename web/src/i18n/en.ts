@@ -33,7 +33,7 @@ export const en: Record<MessageKey, string> = {
   "trouble.billing_error": "Stopped on a billing problem, meow.",
   "trouble.other": "Stopped on an error, meow. ({kind})",
 
-  "status.refreshFailed": "Refresh failed · last screen",
+  "status.refreshFailed": "Refresh failed, last screen",
   "status.needsYou": "Needs you {n}",
   "status.busy": "Working {n}",
   "status.waiting": "Idle {n}",
@@ -47,8 +47,8 @@ export const en: Record<MessageKey, string> = {
   "props.paletteHint": "Drag onto a lounge area or the top wall",
   "props.wall": "Wall decor",
   "props.floor": "Furniture",
-  "props.moveHint": "Drag to move · double-click to put back",
-  "props.addedHint": "Drag to move · double-click to remove",
+  "props.moveHint": "Drag to move, double-click to put back",
+  "props.addedHint": "Drag to move, double-click to remove",
   "hud.label": "Office status",
   "hud.worldMap": "World map",
   "hud.fullscreen": "Full screen",
@@ -140,7 +140,7 @@ export const en: Record<MessageKey, string> = {
   "capture.stop": "Stop recording",
   "capture.record": "Record",
 
-  "stage.help": "{scale}% · click a cat: open its tab · click a bubble: message · wheel: pan · arrows/WASD: butler · +/-: zoom · 1: actual size",
+  "stage.help": "{scale}% | click a cat: open its tab | click a bubble: message | wheel: pan | arrows/WASD: butler | +/-: zoom | 1: actual size",
 
   "scroll.left": "Show rooms to the left",
   "scroll.right": "Show rooms to the right",

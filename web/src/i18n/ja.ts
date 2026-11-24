@@ -33,7 +33,7 @@ export const ja: Record<MessageKey, string> = {
   "trouble.billing_error": "支払いの問題で止まったにゃ。",
   "trouble.other": "エラーで止まったにゃ。({kind})",
 
-  "status.refreshFailed": "更新に失敗 · 前回の画面",
+  "status.refreshFailed": "更新に失敗、前回の画面",
   "status.needsYou": "確認が必要 {n}",
   "status.busy": "作業中 {n}",
   "status.waiting": "待機 {n}",
@@ -47,8 +47,8 @@ export const ja: Record<MessageKey, string> = {
   "props.paletteHint": "休憩スペースか上の壁へドラッグして置く",
   "props.wall": "壁飾り",
   "props.floor": "家具",
-  "props.moveHint": "ドラッグで移動 · ダブルクリックで元の位置",
-  "props.addedHint": "ドラッグで移動 · ダブルクリックで片付ける",
+  "props.moveHint": "ドラッグで移動、ダブルクリックで元の位置",
+  "props.addedHint": "ドラッグで移動、ダブルクリックで片付ける",
   "hud.label": "オフィスの状況",
   "hud.worldMap": "ワールドマップ",
   "hud.fullscreen": "全画面",
@@ -140,7 +140,7 @@ export const ja: Record<MessageKey, string> = {
   "capture.stop": "録画停止",
   "capture.record": "録画",
 
-  "stage.help": "{scale}% · 猫を押してタブを開く · 吹き出しを押してメッセージ · ホイールで移動 · 矢印/WASD で執事 · +/- 拡大 · 1 で元の大きさ",
+  "stage.help": "{scale}% | 猫を押してタブを開く | 吹き出しを押してメッセージ | ホイールで移動 | 矢印/WASD で執事 | +/- 拡大 | 1 で元の大きさ",
 
   "scroll.left": "左の部屋を見る",
   "scroll.right": "右の部屋を見る",
