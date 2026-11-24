@@ -1,0 +1,6 @@
+# The screen build is embedded into the binary; build it with `npm --prefix web run build`.
+/internal/server/web/*
+!/internal/server/web/.gitkeep
+/web/node_modules/
+/kttn
+/dist/
