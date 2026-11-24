@@ -1,5 +1,5 @@
 import { t } from "@/i18n"
-import type { ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 
 import {
   assignSeats,
@@ -22,6 +22,10 @@ import {
 } from "@/lib/agent-office"
 import type { FolderNode, RepoOffice } from "@/lib/agent-office-layout"
 
+
+// 카메라 틀 높이 가운데 사무실이 못 쓰는 높이(px): TV 틀 위아래 14, 건물 위
+// 벽면 34, 건물 벽 16, 복도 32와 아래 여백 12.
+const FLOOR_CHROME = 108
 /**
  * 건물 하나가 이 PC다. 저장소마다 사무실이 하나씩 건물 복도를 따라 늘어서고,
  * 저장소 안 폴더는 그 사무실 안의 방이 된다. 다른 사무실 폴더 안에서 연
@@ -45,6 +49,19 @@ export function Building({
   /** 오른쪽 칸. 넓으면 옆에, 좁으면 아래에 둔다. */
   side: ReactNode
 }) {
+  // 카메라 틀 높이에서 TV 틀·건물 위 벽면·건물 벽·복도와 여백을 뺀 높이가
+  // 사무실이 쓸 수 있는 높이다(배율을 되돌린 안쪽 px).
+  const floorRef = useRef<HTMLDivElement>(null)
+  const [roomsH, setRoomsH] = useState(0)
+  useEffect(() => {
+    const box = floorRef.current
+    if (!box) return
+    const observer = new ResizeObserver(([entry]) =>
+      setRoomsH(Math.max(0, Math.round(entry.contentRect.height) - FLOOR_CHROME))
+    )
+    observer.observe(box)
+    return () => observer.disconnect()
+  }, [])
   const trees = offices.map((office) => ({
     office,
     tree: compactFolderTree(office.tree),
@@ -82,9 +99,11 @@ export function Building({
         : []),
       ...insideOffices.map(officePlan),
     ],
-    // 폭은 제한하지 않는다. 방은 오른쪽으로 먼저 늘어서고(키가 낮게), 건물은
-    // 카메라 틀 안에서 가로로도 스크롤된다.
-    Number.POSITIVE_INFINITY
+    // 폭은 제한하지 않는다(건물은 카메라 틀 안에서 가로로 스크롤된다). 대신
+    // 화면 높이를 넘지 않는 안에서 가장 좁게 놓아, 아래를 비워 두고 옆으로만
+    // 늘어서지 않게 한다.
+    Number.POSITIVE_INFINITY,
+    roomsH
   )
   const cards = { now, seats, levelUps, plans }
   const officeId = (entry: Entry) =>
@@ -133,6 +152,7 @@ export function Building({
         {/* 확대·축소는 건물을 보려는 것이라 옆 칸은 배율을 되돌려 같은 크기로 둔다. */}
         <div className="grid h-full min-h-0 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-3 @3xl:grid-cols-[minmax(0,1fr)_calc(21rem/var(--office-zoom,1))] @3xl:grid-rows-1">
           <div
+            ref={floorRef}
             className={cn(
               "relative flex min-h-0 min-w-0",
               counts.needsYou > 0 && "[&>div:last-child]:border-amber-400"

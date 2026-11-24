@@ -104,7 +104,10 @@ const score = ({ w, h }: Size) => h * 100_000 + w
 function planRoom(
   node: PlanNode,
   plans: Map<string, RoomPlan>,
-  maxW: number
+  maxW: number,
+  // 이 방이 쓸 수 있는 높이. 유한하면 그 높이 안에서 가장 좁은 배치를 고른다
+  // (화면 아래를 비워 두고 옆으로 늘어서지 않게).
+  maxH = Number.POSITIVE_INFINITY
 ): Size {
   // 안쪽 방이 있으면 책상 구역도 복도 아래 칸 줄(왼쪽 통로 안쪽)에 선다.
   const cols = deskCols(node.desks, node.children.length ? maxW - WING_X : maxW)
@@ -126,24 +129,40 @@ function planRoom(
   // 폭을 넘는 배치는 맞는 배치가 하나도 없을 때만, 그중 가장 좁은 것을 쓴다.
   type Pick = { size: Size; order: string[]; inner: Map<string, RoomPlan> }
   let best: Pick | null = null
+  // 고르는 차례: 폭 안에 드는가 → 높이 안에 드는가 → (둘 다 들면) 좁은 쪽,
+  // (폭만 들면) 낮은 쪽, (폭도 넘으면) 좁은 쪽.
+  const rank = (size: Size) => {
+    const fitsW = size.w <= maxW
+    const fitsH = size.h <= maxH
+    if (fitsW && fitsH) return [0, size.w, size.h]
+    if (fitsW) return [1, score(size), 0]
+    return [2, size.w, size.h]
+  }
   const consider = (pick: Pick) => {
-    const fits = pick.size.w <= maxW
-    const bestFits = best ? best.size.w <= maxW : false
-    const better = !best
-      ? true
-      : fits !== bestFits
-        ? fits
-        : fits
-          ? score(pick.size) < score(best.size)
-          : pick.size.w < best.size.w
-    if (better) best = pick
+    if (!best) {
+      best = pick
+      return
+    }
+    const a = rank(pick.size)
+    const b = rank(best.size)
+    if ((a[0] - b[0] || a[1] - b[1] || a[2] - b[2]) < 0) best = pick
   }
 
   // 복도 아래 한 줄에 이 방의 책상 구역과 안쪽 방들을 칸처럼 늘어놓는다.
   // 안쪽 방이 쓸 폭은 두 가지로 따로 계산해 본다. 줄 폭을 다 쓰는 경우와,
   // 책상 구역 옆에 들어갈 만큼 좁히는 경우다(책상 옆자리가 비지 않게).
   const full = maxW - FRAME - WING_X
-  const budgets = desk.w ? [full, full - desk.w - GAP] : [full]
+  const budgets = new Set(desk.w ? [full, full - desk.w - GAP] : [full])
+  // 높이가 정해져 있으면 안쪽 방을 좁고 높게 놓는 경우도 본다(넓은 방을
+  // 여러 줄로 접어 화면 높이를 채우고 옆으로 덜 늘어서게).
+  if (Number.isFinite(maxH)) {
+    const widest = Math.max(
+      ...node.children.map((child) => planRoom(child, new Map(), full).w)
+    )
+    for (const share of [0.75, 0.5, 0.35]) {
+      budgets.add(Math.round(widest * share))
+    }
+  }
   for (const budget of budgets) {
     const inner = new Map<string, RoomPlan>()
     const kids = node.children
@@ -186,12 +205,15 @@ function planRoom(
 
 /**
  * 사무실(맨 바깥 칸막이 방)들의 배치를 한꺼번에 계산한다. floorW는 건물 벽
- * 안쪽 바닥 폭이다. 무한이면 폭 제한 없이 키가 가장 낮게, 곧 오른쪽부터 채운다.
+ * 안쪽 바닥 폭이다. 무한이면 폭 제한 없이 놓는다. floorH(사무실이 쓸 수 있는
+ * 높이)를 주면 그 높이 안에서 가장 좁게, 없으면 키가 가장 낮게(오른쪽부터) 놓는다.
  */
-export function planRooms(roots: PlanNode[], floorW: number) {
+export function planRooms(roots: PlanNode[], floorW: number, floorH = 0) {
   const plans = new Map<string, RoomPlan>()
   // 건물 틀(벽 두께)과 칸 줄 여백을 뺀 폭이 맨 바깥 방들이 쓸 수 있는 폭이다.
   const maxW = floorW > 0 ? floorW - FRAME - WING_X : Number.POSITIVE_INFINITY
-  for (const root of roots) planRoom(root, plans, maxW)
+  // 높이를 주면(화면 높이) 사무실마다 그 안에서 가장 좁게 놓는다.
+  const maxH = floorH > 0 ? floorH : Number.POSITIVE_INFINITY
+  for (const root of roots) planRoom(root, plans, maxW, maxH)
   return plans
 }
