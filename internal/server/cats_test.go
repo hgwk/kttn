@@ -89,6 +89,7 @@ func TestTheScreensPickFillsANameAndAPersonsRenameReplacesIt(t *testing.T) {
 		{"wrong", `{"key":"claude|a","cat_name":"Nabi"}`, 401},
 		{"k", `{"key":"claude|a","cat_name":"` + strings.Repeat("가", 33) + `"}`, 400},
 		{"k", `{"key":"claude|a","cat_name":"Na\u0007bi"}`, 400},
+		{"k", `{"key":"claude|a","cat_name":"Na\u202ebi"}`, 400},
 		{"k", `{"key":"claude|a","cat_name":"   "}`, 400},
 		{"k", `{"key":"claude|zz","cat_name":"Nabi"}`, 404},
 		{"k", `{"key":"claude|a","cat_name":" Nabi "}`, 200},

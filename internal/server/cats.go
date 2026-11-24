@@ -44,6 +44,10 @@ type catBook struct {
 	mu    sync.Mutex
 	cats  map[string]*cat
 	timer *time.Timer
+	// saving lets one save run at a time: the timer's save and clear's
+	// share one temp file, and an older list written last would bring a
+	// cleared catalog back.
+	saving sync.Mutex
 }
 
 func newCatBook(path string, now func() time.Time) *catBook {
@@ -169,17 +173,23 @@ func (b *catBook) schedule() {
 	}
 }
 
-// flush saves now when a save is waiting.
+// flush saves now when a save is waiting, and otherwise waits for a save
+// already running.
 func (b *catBook) flush() {
 	b.mu.Lock()
 	pending := b.timer != nil && b.timer.Stop()
 	b.mu.Unlock()
 	if pending {
 		_ = b.save()
+		return
 	}
+	b.saving.Lock()
+	b.saving.Unlock()
 }
 
 func (b *catBook) save() error {
+	b.saving.Lock()
+	defer b.saving.Unlock()
 	b.mu.Lock()
 	if b.timer != nil {
 		b.timer.Stop()

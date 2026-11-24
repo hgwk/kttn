@@ -38,6 +38,9 @@ type stateFile struct {
 	store *office.Store
 	mu    sync.Mutex
 	timer *time.Timer
+	// saving lets one save run at a time, so a stop never exits while the
+	// timer's save is half written.
+	saving sync.Mutex
 }
 
 func (f *stateFile) load() {
@@ -60,17 +63,23 @@ func (f *stateFile) schedule() {
 	}
 }
 
-// flush saves now when a save is waiting.
+// flush saves now when a save is waiting, and otherwise waits for a save
+// already running.
 func (f *stateFile) flush() {
 	f.mu.Lock()
 	pending := f.timer != nil && f.timer.Stop()
 	f.mu.Unlock()
 	if pending {
 		f.save()
+		return
 	}
+	f.saving.Lock()
+	f.saving.Unlock()
 }
 
 func (f *stateFile) save() {
+	f.saving.Lock()
+	defer f.saving.Unlock()
 	f.mu.Lock()
 	f.timer = nil
 	f.mu.Unlock()

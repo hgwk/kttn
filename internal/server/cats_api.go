@@ -15,14 +15,15 @@ const (
 )
 
 // catName checks a name the screen gives a cat: 1 to 32 characters after
-// trimming, none of them control characters.
+// trimming, none of them control or format characters (a right-to-left
+// override would make the name read as something else).
 func catName(raw string) (string, bool) {
 	name := strings.TrimSpace(raw)
 	if name == "" || utf8.RuneCountInString(name) > maxCatName || !utf8.ValidString(name) {
 		return "", false
 	}
 	for _, r := range name {
-		if unicode.IsControl(r) {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) {
 			return "", false
 		}
 	}
