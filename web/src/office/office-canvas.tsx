@@ -128,8 +128,10 @@ export function OfficeCanvas({
       const tie = familyColor(agent.family)
       const coat = coatFor(agent.key)
       if (!gone && !away) {
-        // 비밀 키를 누르면 걷지 않는 고양이들이 잠깐 춤춘다(dance.ts).
-        const dance = !walking && dancing(t) ? danceStep(t) : null
+        // 비밀 키를 누르면 걷지 않는 고양이들이 잠깐 춤춘다(dance.ts). 확인을
+        // 기다리는 고양이는 깜빡이는 신호가 가려지지 않게 춤추지 않는다.
+        const resting = !walking && agent.state !== "needs_you"
+        const dance = resting && dancing(t) ? danceStep(t) : null
         const hop = dance
           ? dance.hop
           : agent.state === "needs_you" && !walking
