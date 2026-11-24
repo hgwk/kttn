@@ -117,8 +117,8 @@ the office every 10 minutes while its tab is visible. It captures the office as
 it is on screen, including repository, folder and session names and, if answer
 preview is on, the last answer's text in the speech bubbles. Pictures stay only
 in this browser, for up to two days (160 a day), and nothing goes to the server;
-they also go into any video you save, so check before sharing. The clear button
-in the timelapse window deletes them.
+they also go into any video you save, so check before sharing. **Clear recorded
+frames** in the timelapse window (pressed twice within 5 seconds) deletes them.
 
 ## Install
 
