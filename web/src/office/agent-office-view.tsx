@@ -24,6 +24,7 @@ import { OfficeSettingsContext, useOfficeSettings } from "@/office/office-settin
 import { PropPalette } from "@/office/props-palette"
 import { usePetting } from "@/office/petting"
 import { CatBook } from "@/office/cat-book"
+import { OfficePaper } from "@/office/office-paper"
 
 const POLL_MS = 2000
 const MAX_LEVEL_UPS = 40
@@ -206,6 +207,7 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
           tools={
             <>
               <CatBook agents={working} />
+              <OfficePaper agents={working} now={now} />
               <OfficeCapture area={areaRef} />
               <button
                 type="button"

@@ -18,6 +18,8 @@ export type CatRecord = {
   tools: number
   /** 새벽(서버 시각 0~5시)에 일한 적이 있는지. 이전 서버에는 없다. */
   night_owl?: boolean
+  /** 그날의 집계(date는 이 컴퓨터 날짜). 이전 서버에는 없다. */
+  day?: { date: string; tools: number; failures: number }
 }
 
 /** 동시에 일한 고양이 수의 최고 기록. 이전 서버에는 없다. */
