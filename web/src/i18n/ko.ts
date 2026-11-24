@@ -77,6 +77,7 @@ export const ko = {
   "timelapse.failed": "영상을 만들지 못했다냥.",
   "timelapse.full": "저장 공간이 부족해 장면을 남기지 못했다냥. 기록 삭제로 비워 달라냥.",
   "timelapse.privacy": "화면을 보이는 그대로 찍는다냥(프로젝트와 세션 이름, 켜 두었다면 답변 미리 보기까지). 이 브라우저에만 이틀 동안 남고, 저장한 영상에도 그대로 들어간다냥.",
+  "timelapse.saveHint": "저장하는 동안에는 이 탭을 열어 두라냥.",
   "timelapse.clear": "기록 삭제",
   "timelapse.clearConfirm": "삭제 확인",
   "timelapse.clearHint": "한 번 더 누르면 남긴 장면을 모두 지웁니다.",

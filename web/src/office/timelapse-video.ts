@@ -19,8 +19,9 @@ export function videoType() {
 
 /**
  * 장면들을 캔버스에 차례로 그려 영상으로 만든다. 하루치(최대 160장)를 한꺼번에
- * 풀면 메모리를 수백 MB 쓰므로 한 장씩 풀어 그리고 바로 버린다. 프레임은
- * 그릴 때마다 직접 넘긴다(captureStream(0)과 requestFrame).
+ * 풀면 메모리를 수백 MB 쓰므로 한 장씩 풀어 그리고 바로 버린다. 영상의 장면
+ * 시각은 프레임이 도착한 때라, 저장하는 동안 탭이 가려지면 장면이 길어진다
+ * (창에 "탭을 열어 두기" 안내).
  */
 export async function toVideo(frames: Frame[], mime: string) {
   const first = await createImageBitmap(frames[0].blob)
@@ -30,9 +31,16 @@ export async function toVideo(frames: Frame[], mime: string) {
   first.close()
   const ctx = canvas.getContext("2d")
   if (!ctx) throw new Error("no canvas")
-  const stream = canvas.captureStream(0)
-  const track = stream.getVideoTracks()[0] as MediaStreamTrack & {
+  // 프레임을 직접 넘길 수 있으면(requestFrame) 그렇게 하고, 못 하는
+  // 브라우저에서는 초당 FPS로 저절로 담는다(그대로 두면 빈 영상이 된다).
+  let stream = canvas.captureStream(0)
+  let track = stream.getVideoTracks()[0] as MediaStreamTrack & {
     requestFrame?: () => void
+  }
+  if (typeof track.requestFrame !== "function") {
+    for (const old of stream.getTracks()) old.stop()
+    stream = canvas.captureStream(FPS)
+    track = stream.getVideoTracks()[0]
   }
   const recorder = new MediaRecorder(stream, { mimeType: mime })
   const chunks: Blob[] = []

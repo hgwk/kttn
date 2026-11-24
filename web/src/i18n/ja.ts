@@ -76,6 +76,7 @@ export const ja: Record<MessageKey, string> = {
   "timelapse.failed": "動画を作れなかったにゃ。",
   "timelapse.full": "保存領域が足りず場面を残せなかったにゃ。記録の削除で空けてほしいにゃ。",
   "timelapse.privacy": "画面をそのまま撮るにゃ(プロジェクトやセッション名、オンなら回答プレビューも)。このブラウザに2日間だけ残り、保存した動画にもそのまま入るにゃ。",
+  "timelapse.saveHint": "保存中はこのタブを開いたままにしてにゃ。",
   "timelapse.clear": "記録の削除",
   "timelapse.clearConfirm": "削除の確認",
   "timelapse.clearHint": "もう一度押すと残した場面をすべて消します。",

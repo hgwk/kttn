@@ -203,7 +203,7 @@ export function OfficeTimelapse({
           )}
           {/* 무엇이 어디에 남는지 */}
           <p className="px-1 text-[10px] leading-snug opacity-80">
-            {t("timelapse.privacy")}
+            {t("timelapse.privacy")} {t("timelapse.saveHint")}
           </p>
           <div className="flex items-center justify-end gap-1">
             {note ? (

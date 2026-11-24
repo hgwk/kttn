@@ -76,6 +76,7 @@ export const en: Record<MessageKey, string> = {
   "timelapse.failed": "Could not make the video, meow.",
   "timelapse.full": "Not enough storage to keep shots, meow. Clear recorded frames to free space.",
   "timelapse.privacy": "Shots show the screen as it is (project and session names, and answer previews if on). They stay in this browser for two days and go into saved videos as they are, meow.",
+  "timelapse.saveHint": "Keep this tab open while saving.",
   "timelapse.clear": "Clear recorded frames",
   "timelapse.clearConfirm": "Confirm delete",
   "timelapse.clearHint": "Press again to delete all saved shots.",
