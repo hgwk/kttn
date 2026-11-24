@@ -2,6 +2,7 @@ import { useEffect, type DragEvent } from "react"
 
 import { Prop } from "@/office/lounge"
 import { OFFICE_SCALE } from "@/office/pixel"
+import { PixelIcon } from "@/office/pixel-icon"
 import {
   ADDED,
   Movable,
@@ -115,9 +116,11 @@ export function PropPalette() {
     >
       <h3
         id="office-props"
-        className="w-fit bg-[#2b2a36] px-1.5 py-px text-xs text-[#f7f2e8]"
+        title="끌어서 휴게 공간이나 위쪽 벽에 놓기"
+        className="inline-flex w-fit items-center gap-1.5 bg-[#2b2a36] px-1.5 py-px text-xs text-[#f7f2e8]"
       >
-        소품 · 끌어서 놓기
+        <PixelIcon name="plant" />
+        소품
       </h3>
       <div className="grid content-start gap-2 border-2 border-[#2b2a36] bg-[#f4efe6] p-2">
         {[
