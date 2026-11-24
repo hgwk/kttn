@@ -175,3 +175,14 @@ func TestASymlinkedSettingsFileStaysALinkAndTheFirstBackupIsKept(t *testing.T) {
 		t.Fatalf("the second run replaced the original backup:\n%s", bak)
 	}
 }
+
+func TestPluginEnabledSpotsTheKttnPlugin(t *testing.T) {
+	dir := t.TempDir()
+	on := filepath.Join(dir, "on.json")
+	os.WriteFile(on, []byte(`{"enabledPlugins":{"kttn@kttn":true,"other@x":true}}`), 0o600)
+	off := filepath.Join(dir, "off.json")
+	os.WriteFile(off, []byte(`{"enabledPlugins":{"kttn@kttn":false}}`), 0o600)
+	if !PluginEnabled(on) || PluginEnabled(off) || PluginEnabled(filepath.Join(dir, "missing.json")) {
+		t.Fatal("wrong plugin detection")
+	}
+}

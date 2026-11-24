@@ -207,3 +207,24 @@ func indentOf(raw []byte) string {
 	}
 	return "  "
 }
+
+// PluginEnabled reports whether the kttn plugin is turned on in these
+// settings, which together with installed hooks reports every event twice.
+func PluginEnabled(path string) bool {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		return false
+	}
+	var doc struct {
+		EnabledPlugins map[string]bool `json:"enabledPlugins"`
+	}
+	if json.Unmarshal(raw, &doc) != nil {
+		return false
+	}
+	for name, on := range doc.EnabledPlugins {
+		if on && strings.HasPrefix(name, "kttn@") {
+			return true
+		}
+	}
+	return false
+}

@@ -120,6 +120,9 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 		return err
 	}
 	fmt.Fprintf(out, "Hooked Claude Code in %s.\n", settings)
+	if claudehooks.PluginEnabled(settings) {
+		fmt.Fprintln(out, "Note: the kttn plugin is enabled too, so every event would be reported twice; disable one of them (/plugin).")
+	}
 
 	if err := m.service.Register(exe); err != nil {
 		return err
