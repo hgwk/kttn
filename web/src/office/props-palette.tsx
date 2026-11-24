@@ -9,6 +9,7 @@ import {
   Movable,
   save,
   setOffset,
+  showGuide,
   snap,
   useRoomProps,
 } from "@/office/props-drag"
@@ -88,6 +89,15 @@ export function PropPalette() {
   const start = (name: ItemName) => (event: DragEvent) => {
     event.dataTransfer.setData(MIME, name)
     event.dataTransfer.effectAllowed = "copy"
+    // 집은 동안 놓을 수 있는 칸(벽 장식은 위쪽 벽, 나머지는 휴게 공간)을 보인다.
+    const hang = HANG.includes(name)
+    const guides = [
+      ...document.querySelectorAll<HTMLElement>("[data-drop-room]"),
+    ]
+      .filter((room) => (room.dataset.dropRoom === WALL_ROOM) === hang)
+      .map(showGuide)
+    const end = () => guides.forEach((guide) => guide.remove())
+    event.currentTarget.addEventListener("dragend", end, { once: true })
   }
   return (
     <section

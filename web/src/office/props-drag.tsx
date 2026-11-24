@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react"
 import { VISIT } from "@/office/props-catalog"
+import { GONE, gone, lightTrash, puff, trashAt } from "@/office/props-trash"
 import type { ItemName } from "@/office/sprites"
 
 // 사무실 소품(휴게 공간 가구, 위쪽 벽 장식)을 마우스로 옮긴다. 옮긴 자리는
@@ -76,7 +77,7 @@ function subscribe(listener: () => void) {
 
 // 끄는 동안 소품이 움직일 수 있는 칸을 보인다. 반투명 바탕에 도트 여덟 칸(16px)
 // 격자를 깔고 테두리를 점선으로 두른다. 소품 아래에 깔리도록 맨 앞에 넣는다.
-function showGuide(bounds: Element) {
+export function showGuide(bounds: Element) {
   const guide = document.createElement("div")
   guide.setAttribute("aria-hidden", "true")
   Object.assign(guide.style, {
@@ -136,6 +137,7 @@ export function Movable({
     () => rooms[room]?.[item],
     () => undefined
   )
+  const name = item.split(":").at(-1) as ItemName
   const drag = useRef<{
     px: number
     py: number
@@ -204,6 +206,8 @@ export function Movable({
   const move = (event: ReactPointerEvent<HTMLSpanElement>) => {
     const start = drag.current
     if (!start) return
+    const el = event.currentTarget
+    lightTrash(trashAt(event.clientX, event.clientY, el))
     const x = clamp(
       snap(start.ox + (event.clientX - start.px) / start.ratio),
       start.lo.x,
@@ -239,19 +243,29 @@ export function Movable({
     setOffset(room, item, next)
   }
 
-  const up = () => {
+  const up = (event: ReactPointerEvent<HTMLSpanElement>) => {
     if (!drag.current) return
     drag.current.guide.remove()
     drag.current = null
+    lightTrash()
+    // 휴지통에 놓으면 치운다(props-trash.ts).
+    if (trashAt(event.clientX, event.clientY, event.currentTarget)) {
+      puff(event.clientX, event.clientY)
+      const off = item.startsWith(ADDED) ? null : { x: GONE, y: GONE }
+      setOffset(room, item, off)
+    }
     save()
   }
+
+  if (gone(offset)) return null
 
   return (
     <span
       className={className}
       data-movable=""
       // 쉬는 고양이가 찾아가는 소품이면 거기서 하는 일(visit-cats.tsx)
-      data-visit={VISIT[item.split(":").at(-1) as ItemName]}
+      data-visit={VISIT[name]}
+      data-trash={name === "trash" ? "" : undefined}
       title={title ?? t("props.moveHint")}
       style={{
         display: "block",
