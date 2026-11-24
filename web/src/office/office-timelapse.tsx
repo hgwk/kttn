@@ -2,9 +2,13 @@ import { lang, t } from "@/i18n"
 import { useEffect, useRef, useState, type RefObject } from "react"
 
 import { TOOL_BUTTON, ToggleMark } from "@/office/office-capture"
+import { cn } from "@/lib/utils"
+import { FPS, toVideo, videoType } from "@/office/timelapse-video"
 import {
   addFrame,
+  clearFrames,
   framesOf,
+  isQuota,
   localDay,
   type Frame,
 } from "@/office/timelapse-store"
@@ -15,7 +19,6 @@ import {
 
 const STORE = "kttn.timelapse"
 const EVERY_MS = 10 * 60_000
-const FPS = 6
 const WIDTH = 960
 
 const saved = () => {
@@ -40,29 +43,6 @@ async function shoot(floor: HTMLElement) {
   })
 }
 
-/** 장면들을 캔버스에 차례로 그려 WebM으로 만든다. */
-async function toVideo(frames: Frame[]) {
-  const images = await Promise.all(frames.map((f) => createImageBitmap(f.blob)))
-  const canvas = document.createElement("canvas")
-  canvas.width = images[0].width
-  canvas.height = images[0].height
-  const ctx = canvas.getContext("2d")
-  if (!ctx) throw new Error("no canvas")
-  const stream = canvas.captureStream(FPS)
-  const recorder = new MediaRecorder(stream, { mimeType: "video/webm" })
-  const chunks: Blob[] = []
-  recorder.ondataavailable = (event) => chunks.push(event.data)
-  const stopped = new Promise((resolve) => (recorder.onstop = resolve))
-  recorder.start()
-  for (const image of images) {
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
-    await new Promise((resolve) => setTimeout(resolve, 1000 / FPS))
-  }
-  recorder.stop()
-  await stopped
-  return new Blob(chunks, { type: "video/webm" })
-}
-
 /** 안내 줄의 타임랩스 버튼과 창 */
 export function OfficeTimelapse({
   area,
@@ -84,7 +64,11 @@ export function OfficeTimelapse({
       if (!floor || document.hidden) return
       void shoot(floor)
         .then((blob) => addFrame(blob))
-        .catch(() => {})
+        .then(() => setNote(""))
+        .catch((error) =>
+          // 저장 공간이 모자라면 창에 알린다(그 밖의 실패는 다음 차례에 다시).
+          setNote(isQuota(error) ? t("timelapse.full") : "")
+        )
     }
     take()
     const timer = window.setInterval(take, EVERY_MS)
@@ -130,20 +114,48 @@ export function OfficeTimelapse({
     }
   }
 
+  const format = videoType()
   const save = async () => {
-    if (!frames.length) return
+    if (!frames.length || !format) return
     setNote("")
     try {
-      const video = await toVideo(frames)
+      const video = await toVideo(frames, format.mime)
       const link = document.createElement("a")
       link.href = URL.createObjectURL(video)
-      link.download = `kttn-timelapse-${localDay(Date.now())}.webm`
+      link.download = `kttn-timelapse-${localDay(Date.now())}.${format.ext}`
       link.click()
       setTimeout(() => URL.revokeObjectURL(link.href), 10_000)
     } catch {
       setNote(t("timelapse.failed"))
     }
   }
+
+  // 기록 삭제는 두 번 눌러야 한다(5초 안에)
+  const [armed, setArmed] = useState(false)
+  useEffect(() => {
+    if (!armed) return
+    const timer = window.setTimeout(() => setArmed(false), 5000)
+    return () => window.clearTimeout(timer)
+  }, [armed])
+  const clear = async () => {
+    if (!armed) {
+      setArmed(true)
+      return
+    }
+    setArmed(false)
+    await clearFrames().catch(() => {})
+    setFrames([])
+  }
+
+  // Esc로 창을 닫는다.
+  useEffect(() => {
+    if (!open) return
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false)
+    }
+    window.addEventListener("keydown", key)
+    return () => window.removeEventListener("keydown", key)
+  }, [open])
 
   const frame = frames[index]
   return (
@@ -159,6 +171,7 @@ export function OfficeTimelapse({
       </button>
       {open ? (
         <section
+          role="dialog"
           aria-label={t("timelapse.title")}
           className="fixed top-1/2 left-1/2 z-[80] grid w-[min(90vw,640px)] -translate-x-1/2 -translate-y-1/2 gap-1 border-4 border-[#2b2a36] bg-[#2b2a36] p-1 text-[#f7f2e8] shadow-[6px_6px_0_#2b2a36]"
         >
@@ -188,8 +201,16 @@ export function OfficeTimelapse({
               {on ? t("timelapse.waiting") : t("timelapse.empty")}
             </p>
           )}
+          {/* 무엇이 어디에 남는지 */}
+          <p className="px-1 text-[10px] leading-snug opacity-80">
+            {t("timelapse.privacy")}
+          </p>
           <div className="flex items-center justify-end gap-1">
-            {note ? <span role="status" className="mr-auto text-[10px]">{note}</span> : null}
+            {note ? (
+              <span role="status" className="mr-auto text-[10px]">
+                {note}
+              </span>
+            ) : null}
             <button
               type="button"
               className={TOOL_BUTTON}
@@ -199,14 +220,27 @@ export function OfficeTimelapse({
               <ToggleMark on={on} />
               {t("timelapse.auto")}
             </button>
+            {format ? (
+              <button
+                type="button"
+                className={TOOL_BUTTON}
+                disabled={!frames.length}
+                onClick={() => void save()}
+              >
+                {t("timelapse.save")}
+              </button>
+            ) : null}
             <button
               type="button"
-              className={TOOL_BUTTON}
+              className={cn(TOOL_BUTTON, armed && "bg-[#c0392b]")}
               disabled={!frames.length}
-              onClick={() => void save()}
+              onClick={() => void clear()}
             >
-              {t("timelapse.save")}
+              {armed ? t("timelapse.clearConfirm") : t("timelapse.clear")}
             </button>
+            <span role="status" className="sr-only">
+              {armed ? t("timelapse.clearHint") : ""}
+            </span>
             <button
               type="button"
               className={TOOL_BUTTON}

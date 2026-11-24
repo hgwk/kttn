@@ -48,17 +48,22 @@ export async function framesOf(day: string): Promise<Frame[]> {
   }
 }
 
-/** 장면 하나를 더한다. 어제보다 오래된 날과 하루 한도를 넘는 장면은 지운다. */
+/**
+ * 장면 하나를 더한다. 어제보다 오래된 날과 하루 한도를 넘는 장면을 먼저 따로
+ * 지운 뒤 넣는다(한 트랜잭션에 두면 저장 공간이 모자라 넣기가 실패할 때 지우기도
+ * 되돌려져 공간이 영영 비지 않는다). 넣기가 실패하면 그 오류를 그대로 던진다.
+ * 5분 안에 찍은 장면이 있으면(다른 탭도 기록 중) 건너뛰고 false를 돌려준다.
+ */
 export async function addFrame(blob: Blob, at = Date.now()) {
   const day = localDay(at)
   const keep = new Set([day, localDay(at - 86_400_000)])
   const old = await framesOf(day)
+  const last = old.at(-1)
+  if (last && at - last.at < 5 * 60_000) return false
   const db = await open()
   try {
-    const tx = db.transaction(STORE, "readwrite")
-    const store = tx.objectStore(STORE)
-    store.put({ day, at, blob } satisfies Frame)
-    // 하루 한도를 넘으면 가장 이른 장면부터 지운다.
+    const prune = db.transaction(STORE, "readwrite")
+    const store = prune.objectStore(STORE)
     for (const frame of old.slice(0, Math.max(0, old.length + 1 - MAX_FRAMES)))
       store.delete([frame.day, frame.at])
     const keys = store.index("day").openKeyCursor()
@@ -68,6 +73,26 @@ export async function addFrame(blob: Blob, at = Date.now()) {
       if (!keep.has(String(cursor.key))) store.delete(cursor.primaryKey)
       cursor.continue()
     }
+    await done(prune)
+    const put = db.transaction(STORE, "readwrite")
+    put.objectStore(STORE).put({ day, at, blob } satisfies Frame)
+    await done(put)
+    return true
+  } finally {
+    db.close()
+  }
+}
+
+/** 저장 공간이 모자라 장면을 넣지 못한 오류인지 */
+export const isQuota = (error: unknown) =>
+  error instanceof DOMException && error.name === "QuotaExceededError"
+
+/** 이 브라우저에 남긴 장면을 모두 지운다. */
+export async function clearFrames() {
+  const db = await open()
+  try {
+    const tx = db.transaction(STORE, "readwrite")
+    tx.objectStore(STORE).clear()
     await done(tx)
   } finally {
     db.close()
