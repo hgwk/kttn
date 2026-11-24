@@ -19,7 +19,7 @@ export const ITEMS_1 = {
     "kAAAAAAAAAkbbbbbbbbbbbbkAAAAAAAk",
     "kkkkkkkkkkk............kkkkkkkkk",
   ],
-  // 호두나무 책상(32×14). 기계실 단말 자리에 쓴다.
+  // 호두나무 책상(32×14). 자작나무 책상과 같은 모양에 색만 짙다.
   darkDesk: [
     ".kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.",
     "kppppppppppppppppppppppppppppppk",
@@ -36,7 +36,7 @@ export const ITEMS_1 = {
     "kDDDDDDDDDkEEEEEEEEEEEEkDDDDDDDk",
     "kkkkkkkkkkk............kkkkkkkkk",
   ],
-  // 정면 모니터(18×12). 화면은 (3,1)부터 12×6이고 기계실이 그 위에 상태를 칠한다.
+  // 정면 모니터(18×12). 화면은 (3,1)부터 12×6이라 그 위에 화면 내용을 칠할 수 있다.
   monitor: [
     "kkkkkkkkkkkkkkkkkk",
     "kggrrrrrrrrrrrrggk",
