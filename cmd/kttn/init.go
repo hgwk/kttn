@@ -17,7 +17,7 @@ import (
 // hook and server share. --yes takes the defaults and flags without asking.
 func runInit(args []string, in io.Reader, out io.Writer) error {
 	path := config.Path()
-	cfg, _, err := config.Load(path)
+	cfg, found, err := config.Load(path)
 	if err != nil {
 		return fmt.Errorf("reading %s: %w", path, err)
 	}
@@ -44,7 +44,7 @@ func runInit(args []string, in io.Reader, out io.Writer) error {
 	if cfg.Lang != "" && cfg.Lang != "ko" && cfg.Lang != "en" && cfg.Lang != "ja" {
 		return fmt.Errorf("language %q is not ko, en or ja", cfg.Lang)
 	}
-	picked := config.PickPort(cfg.Port)
+	picked := config.PickPort(cfg.Port, found)
 	if picked == 0 {
 		return fmt.Errorf("no free port from %d upward", cfg.Port)
 	}

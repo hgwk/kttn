@@ -2,6 +2,8 @@ package config
 
 import (
 	"net"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -48,11 +50,11 @@ func TestPickPortSkipsAPortSomethingElseHolds(t *testing.T) {
 	}
 	defer ln.Close()
 	taken := ln.Addr().(*net.TCPAddr).Port
-	if got := PickPort(taken); got == taken || got == 0 {
+	if got := PickPort(taken, true); got == taken || got == 0 {
 		t.Fatalf("picked %d for taken %d", got, taken)
 	}
 	ln.Close()
-	if got := PickPort(taken); got != taken {
+	if got := PickPort(taken, true); got != taken {
 		t.Fatalf("free port %d not kept, got %d", taken, got)
 	}
 }
@@ -77,5 +79,19 @@ func TestEmbedOriginsDefaultToTheLocalDashboardAndDropOddValues(t *testing.T) {
 	got := (Config{EmbedOrigins: &odd}).Embedders()
 	if len(got) != 2 || got[0] != "https://dash.local:8443" || got[1] != "http://ok.test" {
 		t.Fatalf("filtered %v", got)
+	}
+}
+
+func TestAFirstSetupDoesNotTakeAnotherConfigsKttn(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"agents":[]}`))
+	}))
+	defer srv.Close()
+	port := srv.Listener.Addr().(*net.TCPAddr).Port
+	if got := PickPort(port, true); got != port {
+		t.Fatalf("rerun should keep its own kttn's port %d, got %d", port, got)
+	}
+	if got := PickPort(port, false); got == port || got == 0 {
+		t.Fatalf("first setup took another kttn's port %d", got)
 	}
 }

@@ -11,11 +11,14 @@ import (
 // portSearch is how many ports above the wanted one init tries.
 const portSearch = 50
 
-// PickPort keeps want when it is free or already serves kttn, else takes the
-// next free port above it. It returns 0 when none is free.
-func PickPort(want int) int {
+// PickPort keeps want when it is free, else takes the next free port above
+// it. With reuseKttn, a port where kttn already answers counts as free: that
+// is this config's own server, running while init is rerun. A first setup
+// passes false, because a kttn already there belongs to another config and
+// would refuse this config's token. It returns 0 when none is free.
+func PickPort(want int, reuseKttn bool) int {
 	for port := want; port < want+portSearch && port <= 65535; port++ {
-		if free(port) || servesKttn(port) {
+		if free(port) || (reuseKttn && servesKttn(port)) {
 			return port
 		}
 	}
