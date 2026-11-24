@@ -1,4 +1,4 @@
-import { t } from "@/i18n"
+import { t, type MessageKey } from "@/i18n"
 import { useEffect, type DragEvent } from "react"
 
 import { Prop } from "@/office/lounge"
@@ -23,9 +23,13 @@ import type { ItemName } from "@/office/sprites"
 const HANG: ItemName[] = [
   "window",
   "clock",
+  "calendar",
   "corkboard",
   "poster",
   "frame",
+  "dartboard",
+  "wallShelf",
+  "wallHooks",
   "wallTV",
   "airConditioner",
 ]
@@ -36,14 +40,24 @@ const FLOOR: ItemName[] = [
   "vendingMachine",
   "waterCooler",
   "miniFridge",
+  "coffeeMachine",
+  "printer",
+  "whiteboard",
+  "arcade",
   "sofa",
   "bench",
+  "floorCushion",
+  "beanBag",
+  "rug",
   "floorLamp",
+  "heater",
+  "coatRack",
+  "umbrellaStand",
+  "globe",
   "monstera",
   "plant",
+  "snakePlant",
   "cactus",
-  "beanBag",
-  "heater",
   "fishTank",
   "catBed",
   "scratcher",
@@ -136,7 +150,7 @@ export function PropPalette() {
                   key={name}
                   draggable
                   onDragStart={start(name)}
-                  title={name}
+                  title={t(`item.${name}` as MessageKey)}
                   className="cursor-grab"
                 >
                   <Prop name={name} wall />
