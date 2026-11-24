@@ -206,7 +206,7 @@ export function OfficeCapture({
         title={t("capture.recordTitle")}
       >
         <ToggleMark on={recording} />
-        {recording ? t("capture.stop") : t("capture.record")}
+        {t("capture.record")}
       </button>
       {note ? (
         <span role="status" className="text-[10px] text-foreground">

@@ -89,7 +89,6 @@ export const en: Record<MessageKey, string> = {
   "hud.label": "Office status",
   "hud.worldMap": "World map",
   "hud.fullscreen": "Full screen",
-  "hud.fullscreenOff": "Exit full screen",
 
   "building.label": "{name} building, offices: {n}",
 
@@ -181,7 +180,6 @@ export const en: Record<MessageKey, string> = {
   "capture.capturing": "Capturing",
   "capture.capture": "Capture",
   "capture.recordTitle": "Record the building as WebM (visible area only)",
-  "capture.stop": "Stop recording",
   "capture.record": "Record",
 
   "stage.help": "{scale}% | click a cat: open its tab | click a bubble: message | wheel: pan | arrows/WASD: butler | space: pet | +/-: zoom | 1: actual size",

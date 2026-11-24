@@ -90,7 +90,6 @@ export const ko = {
   "hud.label": "사무실 현황",
   "hud.worldMap": "월드맵",
   "hud.fullscreen": "전체화면",
-  "hud.fullscreenOff": "전체화면 해제",
 
   "building.label": "{name} 건물, 사무실 {n}곳",
 
@@ -182,7 +181,6 @@ export const ko = {
   "capture.capturing": "캡처 중",
   "capture.capture": "캡처",
   "capture.recordTitle": "건물 화면을 WebM으로 녹화(보이는 영역만)",
-  "capture.stop": "녹화 중지",
   "capture.record": "녹화",
 
   "stage.help": "{scale}% | 고양이 클릭: 탭 이동 | 말풍선 클릭: 메시지 | 휠: 화면 이동 | 방향키/WASD: 집사 이동 | 스페이스: 쓰담 하트 | +/-: 확대/축소 | 1: 원래 크기",

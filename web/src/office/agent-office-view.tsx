@@ -227,7 +227,7 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
                 aria-pressed={full}
               >
                 <ToggleMark on={full} />
-                {full ? t("hud.fullscreenOff") : t("hud.fullscreen")}
+                {t("hud.fullscreen")}
               </button>
             </>
           }

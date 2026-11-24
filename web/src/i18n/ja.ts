@@ -89,7 +89,6 @@ export const ja: Record<MessageKey, string> = {
   "hud.label": "オフィスの状況",
   "hud.worldMap": "ワールドマップ",
   "hud.fullscreen": "全画面",
-  "hud.fullscreenOff": "全画面を終了",
 
   "building.label": "{name} ビル、オフィス {n}か所",
 
@@ -181,7 +180,6 @@ export const ja: Record<MessageKey, string> = {
   "capture.capturing": "キャプチャ中",
   "capture.capture": "キャプチャ",
   "capture.recordTitle": "ビルの画面を WebM で録画(見えている範囲のみ)",
-  "capture.stop": "録画停止",
   "capture.record": "録画",
 
   "stage.help": "{scale}% | 猫を押してタブを開く | 吹き出しを押してメッセージ | ホイールで移動 | 矢印/WASD で執事 | スペースでなでなで | +/- 拡大 | 1 で元の大きさ",
