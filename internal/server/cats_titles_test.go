@@ -2,6 +2,7 @@ package server
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 )
@@ -42,6 +43,15 @@ func TestThePeakIsTheBusiestTheOfficeHasBeen(t *testing.T) {
 	}
 	if got.Peak == nil || got.Peak.Count != 2 || got.Peak.At != "2026-11-25T09:01:00.000Z" {
 		t.Fatalf("peak %+v", got.Peak)
+	}
+	clock.at = clock.at.Add(catKeep + time.Hour)
+	if body := catCall(h, "GET", "/api/cats", "k", "").Body.String(); strings.Contains(body, `"peak"`) {
+		t.Fatalf("a peak older than 90 days is still served: %s", body)
+	}
+	hookEvent(h, "b", "Stop", "")
+	var later catalog
+	if err := json.Unmarshal(catCall(h, "GET", "/api/cats", "k", "").Body.Bytes(), &later); err != nil || later.Peak == nil || later.Peak.Count != 1 {
+		t.Fatalf("a peak older than 90 days must give way: %+v", later.Peak)
 	}
 	catCall(h, "DELETE", "/api/cats", "k", "")
 	if body := catCall(h, "GET", "/api/cats", "k", "").Body.String(); body != "{\"cats\":[]}\n" {

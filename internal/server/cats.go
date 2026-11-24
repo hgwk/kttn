@@ -112,6 +112,7 @@ func (b *catBook) record(a office.Agent, live int) {
 	if clock.Hour() < 5 && !resting[a.State] {
 		c.NightOwl = true
 	}
+	b.expirePeakLocked()
 	if b.peak == nil || live > b.peak.Count {
 		b.peak = &peak{Count: live, At: now}
 	}
@@ -121,6 +122,7 @@ func (b *catBook) record(a office.Agent, live int) {
 
 // read is the whole catalog: the cats, the first seen first, and the peak.
 func (b *catBook) read() catalog {
+	cats := b.list()
 	b.mu.Lock()
 	var top *peak
 	if b.peak != nil && b.peak.Count > 0 {
@@ -128,7 +130,7 @@ func (b *catBook) read() catalog {
 		top = &p
 	}
 	b.mu.Unlock()
-	return catalog{Cats: b.list(), Peak: top}
+	return catalog{Cats: cats, Peak: top}
 }
 
 // list is every kept cat, the first seen first.
@@ -186,9 +188,11 @@ func (b *catBook) prune() {
 }
 
 // pruneLocked drops cats unseen for catKeep, then the least recently seen
-// beyond maxCats.
+// beyond maxCats. A peak older than catKeep goes too: the catalog keeps
+// nothing older.
 func (b *catBook) pruneLocked() {
 	cutoff := b.now().Add(-catKeep).UTC().Format(timeForm)
+	b.expirePeakLocked()
 	var kept []*cat
 	for key, c := range b.cats {
 		if c.LastSeen < cutoff {
@@ -203,6 +207,14 @@ func (b *catBook) pruneLocked() {
 	sort.Slice(kept, func(i, j int) bool { return kept[i].LastSeen > kept[j].LastSeen })
 	for _, c := range kept[maxCats:] {
 		delete(b.cats, c.Key)
+	}
+}
+
+// expirePeakLocked drops a peak older than catKeep, so a newer, lower one
+// can take its place.
+func (b *catBook) expirePeakLocked() {
+	if b.peak != nil && b.peak.At < b.now().Add(-catKeep).UTC().Format(timeForm) {
+		b.peak = nil
 	}
 }
 
