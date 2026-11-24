@@ -1,6 +1,6 @@
 {
   "name": "@hgwk/kttn",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Your Claude Code sessions as pixel cats in an office on this computer.",
   "license": "MIT",
   "bin": {
