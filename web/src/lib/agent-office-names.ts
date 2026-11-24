@@ -52,6 +52,11 @@ function wordIndex(key: string) {
   return hash % catWords().length
 }
 
+/** 다른 고양이와 겹치는지 따지지 않은 세션 키의 기본 고양이 이름(도감 등) */
+export function baseCatName(key: string) {
+  return t("cat.name", { word: catWords()[wordIndex(key)] })
+}
+
 /**
  * 세션마다 고양이 이름을 붙인다. 이름은 세션 키에서 정해져 새로 고쳐도 같고,
  * 한 화면에서 겹치면 키 순서대로 다음 단어로 넘긴다.
