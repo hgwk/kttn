@@ -4,9 +4,17 @@
 # lock sits in /tmp, not $TMPDIR, because each session may have its own.
 LOCK="/tmp/kttn-e2e-$(id -u).lock"
 waited=0
-until mkdir "$LOCK" 2>/dev/null; do
+until mkdir -m 700 "$LOCK" 2>/dev/null; do
+  # Someone else's directory under this name is not our lock to wait on.
+  [ -O "$LOCK" ] || { echo "REFUSE: $LOCK belongs to another user" >&2; exit 1; }
   holder=$(cat "$LOCK/pid" 2>/dev/null)
-  if [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null; then rm -rf "$LOCK"; continue; fi
+  # A dead holder, or no pid a minute after the lock was made, is stale. The
+  # pid is read again just before removing, in case another run took over.
+  if { [ -n "$holder" ] && ! kill -0 "$holder" 2>/dev/null; } \
+    || { [ -z "$holder" ] && [ -n "$(find "$LOCK" -maxdepth 0 -mmin +1)" ]; }; then
+    [ "$(cat "$LOCK/pid" 2>/dev/null)" = "$holder" ] && rm -rf "$LOCK"
+    continue
+  fi
   [ "$waited" -ge 600 ] && { echo "REFUSE: another e2e run (pid ${holder:-?}) has held $LOCK for 10 minutes" >&2; exit 1; }
   [ "$waited" = 0 ] && echo "      waiting for another e2e run (pid ${holder:-?}) to finish"
   sleep 5
