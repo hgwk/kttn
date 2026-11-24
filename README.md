@@ -1,14 +1,72 @@
-# kttn
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/web/public/icons/office-icon-192.png" width="96" height="96" alt="kttn app icon: a white pixel cat in a suit and an orange tie">
+</p>
+
+<h1 align="center">kttn</h1>
+
+<p align="center">Your Claude Code sessions as pixel cats in an office on your computer.</p>
+
+<p align="center">
+  <a href="https://github.com/hgwk/kttn/releases"><img src="https://img.shields.io/github/v/release/hgwk/kttn" alt="GitHub release"></a>
+  <a href="https://www.npmjs.com/package/@hgwk/kttn"><img src="https://img.shields.io/npm/v/@hgwk/kttn" alt="npm version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey" alt="Platform: macOS and Linux">
+</p>
+
+<p align="center"><b>English</b> · <a href="README.ko.md">한국어</a> · <a href="README.ja.md">日本語</a></p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/office-en.png" alt="The kttn office: two repositories as offices, folders as rooms, cats at desks reading, editing, running commands, waiting for a permission answer, showing a finished result, napping, and a cat with two subagent kittens">
+</p>
+
+```sh
+npx @hgwk/kttn
+```
+
+One command: name your office, hook Claude Code, start at login, open it in the browser.
 
 kttn shows the Claude Code sessions running on your computer as pixel cats in an
 office. Each repository gets an office, each folder a room, each session a cat at
 a desk. A cat reads, edits, runs commands, waits for you, naps and goes home as
-its session does.
+its session does. Everything stays on your computer: a Claude Code hook sends
+short labels to a small server on `127.0.0.1`, and the screen is a page that
+server serves. The screen speaks English, Korean and Japanese.
 
-Everything stays on your computer. A Claude Code hook sends short labels to a
-small server on `127.0.0.1`, and the screen is a page that server serves.
+## Features
 
-The screen speaks Korean, English and Japanese.
+| | |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="200" alt="A cat at its desk with a speech bubble"> | **One cat per session.** It reads, edits, runs commands, thinks, naps after a quiet spell and goes home when the session ends. With answer preview on, a finished cat says what it did. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="200" alt="The world map listing repositories and folders"> | **Offices are repositories, rooms are folders.** The world map lists them with how many cats are in each; click a spot to jump to that room. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="200" alt="A cat with two kittens beside its desk"> | **Kittens are subagents.** They stand by the desk until they finish, background ones included. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="200" alt="A blinking speech bubble asking for a look"> | **Needs you.** A cat waiting on a permission prompt blinks, and its room and office light up so you see it from anywhere. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="200" alt="The butler at the office door"> | **The butler.** Click a cat and the butler walks over and brings its terminal tab to the front; click a speech bubble to type a message into that session. |
+| 🔒 | **Short labels only.** Prompts, file contents, command arguments and error texts never leave the session. See [what leaves a session](#what-leaves-a-session). |
+
+## How it looks
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="760" alt="Animated demo: a new cat walks in from the door, cats switch between running and thinking, a kitten leaves, and a finished cat shows its result">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/office-ko.png" width="400" alt="The office in Korean">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/office-ja.png" width="400" alt="The office in Japanese">
+</p>
+
+## Quick start
+
+```sh
+npx @hgwk/kttn
+```
+
+That one command asks for an office name and a language, hooks Claude Code,
+starts the office at login (a LaunchAgent on macOS, a systemd user service on
+Linux) and opens it in your browser. Run it again any time: it keeps your
+settings and refreshes the hooks and the login service. `kttn uninstall`
+takes the hooks and the login service out again.
+
+kttn runs on macOS and Linux (arm64 and x86-64). **Windows is not supported.**
 
 ## What leaves a session
 
@@ -33,20 +91,6 @@ bodies.
 also carries the first 300 characters of the answer the session just finished,
 so the cat can say what it did. The server keeps only the latest one per
 session, in memory and in its local state file.
-
-## Quick start
-
-```sh
-npx @hgwk/kttn
-```
-
-That one command asks for an office name and a language, hooks Claude Code,
-starts the office at login (a LaunchAgent on macOS, a systemd user service on
-Linux) and opens it in your browser. Run it again any time: it keeps your
-settings and refreshes the hooks and the login service. `kttn uninstall`
-takes the hooks and the login service out again.
-
-kttn runs on macOS and Linux (arm64 and x86-64). **Windows is not supported.**
 
 ## Install
 
@@ -184,5 +228,5 @@ Source files stay at or below 300 lines.
 
 ## Licenses
 
-See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the fonts and UI
-components kttn ships.
+kttn is MIT licensed ([LICENSE](LICENSE)). The fonts it ships are listed in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md); the pixel art is original.
