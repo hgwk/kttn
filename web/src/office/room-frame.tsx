@@ -3,6 +3,7 @@ import type { CSSProperties, ReactNode } from "react"
 import { DoorProp, WallDecor } from "@/office/wall-decor"
 import { type Floor, TILE } from "@/office/sprites"
 import { cn } from "@/lib/utils"
+import { AddedProps } from "@/office/props-palette"
 
 // 위에서 내려다본 건물 벽 윗면과 칸막이 판.
 const WALL_TOP = "#8f9e91"
@@ -149,6 +150,7 @@ export function RoomFrame({
           <div
             data-obstacle=""
             data-move-bounds=""
+            data-drop-room="wall"
             // 정문(left 18~50px) 바로 옆에 외투 걸이판과 우산꽂이를 두고 이름표는 그 오른쪽에 붙인다.
             // 벽 장식은 넓은 건물도 덮도록 길게 되풀이하므로, 그 길이가 건물 폭을
             // 늘리지 않게 이 줄의 가로 크기는 내용과 떼어 놓는다(contain).
@@ -161,6 +163,7 @@ export function RoomFrame({
             <DoorProp className="absolute inset-y-0 left-[54px]" />
             {plate}
             <WallDecor />
+            <AddedProps room="wall" />
           </div>
         ) : (
           // 칸막이 방 문패. 위쪽 문 오른쪽 옆에 붙고, 복도가 있으면 문에서

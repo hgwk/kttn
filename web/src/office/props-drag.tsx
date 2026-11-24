@@ -40,7 +40,8 @@ function load() {
   return loading
 }
 
-function save() {
+/** 바뀐 자리를 설정 파일에 남긴다(잠깐 모았다가 한 번에). */
+export function save() {
   window.clearTimeout(saveTimer)
   saveTimer = window.setTimeout(() => {
     void fetch("/api/props", {
@@ -51,9 +52,14 @@ function save() {
   }, SAVE_DELAY_MS)
 }
 
-function setOffset(room: string, item: string, offset: Offset | null) {
+/** 팔레트에서 들여온 소품의 열쇠 머리. 값은 칸 왼쪽 위에서 잰 자리다. */
+export const ADDED = "add:"
+
+/** 소품 자리를 바꾼다(null이면 지운다). 들여온 소품은 (0, 0)이어도 남긴다. */
+export function setOffset(room: string, item: string, offset: Offset | null) {
   const next = { ...(rooms[room] ?? {}) }
-  if (offset && (offset.x || offset.y)) next[item] = offset
+  if (offset && (offset.x || offset.y || item.startsWith(ADDED)))
+    next[item] = offset
   else delete next[item]
   rooms = { ...rooms, [room]: next }
   emit()
@@ -89,7 +95,16 @@ function showGuide(bounds: Element) {
 const hits = (a: DOMRect, b: DOMRect) =>
   a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
 
-const snap = (value: number) => Math.round(value / GRID) * GRID
+/** 한 칸(room)에 놓인 소품 자리들. 바뀔 때마다 다시 그린다. */
+export function useRoomProps(room: string) {
+  return useSyncExternalStore(
+    subscribe,
+    () => rooms[room],
+    () => undefined
+  )
+}
+
+export const snap = (value: number) => Math.round(value / GRID) * GRID
 // 칸 끝에 닿으면 칸 경계로 붙이되, 서버는 정수만 받으므로 반올림한다.
 const clamp = (value: number, lo: number, hi: number) =>
   Math.round(Math.min(Math.max(value, lo), hi))
@@ -103,12 +118,14 @@ export function Movable({
   item,
   axis = "xy",
   className,
+  title = "끌어서 옮기기 · 두 번 누르면 제자리",
   children,
 }: {
   room: string
   item: string
   axis?: "xy" | "x"
   className?: string
+  title?: string
   children: ReactNode
 }) {
   const offset = useSyncExternalStore(
@@ -230,7 +247,7 @@ export function Movable({
     <span
       className={className}
       data-movable=""
-      title="끌어서 옮기기 · 두 번 누르면 제자리"
+      title={title}
       style={{
         display: "block",
         cursor: "grab",

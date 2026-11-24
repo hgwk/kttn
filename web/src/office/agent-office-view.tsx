@@ -21,6 +21,7 @@ import { repoOffices } from "@/lib/agent-office-layout"
 import { fetchSnapshot, type ServerSnapshot } from "@/lib/snapshot"
 import { lang, t } from "@/i18n"
 import { OfficeSettingsContext, useOfficeSettings } from "@/office/office-settings"
+import { PropPalette } from "@/office/props-palette"
 
 const POLL_MS = 2000
 const MAX_LEVEL_UPS = 40
@@ -145,6 +146,7 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
           onPick={showRoom}
         />
       </section>
+      <PropPalette />
     </>
   )
   // 방금 레벨이 오른 세션
