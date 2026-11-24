@@ -9,11 +9,23 @@ import (
 	"strings"
 )
 
+// carriesPID names the events that look up the Claude Code process. Stop and
+// Notification are there too: a session the server dropped comes back on
+// whatever event it sends next, and without a PID the server would drop it
+// again after six quiet hours even though its terminal is still open.
+func carriesPID(event string) bool {
+	switch event {
+	case "SessionStart", "UserPromptSubmit", "Stop", "Notification":
+		return true
+	}
+	return false
+}
+
 // sessionPID finds the claude process above the hook. Claude Code usually
 // runs the hook directly; when a shell sits in between, the shell's parent is
 // used. Anything else gives 0, and the server then keeps its timers.
 func sessionPID(event string) int {
-	if event != "SessionStart" && event != "UserPromptSubmit" {
+	if !carriesPID(event) {
 		return 0
 	}
 	pid := os.Getppid()

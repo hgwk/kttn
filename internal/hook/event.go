@@ -30,8 +30,9 @@ type Event struct {
 	// the server does not move the parent session for it.
 	Subagent string `json:"subagent,omitempty"`
 	// PID is the Claude Code process, so the server can let go of a session
-	// whose terminal closed without SessionEnd. Sent on SessionStart and
-	// UserPromptSubmit only, to keep tool hooks free of the ps lookup.
+	// whose terminal closed without SessionEnd. Sent only on the events that
+	// come once a turn or less (see carriesPID), to keep tool hooks free of
+	// the ps lookup.
 	PID int `json:"pid,omitempty"`
 	// Name is the session's peer name, the label people use for it.
 	Name string `json:"name,omitempty"`

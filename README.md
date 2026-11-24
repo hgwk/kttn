@@ -22,8 +22,9 @@ The hook sends one small event per hook call, and only these fields:
   message goes to
 - for a few events, a one-word reason: `startup`, `rate_limit`, `auto`, a task
   title, a model name
-- on `SessionStart` and `UserPromptSubmit`, the Claude Code process ID and the
-  session's name, so a closed terminal can be noticed
+- on `SessionStart`, `UserPromptSubmit`, `Stop` and `Notification` (never on
+  tool events), the Claude Code process ID and the session's name, so a closed
+  terminal can be noticed and an open one keeps its desk
 
 It never sends prompts, file contents, command arguments, error texts or message
 bodies.

@@ -147,3 +147,16 @@ func TestSessionStartCarriesTheStartingModelOnly(t *testing.T) {
 		t.Fatalf("tool event sends a model field: %s", raw)
 	}
 }
+
+func TestOnceATurnEventsCarryThePID(t *testing.T) {
+	for _, event := range []string{"SessionStart", "UserPromptSubmit", "Stop", "Notification"} {
+		if !carriesPID(event) {
+			t.Fatalf("%s should look up the pid", event)
+		}
+	}
+	for _, event := range []string{"PreToolUse", "PostToolUse", "PostToolUseFailure", "SubagentStop", "InstructionsLoaded"} {
+		if carriesPID(event) {
+			t.Fatalf("%s must not look up the pid", event)
+		}
+	}
+}
