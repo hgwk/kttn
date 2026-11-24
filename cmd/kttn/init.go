@@ -52,10 +52,8 @@ func runInit(args []string, in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "Port %d is taken; using %d.\n", cfg.Port, picked)
 		cfg.Port = picked
 	}
-	if cfg.Token == "" {
-		if cfg.Token, err = config.NewToken(); err != nil {
-			return err
-		}
+	if _, err := cfg.EnsureKeys(); err != nil {
+		return err
 	}
 	if err := config.Save(path, cfg); err != nil {
 		return err

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/subtle"
 	"net"
 	"net/http"
 	"strings"
@@ -47,4 +48,24 @@ func withFrameAncestors(origins []string, next http.Handler) http.Handler {
 		w.Header().Set("Content-Security-Policy", policy)
 		next.ServeHTTP(w, r)
 	})
+}
+
+// screenKeyOK checks the screen key. Origin and Host stop other web sites,
+// not other programs or users on this computer, which can send any header;
+// the key, kept in a file only this user can read, does. With no key set
+// (kttn not set up yet) the screen stays open so it can show onboarding.
+func screenKeyOK(w http.ResponseWriter, r *http.Request, key string) bool {
+	if key == "" || subtle.ConstantTimeCompare([]byte(r.Header.Get("X-Kttn-Key")), []byte(key)) == 1 {
+		return true
+	}
+	writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "screen key required; open the office with kttn open"})
+	return false
+}
+
+func withScreenKey(key string, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if screenKeyOK(w, r, key) {
+			next(w, r)
+		}
+	}
 }

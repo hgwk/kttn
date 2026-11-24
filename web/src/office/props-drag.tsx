@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/screen-key"
 import { t } from "@/i18n"
 import {
   useRef,
@@ -32,7 +33,7 @@ const emit = () => {
 }
 
 function load() {
-  loading ??= fetch("/api/props", { cache: "no-store" })
+  loading ??= apiFetch("/api/props", { cache: "no-store" })
     .then((response) => (response.ok ? response.json() : null))
     .then((body: { rooms?: Rooms } | null) => {
       if (body?.rooms && typeof body.rooms === "object") {
@@ -48,7 +49,7 @@ function load() {
 export function save() {
   window.clearTimeout(saveTimer)
   saveTimer = window.setTimeout(() => {
-    void fetch("/api/props", {
+    void apiFetch("/api/props", {
       method: "PUT",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ rooms }),

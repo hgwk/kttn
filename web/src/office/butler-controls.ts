@@ -1,4 +1,5 @@
 // 집사의 조작과 그림: 걷는 빠르기, 이동 키, 걸음 그림 한 장.
+import { apiFetch } from "@/lib/screen-key"
 import { t } from "@/i18n"
 import { BUTLER_FRAMES, BUTLER_PALETTE } from "@/office/butler-sprite"
 import { boxIn } from "@/office/butler-walk"
@@ -90,7 +91,7 @@ export function nearestSpeech(
 /** 세션의 터미널 탭을 앞으로 띄워 달라고 한다. 집사가 머리 위에 말할 글을 준다. */
 export async function focusSession(key: string) {
   try {
-    const response = await fetch("/api/focus", {
+    const response = await apiFetch("/api/focus", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ key }),

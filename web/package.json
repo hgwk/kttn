@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "test": "node --experimental-strip-types --test src/lib/*.test.mjs src/i18n/*.test.mjs",
+    "test": "node --experimental-strip-types --test src/lib/*.test.mjs src/i18n/*.test.mjs src/office/sprite-art/*.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

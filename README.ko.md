@@ -159,6 +159,7 @@ Chrome에서 주소를 여세요. 주소창의 ⊕로 앱처럼 설치하면 따
 | `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | Claude Code 훅. 표준 입력으로 훅 내용을 받습니다. |
 | `kttn install` | 플러그인 없이 쓸 때 Claude Code 사용자 설정에 훅을 넣습니다. |
 | `kttn uninstall` | 훅을 빼고 자동 시작을 멈춥니다. 설정과 세션 상태는 남습니다. |
+| `kttn open` | 화면 열쇠를 붙여 브라우저로 사무실을 엽니다. |
 | `kttn version` | 버전을 출력합니다. |
 
 설정은 `~/.config/kttn/config.json`(권한 600, `KTTN_CONFIG`로 옮김)에 있습니다.
@@ -199,10 +200,16 @@ AppleScript는 처음에 자동화 권한을 묻습니다. tmux를 쓰려면 `kt
 세션을 꾸며 낼 수 없습니다. 화면 동작(`/api/focus`, `/api/message`)은 같은 주소의
 페이지에서 온 JSON만 받으므로 다른 사이트가 내 터미널에 글을 칠 수 없습니다.
 
+세션 정보와 터미널 동작에는 **화면 열쇠**도 필요합니다. 설정 파일(권한 600)에만
+있는 무작위 값입니다. Origin·Host 검사는 다른 웹 사이트를 막지만 같은 컴퓨터의
+다른 프로그램이나 다른 사용자는 막지 못하는데, 열쇠는 막습니다. `kttn`과
+`kttn open`이 사무실을 `/#k=<열쇠>`로 열면 화면이 브라우저에 열쇠를 넣어 두고
+주소에서는 지웁니다. 열쇠가 없는 페이지는 401을 받고 `kttn open`을 실행하라고
+안내합니다.
+
 사무실 자신과 설정의 `embed_origins`에 적은 페이지만 사무실을 iframe으로 띄울 수
-있습니다(`frame-ancestors`). 기본값은 `http://127.0.0.1:3000`과
-`http://localhost:3000`이고, `"embed_origins": []`로 두면 아무 데도 허용하지
-않습니다.
+있습니다(`frame-ancestors`). 기본값은 빈 목록입니다. 사무실을 넣는 페이지도 iframe 주소로
+열쇠를 넘깁니다: `http://127.0.0.1:5886/#k=<screen_key>`.
 
 ## 개발
 

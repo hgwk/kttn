@@ -3,6 +3,7 @@ import type { MessageKey } from "./ko"
 
 export const en: Record<MessageKey, string> = {
   "app.unreachable": "Could not reach kttn serve.",
+  "app.needsKey": "This screen needs its key. Run kttn open in a terminal to open the office.",
   "app.opening": "Opening the office…",
   "office.defaultName": "Our office",
   "onboarding.title": "Not set up yet",

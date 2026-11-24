@@ -28,10 +28,19 @@ func runServe(args []string, stderr io.Writer) error {
 	}
 	if !found {
 		fmt.Fprintln(stderr, "kttn: no config yet; run `kttn init` to name the office and pair the hook")
+	} else if changed, err := cfg.EnsureKeys(); err != nil {
+		return err
+	} else if changed {
+		// A config from before the screen key: add it once, keep the rest.
+		if err := config.Save(config.Path(), cfg); err != nil {
+			return err
+		}
+		fmt.Fprintln(stderr, "kttn: added a screen key to the config; open the office with `kttn open`")
 	}
 	handler := server.New(server.Options{
 		Store:        office.NewStore(time.Now, office.NewClaudeCheck(nil)),
 		Token:        cfg.Token,
+		ScreenKey:    cfg.ScreenKey,
 		StatePath:    server.StatePath(),
 		EmbedOrigins: cfg.Embedders(),
 		PropsPath:    filepath.Join(filepath.Dir(config.Path()), "props.json"),

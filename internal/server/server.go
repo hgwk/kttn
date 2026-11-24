@@ -30,6 +30,9 @@ type Options struct {
 	Settings Settings
 	// Token, when set, must arrive as "Authorization: Bearer <token>".
 	Token string
+	// ScreenKey, when set, must arrive as X-Kttn-Key on everything the
+	// screen reads or does: the snapshot, focus, message and props.
+	ScreenKey string
 	// StatePath is the restart file; empty keeps state in memory only.
 	StatePath string
 	Now       func() time.Time
@@ -80,6 +83,9 @@ func New(opts Options) http.Handler {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
 	})
 	mux.HandleFunc("GET /api/snapshot", func(w http.ResponseWriter, r *http.Request) {
+		if !screenKeyOK(w, r, opts.ScreenKey) {
+			return
+		}
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, Snapshot{
 			Agents:      opts.Store.Snapshot(),
@@ -87,12 +93,12 @@ func New(opts Options) http.Handler {
 			GeneratedAt: opts.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
 		})
 	})
-	mux.HandleFunc("POST /api/focus", focusHandler(opts))
-	mux.HandleFunc("POST /api/message", messageHandler(opts))
+	mux.HandleFunc("POST /api/focus", withScreenKey(opts.ScreenKey, focusHandler(opts)))
+	mux.HandleFunc("POST /api/message", withScreenKey(opts.ScreenKey, messageHandler(opts)))
 	if opts.PropsPath != "" {
 		getProps, putProps := propsHandlers(&propsFile{path: opts.PropsPath})
-		mux.HandleFunc("GET /api/props", getProps)
-		mux.HandleFunc("PUT /api/props", putProps)
+		mux.HandleFunc("GET /api/props", withScreenKey(opts.ScreenKey, getProps))
+		mux.HandleFunc("PUT /api/props", withScreenKey(opts.ScreenKey, putProps))
 	}
 	mux.Handle("GET /", staticHandler())
 	return withLoopback(withFrameAncestors(opts.EmbedOrigins, mux))

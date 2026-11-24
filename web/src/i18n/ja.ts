@@ -3,6 +3,7 @@ import type { MessageKey } from "./ko"
 
 export const ja: Record<MessageKey, string> = {
   "app.unreachable": "kttn serve に接続できませんでした。",
+  "app.needsKey": "この画面には鍵が必要です。ターミナルで kttn open を実行してオフィスを開いてください。",
   "app.opening": "オフィスを開いています…",
   "office.defaultName": "わたしたちのオフィス",
   "onboarding.title": "まだ設定されていません",

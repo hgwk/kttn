@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/screen-key"
 import { useState, type CSSProperties, type ReactNode } from "react"
 
 import { t } from "@/i18n"
@@ -84,7 +85,7 @@ export function CatMessage({
     setSending(true)
     setNote("")
     try {
-      const response = await fetch("/api/message", {
+      const response = await apiFetch("/api/message", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ key: agent.key, text: message }),

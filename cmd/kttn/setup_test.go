@@ -59,8 +59,8 @@ func TestSetupDoesEverythingOnceAndAgainWithoutAsking(t *testing.T) {
 	if !strings.Contains(string(plist), "<string>"+stable+"</string>") {
 		t.Fatalf("service does not run the stable binary:\n%s", plist)
 	}
-	if len(*opened) != 1 || !strings.HasPrefix((*opened)[0], "http://127.0.0.1:") {
-		t.Fatalf("opened %v", *opened)
+	if len(*opened) != 1 || !strings.HasPrefix((*opened)[0], "http://127.0.0.1:") || !strings.Contains((*opened)[0], "/#k="+cfg.ScreenKey) || cfg.ScreenKey == "" {
+		t.Fatalf("opened %v (key %q)", *opened, cfg.ScreenKey)
 	}
 
 	// A second run asks nothing, keeps the token and still has one service.

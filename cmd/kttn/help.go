@@ -28,11 +28,14 @@ var helps = map[string]string{
 	"uninstall": `kttn uninstall
   Remove the kttn hook from Claude Code's user settings, leaving the rest, and
   stop starting kttn serve at login. The config and session state stay.`,
+	"open": `kttn open
+  Open the office in the browser with your screen key. The key is what lets a
+  browser see your sessions and act on them; it lives only in your config.`,
 	"version": `kttn version
   Print the version.`,
 }
 
-var commandOrder = []string{"setup", "init", "serve", "hook", "install", "uninstall", "version"}
+var commandOrder = []string{"setup", "init", "serve", "hook", "install", "uninstall", "open", "version"}
 
 func usage(w io.Writer) {
 	fmt.Fprintln(w, "usage:")

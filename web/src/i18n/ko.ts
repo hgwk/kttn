@@ -3,6 +3,7 @@
 
 export const ko = {
   "app.unreachable": "kttn serve에 닿지 못했습니다.",
+  "app.needsKey": "이 화면은 열쇠가 필요합니다. 터미널에서 kttn open을 실행해 사무실을 여세요.",
   "app.opening": "사무실을 여는 중…",
   "office.defaultName": "우리 사무실",
   "onboarding.title": "아직 설정 전입니다",

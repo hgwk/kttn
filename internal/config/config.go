@@ -26,21 +26,20 @@ type Config struct {
 	Port int    `json:"port"`
 	// Token is shared by the hook and the server; init generates it.
 	Token string `json:"token"`
+	// ScreenKey opens the office's sessions and terminal actions to a
+	// browser; only a page opened with it (kttn open) can use them.
+	ScreenKey string `json:"screen_key,omitempty"`
 	// Preview lets Stop carry the opening of the answer to the screen.
 	Preview bool `json:"preview"`
 	// EmbedOrigins are the pages allowed to show the office in an iframe,
-	// besides the office itself. Absent means DefaultEmbedOrigins; an empty
-	// list allows none.
+	// besides the office itself. None by default.
 	EmbedOrigins *[]string `json:"embed_origins,omitempty"`
 }
-
-// DefaultEmbedOrigins lets a local dashboard on port 3000 embed the office.
-var DefaultEmbedOrigins = []string{"http://127.0.0.1:3000", "http://localhost:3000"}
 
 // Embedders returns the origins allowed to embed the office, keeping only
 // well-formed http(s) origins so nothing odd reaches the CSP header.
 func (c Config) Embedders() []string {
-	list := DefaultEmbedOrigins
+	var list []string
 	if c.EmbedOrigins != nil {
 		list = *c.EmbedOrigins
 	}
@@ -114,6 +113,29 @@ func NewToken() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(buf), nil
+}
+
+// EnsureKeys fills in a missing hook token or screen key and reports
+// whether it did.
+func (c *Config) EnsureKeys() (bool, error) {
+	changed := false
+	for _, key := range []*string{&c.Token, &c.ScreenKey} {
+		if *key != "" {
+			continue
+		}
+		fresh, err := NewToken()
+		if err != nil {
+			return changed, err
+		}
+		*key, changed = fresh, true
+	}
+	return changed, nil
+}
+
+// OfficeURL is the office's address; the key rides in the fragment, which
+// browsers never send to the server.
+func (c Config) OfficeURL() string {
+	return "http://127.0.0.1:" + strconv.Itoa(c.Port) + "/#k=" + c.ScreenKey
 }
 
 // EventsURL is where the hook sends events for this config.

@@ -1,6 +1,7 @@
 // 서버(kttn serve)의 GET /api/snapshot 응답을 화면 자료로 바꾼다. 서버는
 // 세션 저장 모양 그대로 보내고, 화면용 이름·상태 판단은 여기서 한다.
 
+import { apiFetch } from "@/lib/screen-key"
 import { toSessionAgents, type OfficeSnapshot } from "@/lib/agent-office"
 
 export type OfficeSettings = {
@@ -36,8 +37,12 @@ export function readSnapshot(raw: unknown): ServerSnapshot {
   }
 }
 
+/** 화면 열쇠가 없거나 틀려 서버가 거절했다. */
+export class KeyError extends Error {}
+
 export async function fetchSnapshot() {
-  const response = await fetch("/api/snapshot", { cache: "no-store" })
+  const response = await apiFetch("/api/snapshot", { cache: "no-store" })
+  if (response.status === 401) throw new KeyError()
   if (!response.ok) throw new Error(String(response.status))
   return readSnapshot(await response.json())
 }

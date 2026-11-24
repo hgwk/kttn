@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react"
 
 import { pickLang, setLang, t } from "@/i18n"
-import { fetchSnapshot, type ServerSnapshot } from "@/lib/snapshot"
+import { loadScreenKey } from "@/lib/screen-key"
+import { fetchSnapshot, KeyError, type ServerSnapshot } from "@/lib/snapshot"
 import { AgentOfficeView } from "@/office/agent-office-view"
 import { OnboardingNote } from "@/office/onboarding-note"
 
@@ -15,10 +16,11 @@ function applyLang(configured: string) {
 // 첫 화면은 스냅숏 하나를 받은 뒤 그린다. 이후 갱신은 사무실 화면이 폴링한다.
 // 언어는 받은 설정으로 정하고, 받기 전 안내 문구는 브라우저 언어를 따른다.
 applyLang("")
+loadScreenKey()
 
 export function App() {
   const [initial, setInitial] = useState<ServerSnapshot | null>(null)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState<"" | "unreachable" | "key">("")
 
   useEffect(() => {
     fetchSnapshot().then(
@@ -26,7 +28,7 @@ export function App() {
         applyLang(snapshot.settings.lang)
         setInitial(snapshot)
       },
-      () => setFailed(true)
+      (error) => setFailed(error instanceof KeyError ? "key" : "unreachable")
     )
   }, [])
 
@@ -37,7 +39,11 @@ export function App() {
         <AgentOfficeView initial={initial} />
       ) : (
         <p className="text-sm text-muted-foreground">
-          {failed ? t("app.unreachable") : t("app.opening")}
+          {failed === "key"
+            ? t("app.needsKey")
+            : failed
+              ? t("app.unreachable")
+              : t("app.opening")}
         </p>
       )}
     </main>

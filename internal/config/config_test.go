@@ -67,9 +67,9 @@ func TestTokensAreRandom(t *testing.T) {
 	}
 }
 
-func TestEmbedOriginsDefaultToTheLocalDashboardAndDropOddValues(t *testing.T) {
-	if got := (Config{}).Embedders(); len(got) != 2 || got[0] != "http://127.0.0.1:3000" {
-		t.Fatalf("default %v", got)
+func TestEmbedOriginsDefaultToNoneAndDropOddValues(t *testing.T) {
+	if got := (Config{}).Embedders(); len(got) != 0 {
+		t.Fatalf("default must embed nowhere but itself, got %v", got)
 	}
 	none := []string{}
 	if got := (Config{EmbedOrigins: &none}).Embedders(); len(got) != 0 {

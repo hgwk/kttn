@@ -164,6 +164,7 @@ worktree creation.
 | `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. |
 | `kttn install` | Adds the hook to Claude Code's user settings, for use without the plugin. |
 | `kttn uninstall` | Removes the hook and stops starting the office at login. The config and session state stay. |
+| `kttn open` | Opens the office in the browser with your screen key. |
 | `kttn version` | Prints the version. |
 
 Config lives in `~/.config/kttn/config.json` (mode 600; `KTTN_CONFIG` moves
@@ -208,10 +209,16 @@ and must not carry an `Origin` header, so a web page in your browser cannot forg
 sessions. Screen actions (`/api/focus`, `/api/message`) must be JSON from a page
 on the same address, so another site cannot type into your terminal.
 
+The sessions and the terminal actions also need a **screen key**, a random
+value kept in your config (mode 600). Origin and Host checks stop other web
+sites, but not other programs or other users on the same computer; the key
+does. `kttn` and `kttn open` open the office at `/#k=<key>`; the page keeps the
+key in the browser and drops it from the address. A page without it gets 401
+and asks you to run `kttn open`.
+
 Only the office itself and the pages listed in `embed_origins` in the config
-may show the office in an iframe (`frame-ancestors`). The default list is
-`http://127.0.0.1:3000` and `http://localhost:3000`; set `"embed_origins": []`
-to allow none.
+may show the office in an iframe (`frame-ancestors`). The list is empty by default. A page that embeds the office passes the key the
+same way, in the iframe address: `http://127.0.0.1:5886/#k=<screen_key>`.
 
 ## Development
 

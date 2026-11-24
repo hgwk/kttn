@@ -71,7 +71,8 @@ func realMachine() (machine, error) {
 				return false
 			}
 			resp.Body.Close()
-			return resp.StatusCode == http.StatusOK
+			// The snapshot needs the screen key; a 401 still means it is up.
+			return resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusUnauthorized
 		},
 	}, nil
 }
@@ -95,13 +96,15 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 		if cfg.Port = config.PickPort(cfg.Port, false); cfg.Port == 0 {
 			return fmt.Errorf("no free port from %d upward", config.DefaultPort)
 		}
-		if cfg.Token, err = config.NewToken(); err != nil {
+		if _, err = cfg.EnsureKeys(); err != nil {
 			return err
 		}
 		if err := config.Save(path, cfg); err != nil {
 			return err
 		}
 		fmt.Fprintf(out, "Saved %s (answer preview off; `kttn init` changes it).\n", path)
+	} else if err := refreshConfig(path, &cfg, out); err != nil {
+		return err
 	}
 
 	exe, err := stableBinary(m)
@@ -127,9 +130,27 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 	for tries := 0; tries < 25 && !m.ready(url); tries++ {
 		time.Sleep(200 * time.Millisecond)
 	}
-	m.open(url)
-	fmt.Fprintf(out, "The office is at %s. Sessions show up from their next prompt.\n", url)
+	m.open(cfg.OfficeURL())
+	fmt.Fprintf(out, "The office is at %s (`kttn open` opens it again). Sessions show up from their next prompt.\n", url)
 	return nil
+}
+
+// refreshConfig brings a saved config up to date on a rerun: it adds a
+// missing key, and moves off a port something else took meanwhile (the
+// office's own server still running there is fine).
+func refreshConfig(path string, cfg *config.Config, out io.Writer) error {
+	changed, err := cfg.EnsureKeys()
+	if err != nil {
+		return err
+	}
+	if port := config.PickPort(cfg.Port, true); port != 0 && port != cfg.Port {
+		fmt.Fprintf(out, "Port %d is taken by something else; using %d.\n", cfg.Port, port)
+		cfg.Port, changed = port, true
+	}
+	if !changed {
+		return nil
+	}
+	return config.Save(path, *cfg)
 }
 
 // stableBinary returns a path that outlives this run. npx runs kttn from a

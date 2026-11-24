@@ -83,6 +83,7 @@ check "config: office name and language from stdin" "[ \"\$(json '$CFG' 'd.offic
 check "config: token present, answer preview off" "json '$CFG' 'd.token.length>=32 && d.preview===false' | grep -q true"
 PORT=$(json "$CFG" 'd.port')
 TOKEN=$(json "$CFG" 'd.token' | tr -d '"')
+SKEY=$(json "$CFG" 'd.screen_key||""' | tr -d '"')
 PORT_FREE=1
 lsof -nP -iTCP:"$PORT" -sTCP:LISTEN >/dev/null 2>&1 && PORT_FREE=0
 check "config: port $PORT is not in use by anything else" "[ $PORT_FREE = 1 ]" "setup chose a port another kttn holds; serve, signal and screen steps are skipped"
@@ -105,7 +106,7 @@ else
   check "autostart: systemd user unit runs the binary with serve" "grep -q 'serve' '$UNIT'"
   check "autostart: stub systemctl saw daemon-reload, enable, restart" "grep -q 'restart kttn.service' '$T/stub.log'"
 fi
-check "setup: stub opened the office in the browser" "grep -q 'open http://127.0.0.1:$PORT/' '$T/stub.log' || grep -q 'xdg-open http://127.0.0.1:$PORT/' '$T/stub.log'"
+check "setup: stub opened the office with the screen key" "[ -n '$SKEY' ] && grep -q 'open http://127.0.0.1:$PORT/#k=$SKEY' '$T/stub.log'"
 
 printf '' | run_setup > "$T/setup2.log" 2>&1
 check "rerun: asks nothing and keeps the token" "! grep -q 'Office name' '$T/setup2.log' && [ \"\$(json '$CFG' 'd.token' | tr -d '\"')\" = '$TOKEN' ]"
@@ -117,8 +118,12 @@ check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l
 if [ "$PORT_FREE" = 1 ]; then
 "$KTTN" serve > "$T/serve.log" 2>&1 &
 SERVE_PID=$!
-for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf "http://127.0.0.1:$PORT/api/snapshot" >/dev/null && break; sleep 0.3; done
-check "serve: answers on the test port $PORT" "curl -sf http://127.0.0.1:$PORT/api/snapshot"
+KH="X-Kttn-Key: $SKEY"
+for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf -H "$KH" "http://127.0.0.1:$PORT/api/snapshot" >/dev/null && break; sleep 0.3; done
+check "serve: answers on the test port $PORT" "curl -sf -H '$KH' http://127.0.0.1:$PORT/api/snapshot"
+check "screen key: snapshot without the key is refused" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT/api/snapshot)\" = 401 ]"
+check "screen key: a message forged with the right Origin but no key is refused" \
+  "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://127.0.0.1:$PORT' -H 'Content-Type: application/json' -d '{\"key\":\"x\",\"text\":\"!id\"}' http://127.0.0.1:$PORT/api/message)\" = 401 ]"
 
 SECRET="e2e-secret-prompt-$$"
 SIGNAL=payload
@@ -136,7 +141,7 @@ require("fs").writeFileSync(process.argv[2],JSON.stringify(s));' "$S" "$T/run-se
   # Claude Code needs the real login, so it runs with the real HOME, but it
   # loads project settings only (the work folder has none): this computer's
   # own hooks and plugins stay off, and the run keeps no session history.
-  ( while :; do curl -s "http://127.0.0.1:$PORT/api/snapshot" > "$T/snap.poll" && grep -q '"state":"done"' "$T/snap.poll" && cp "$T/snap.poll" "$T/snap.claude"; sleep 0.3; done ) &
+  ( while :; do curl -s -H "$KH" "http://127.0.0.1:$PORT/api/snapshot" > "$T/snap.poll" && grep -q '"state":"done"' "$T/snap.poll" && cp "$T/snap.poll" "$T/snap.claude"; sleep 0.3; done ) &
   POLL_PID=$!
   if (cd "$T/work" && unset CLAUDE_CONFIG_DIR && HOME="$REAL_HOME" with_timeout 90 claude -p "Reply with the word ok. $SECRET" \
       --model haiku --setting-sources project --settings "$T/run-settings.json" \
@@ -159,7 +164,7 @@ sleep 0.5
 if [ "$SIGNAL" = claude ] && [ -s "$T/snap.claude" ]; then
   cp "$T/snap.claude" "$T/snap.json"
 else
-  curl -s "http://127.0.0.1:$PORT/api/snapshot" > "$T/snap.json"
+  curl -s -H "$KH" "http://127.0.0.1:$PORT/api/snapshot" > "$T/snap.json"
 fi
 check "signal: the session shows up done" "json '$T/snap.json' 'd.agents.some(a=>a.state===\"done\")' | grep -q true"
 if [ "$SIGNAL" = payload ]; then
