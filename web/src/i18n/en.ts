@@ -81,7 +81,7 @@ export const en: Record<MessageKey, string> = {
   "speech.running": "Running a command, meow.",
   "speech.browsing": "Looking it up on the web, meow.",
   "speech.thinking": "Hmm… thinking, meow.",
-  "speech.delegatingCount": "Handed it to {n} helpers, meow.",
+  "speech.delegatingCount": "Helpers on it: {n}, meow.",
   "speech.delegating": "Handed it to a helper, meow.",
   "speech.working": "Hard at work, meow.",
   "speech.needsYouWhat": "Please take a look, meow! ({what})",
