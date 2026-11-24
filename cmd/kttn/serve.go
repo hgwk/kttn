@@ -31,7 +31,7 @@ func runServe(args []string, stderr io.Writer) error {
 		return err
 	}
 	if !found {
-		fmt.Fprintln(stderr, "kttn: no config yet; run `kttn init` to name the office and pair the hook")
+		fmt.Fprintf(stderr, "kttn: no config at %s; hook events are refused until you run `kttn` (or `kttn init`)\n", config.Path())
 		// Without a config nothing is paired: keys only this process knows
 		// keep the events, the sessions and the actions closed, and the
 		// screen shows how to set up.

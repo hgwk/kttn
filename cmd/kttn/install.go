@@ -11,7 +11,7 @@ import (
 
 // version is the release version; the release workflow checks it against the
 // tag and package.json.
-const version = "0.2.2"
+const version = "0.2.3"
 
 // runInstall registers `kttn hook` in Claude Code's user settings, for people
 // who do not use the plugin. Using both would report every event twice.

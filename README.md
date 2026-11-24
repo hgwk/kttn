@@ -229,6 +229,10 @@ Only the office itself and the pages listed in `embed_origins` in the config
 may show the office in an iframe (`frame-ancestors`). The list is empty by default. A page that embeds the office passes the key the
 same way, in the iframe address: `http://127.0.0.1:5886/#k=<screen_key>`.
 
+**Shared computers:** on a computer other people log in to, another user can
+take the port before your office starts, and your hook token and screen key
+would then go to their server. kttn does not protect against other local users.
+
 ## Development
 
 ```sh
@@ -244,6 +248,8 @@ Source files stay at or below 300 lines.
 - Messaging through Claude Code Channels instead of the terminal. Channels is a
   research preview that loads custom channels only with a development flag, so
   kttn types into the terminal for now.
+- Protection from other users on a shared computer: the server proving itself
+  (a challenge signed with the token) or a Unix socket instead of a port.
 - Codex sessions. A Codex hook that posts the same event shape would show up in
   the office with `--source codex`.
 

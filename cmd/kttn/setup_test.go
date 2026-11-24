@@ -126,3 +126,17 @@ func TestAGlobalNpmInstallAlsoMovesToAStablePath(t *testing.T) {
 		t.Fatalf("hooks point into npm's tree:\n%s", settings)
 	}
 }
+
+// The login service gets none of this shell's variables, so it must be told
+// where setup found the config, XDG folders included.
+func TestTheServiceIsPinnedToTheConfigAndStateSetupUsed(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("KTTN_CONFIG", "")
+	t.Setenv("KTTN_STATE", "")
+	t.Setenv("XDG_CONFIG_HOME", filepath.Join(dir, "xc"))
+	t.Setenv("XDG_STATE_HOME", filepath.Join(dir, "xs"))
+	env := kttnEnv()
+	if env["KTTN_CONFIG"] != filepath.Join(dir, "xc", "kttn", "config.json") || env["KTTN_STATE"] != filepath.Join(dir, "xs", "kttn", "sessions.json") {
+		t.Fatalf("env %v", env)
+	}
+}

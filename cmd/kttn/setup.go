@@ -16,6 +16,7 @@ import (
 	"github.com/hgwk/kttn/internal/autostart"
 	"github.com/hgwk/kttn/internal/claudehooks"
 	"github.com/hgwk/kttn/internal/config"
+	"github.com/hgwk/kttn/internal/server"
 	"github.com/hgwk/kttn/internal/terminal"
 )
 
@@ -87,15 +88,15 @@ func toolDirs(tools ...string) []string {
 	return dirs
 }
 
-// kttnEnv carries a KTTN_CONFIG or KTTN_STATE that setup ran with into the
-// service, or it would serve the default config with another token.
+// kttnEnv pins the service to the config and state files setup used. The
+// login service does not get this shell's KTTN_* or XDG_* variables, and
+// without them it would look in ~/.config, find no config and refuse every
+// event.
 func kttnEnv() map[string]string {
 	env := map[string]string{}
-	for _, name := range []string{"KTTN_CONFIG", "KTTN_STATE"} {
-		if value := os.Getenv(name); value != "" {
-			if abs, err := filepath.Abs(value); err == nil {
-				env[name] = abs
-			}
+	for name, path := range map[string]string{"KTTN_CONFIG": config.Path(), "KTTN_STATE": server.StatePath()} {
+		if abs, err := filepath.Abs(path); err == nil && path != "" {
+			env[name] = abs
 		}
 	}
 	return env
