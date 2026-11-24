@@ -112,13 +112,13 @@ downloads it as a PNG to your computer. It holds the date, the cat names
 how many cats came in, the most at once, and a picture of the cats. No
 repository, folder or session names are in it.
 
-**Daily timelapse (off by default).** When you turn on auto recording, the
-screen takes a picture of the office every 10 minutes while its tab is visible
-and keeps today's and yesterday's (up to 160 a day) in this browser's storage
-only; nothing goes to the server. Unlike the paper, the pictures and an exported
-timelapse show the office as it was on screen, including session and folder
-names and, with answer preview on, the opening of answers, so check before you
-share one.
+**Daily timelapse (off by default).** Automatic recording takes a picture of
+the office every 10 minutes while its tab is visible. It captures the office as
+it is on screen, including repository, folder and session names and, if answer
+preview is on, the last answer's text in the speech bubbles. Pictures stay only
+in this browser, for up to two days (160 a day), and nothing goes to the server;
+they also go into any video you save, so check before sharing. The clear button
+in the timelapse window deletes them.
 
 ## Install
 
