@@ -1,0 +1,17 @@
+/* 8bitcn 원본은 Google Fonts의 Press Start 2P를 불러오지만 한글 글자가 없어
+   외부 요청 없이 사무실 화면의 둥근모꼴(--font-office)을 쓴다. */
+
+.retro {
+  font-family:
+    var(--font-office, "DungGeunMo"),
+    system-ui,
+    -apple-system,
+    sans-serif;
+  line-height: 1.5;
+  letter-spacing: 0.5px;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
