@@ -14,7 +14,7 @@ var helps = map[string]string{
   Set up everything in one go: ask for the office name and language (first run
   only), hook Claude Code, start kttn serve at login and open the office.
   Running it again keeps the settings and refreshes the hooks and the service.`,
-	"init": `kttn init [--yes] [--office-name NAME] [--lang ko|en|ja] [--port N] [--preview]
+	"init": `kttn init [--yes] [--office-name NAME] [--lang ko|en|ja] [--port N] [--preview] [--messages]
   Ask for the office settings and save them with a fresh token.
   --yes takes the flags and saved values without asking.`,
 	"serve": `kttn serve [--port N]
