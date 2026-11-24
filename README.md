@@ -93,6 +93,13 @@ also carries the first 300 characters of the answer the session just finished,
 so the cat can say what it did, and task titles are sent for the desk checklist. The server keeps only the latest one per
 session, in memory and in its local state file.
 
+**Cat catalog.** The server also remembers every session it saw, after it ends,
+in `~/.local/state/kttn/cats.json` (mode 600, next to the session state): the
+repository, folder, model and session names, the name the screen gave the cat,
+when it was first and last seen, and how many tools it used. Nothing else from
+the session is in it. It keeps the latest 1,000 cats seen within 90 days, and
+**Clear catalog** on the screen empties it.
+
 ## Install
 
 To install it yourself instead, pick one:

@@ -54,6 +54,7 @@ func runServe(args []string, stderr io.Writer) error {
 		StatePath:    server.StatePath(),
 		EmbedOrigins: cfg.Embedders(),
 		PropsPath:    filepath.Join(filepath.Dir(config.Path()), "props.json"),
+		CatsPath:     filepath.Join(filepath.Dir(server.StatePath()), "cats.json"),
 		Focus:        func(pid int) error { return terminal.Focus(terminal.Exec, pid) },
 		Send: func(pid int, state, text string) error {
 			return terminal.Send(terminal.Exec, pid, state, text)

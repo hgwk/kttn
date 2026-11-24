@@ -47,6 +47,8 @@ type Options struct {
 	// PropsPath keeps where people dragged lounge props; empty keeps them
 	// nowhere (GET answers an empty layout, PUT is refused).
 	PropsPath string
+	// CatsPath keeps the cat catalog; empty turns the catalog off.
+	CatsPath string
 }
 
 // Snapshot is what the screen polls.
@@ -61,10 +63,17 @@ type Snapshot struct {
 type Handler struct {
 	http.Handler
 	state *stateFile
+	cats  *catBook
 }
 
-// SaveNow writes pending session state instead of waiting for the timer.
-func (h *Handler) SaveNow() { h.state.flush() }
+// SaveNow writes pending session state and catalog instead of waiting for
+// their timers.
+func (h *Handler) SaveNow() {
+	h.state.flush()
+	if h.cats != nil {
+		h.cats.flush()
+	}
+}
 
 // New builds the handler and loads saved sessions.
 func New(opts Options) *Handler {
@@ -79,6 +88,10 @@ func New(opts Options) *Handler {
 	}
 	state := &stateFile{path: opts.StatePath, store: opts.Store}
 	state.load()
+	var cats *catBook
+	if opts.CatsPath != "" {
+		cats = newCatBook(opts.CatsPath, opts.Now)
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("POST /api/events", func(w http.ResponseWriter, r *http.Request) {
 		body, ok := reportBody(w, r, opts.Token)
@@ -92,6 +105,9 @@ func New(opts Options) *Handler {
 		}
 		agent := opts.Store.Apply(event)
 		state.schedule()
+		if cats != nil {
+			cats.record(agent)
+		}
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
 	})
 	mux.HandleFunc("GET /api/snapshot", func(w http.ResponseWriter, r *http.Request) {
@@ -118,8 +134,14 @@ func New(opts Options) *Handler {
 		mux.HandleFunc("GET /api/props", withScreenKey(opts.ScreenKey, getProps))
 		mux.HandleFunc("PUT /api/props", withScreenKey(opts.ScreenKey, putProps))
 	}
+	if cats != nil {
+		list, name, clear := catsHandlers(cats)
+		mux.HandleFunc("GET /api/cats", withScreenKey(opts.ScreenKey, list))
+		mux.HandleFunc("PUT /api/cats/name", withScreenKey(opts.ScreenKey, name))
+		mux.HandleFunc("DELETE /api/cats", withScreenKey(opts.ScreenKey, clear))
+	}
 	mux.Handle("GET /", staticHandler())
-	return &Handler{Handler: withLoopback(withFrameAncestors(opts.EmbedOrigins, mux)), state: state}
+	return &Handler{Handler: withLoopback(withFrameAncestors(opts.EmbedOrigins, mux)), state: state, cats: cats}
 }
 
 // reportBody admits a report from a local program (the hook)
