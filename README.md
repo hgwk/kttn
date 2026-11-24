@@ -117,7 +117,8 @@ screen takes a picture of the office every 10 minutes while its tab is visible
 and keeps today's and yesterday's (up to 160 a day) in this browser's storage
 only; nothing goes to the server. Unlike the paper, the pictures and an exported
 timelapse show the office as it was on screen, including session and folder
-names, so check before you share one.
+names and, with answer preview on, the opening of answers, so check before you
+share one.
 
 ## Install
 
