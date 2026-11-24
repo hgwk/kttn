@@ -35,13 +35,26 @@ session, in memory and in its local state file.
 
 ## Install
 
-Build from source (Go 1.22+, Node 22.12+):
+kttn runs on macOS and Linux (arm64 and x86-64). Pick one:
 
-```sh
-git clone https://github.com/hgwk/kttn && cd kttn
-npm --prefix web ci && npm --prefix web run build   # the screen, embedded into the binary
-go build -o ~/.local/bin/kttn ./cmd/kttn             # any folder on your PATH
-```
+- **npm** (puts `kttn` on your PATH; downloads the binary for your platform
+  from GitHub Releases and checks its SHA-256):
+
+  ```sh
+  npm i -g @hgwk/kttn
+  ```
+
+- **GitHub Releases**: download `kttn_<version>_<os>_<arch>.tar.gz` from
+  https://github.com/hgwk/kttn/releases, check it against `SHA256SUMS`, and put
+  `kttn` in a folder on your PATH.
+
+- **From source** (Go 1.22+, Node 22.12+):
+
+  ```sh
+  git clone https://github.com/hgwk/kttn && cd kttn
+  npm --prefix web ci && npm --prefix web run build   # the screen, embedded into the binary
+  go build -o ~/.local/bin/kttn ./cmd/kttn             # any folder on your PATH
+  ```
 
 Then set it up and start the office:
 
@@ -55,19 +68,27 @@ bar) to get its own window and Dock icon.
 
 ### Connect Claude Code
 
-Install the plugin, which registers the hook for all 24 events it uses:
+The hook runs `kttn hook`, so install kttn first (above): `kttn` must be on the
+`PATH` Claude Code sees. Then use **one** of these, not both, or every event is
+reported twice:
 
-```text
-/plugin marketplace add hgwk/kttn
-/plugin install kttn@kttn
-```
+- **The plugin**, which registers the hook for the 24 events it uses:
 
-The hook runs `kttn hook`, so `kttn` must be on the `PATH` Claude Code sees.
+  ```text
+  /plugin marketplace add hgwk/kttn
+  /plugin install kttn@kttn
+  ```
+
+- **`kttn install`**, which adds the same hooks to `~/.claude/settings.json`
+  (or `$CLAUDE_CONFIG_DIR/settings.json`), next to any hooks you already have,
+  and keeps the previous file as `settings.json.bak`. `kttn uninstall` takes
+  them out again and leaves everything else as it was.
+
 If the server is not running, the hook gives up after 300 ms and the session
 carries on; it never prints anything and never blocks a session.
 
-The plugin does not hook `WorktreeCreate`, because a hook there replaces Claude
-Code's own worktree creation.
+Neither hooks `WorktreeCreate`, because a hook there replaces Claude Code's own
+worktree creation.
 
 ## Commands
 
@@ -76,6 +97,8 @@ Code's own worktree creation.
 | `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
 | `kttn serve [--port N]` | Runs the office on `127.0.0.1`. |
 | `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. |
+| `kttn install` / `kttn uninstall` | Adds or removes the hook in Claude Code's user settings, for use without the plugin. |
+| `kttn version` | Prints the version. |
 
 Config lives in `~/.config/kttn/config.json` (mode 600; `KTTN_CONFIG` moves
 it). `KTTN_URL` and `KTTN_TOKEN` override the hook's address and token.

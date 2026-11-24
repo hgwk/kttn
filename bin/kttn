@@ -1,0 +1,19 @@
+#!/bin/sh
+set -eu
+SCRIPT=$0
+while [ -L "$SCRIPT" ]; do
+  DIR=$(CDPATH= cd -- "$(dirname -- "$SCRIPT")" && pwd)
+  TARGET=$(readlink "$SCRIPT")
+  case "$TARGET" in
+    /*) SCRIPT=$TARGET ;;
+    *) SCRIPT=$DIR/$TARGET ;;
+  esac
+done
+DIR=$(CDPATH= cd -- "$(dirname -- "$SCRIPT")" && pwd)
+NATIVE="$DIR/native/kttn"
+if [ -x "$NATIVE" ]; then
+  exec "$NATIVE" "$@"
+fi
+echo "kttn binary was not installed." >&2
+echo "Reinstall with: npm install -g @hgwk/kttn@latest" >&2
+exit 1
