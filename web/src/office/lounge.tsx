@@ -6,8 +6,6 @@ import { OFFICE_SCALE } from "@/office/pixel"
 import { ITEMS, type Grid } from "@/office/sprite-data"
 import { Movable } from "@/office/props-drag"
 import { AddedProps } from "@/office/props-palette"
-import { TowerCats } from "@/office/tower-cats"
-import type { SessionAgent } from "@/lib/agent-office"
 import { cn } from "@/lib/utils"
 import {
   drawGrid,
@@ -192,8 +190,7 @@ export function Lounge({
   parentSeed,
   avoid,
   neighbors,
-  agents,
-  now = 0,
+  desks = false,
 }: {
   seed: string
   /** 바깥 방 id. 같은 묶음이 겹치지 않게 한다. */
@@ -202,9 +199,8 @@ export function Lounge({
   avoid?: number[]
   /** 같은 줄 다른 휴게 공간들이 고른 묶음(오른쪽 것 포함). 자리가 모자라 다른 묶음을 고를 때 피한다. */
   neighbors?: number[]
-  /** 이 책상 구역의 고양이들. 쉬는 시간에 캣타워에 올라온다. */
-  agents?: SessionAgent[]
-  now?: number
+  /** 책상 구역 바로 아래 휴게 공간. 쉬는 고양이가 캣타워에 찾아온다. */
+  desks?: boolean
 }) {
   const boxRef = useRef<HTMLDivElement>(null)
   const [room, setRoom] = useState({ w: 0, h: 0 })
@@ -247,7 +243,7 @@ export function Lounge({
   const { set, wallW } = placed ?? measure(SETS[first])
   return (
     <div ref={boxRef} data-move-bounds="" data-drop-room={seed} className="relative min-h-0 grow">
-      <AddedProps room={seed} />
+      <AddedProps room={seed} size={room} />
       {fits ? (
         <div className="absolute top-2 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3">
           {/* 낮은 벽과 거기에 붙여 세운 가구 */}
@@ -280,11 +276,11 @@ export function Lounge({
                 room={seed}
                 item={`floor:${index}:${name}`}
               >
-                {name === "catTower" && agents ? (
-                  // 쉬는 고양이가 찾아오는 캣타워(office-canvas.tsx가 찾는다)
+                {name === "catTower" && desks ? (
+                  // 쉬는 고양이가 찾아오는 캣타워(use-tower.ts가 찾고
+                  // visit-cats.tsx가 올라앉은 고양이를 그린다)
                   <span data-cat-tower="" className="relative block">
                     <Prop name={name} />
-                    <TowerCats agents={agents} now={now} />
                   </span>
                 ) : (
                   <Prop name={name} />

@@ -28,7 +28,7 @@ const MAX_LEVEL_UPS = 40
 // 레벨이 오른 뒤 LEVEL UP! 을 보이는 시간
 const LEVEL_UP_MS = 6000
 // 퇴근한 고양이가 자리에서 문까지 걸어 나가는 동안 자리를 남겨 두는 시간
-const LEAVE_MS = 8000
+const LEAVE_MS = 25_000
 
 // 화면 시각은 이 컴퓨터의 시간대다. 게임 화면의 날짜·시계처럼 짧게 보인다.
 function gameClock(iso: string) {

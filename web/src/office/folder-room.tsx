@@ -150,8 +150,7 @@ export function FolderRoom({
             seed={id}
             parentSeed={parentId}
             avoid={loungeAvoid}
-            agents={seated}
-            now={cards.now}
+            desks
           />
         ) : undefined
       }
@@ -216,7 +215,6 @@ export function FolderRoom({
           agents={seated}
           now={cards.now}
           levelUps={cards.levelUps}
-          door="top"
         />
       ) : null}
     </RoomFrame>

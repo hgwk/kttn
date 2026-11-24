@@ -2,8 +2,8 @@ import { useEffect, useRef, useState, type RefObject } from "react"
 
 import type { Nearby } from "@/lib/agent-office-acts"
 
-/** 둘레 정보에 찾아갈 소품 요소([data-visit])까지 더한 것 */
-export type Spots = Nearby & { spots: HTMLElement[] }
+/** 둘레 정보에 찾아갈 소품 요소([data-visit])와 캣타워 요소까지 더한 것 */
+export type Spots = Nearby & { spots: HTMLElement[]; towerEl?: HTMLElement }
 
 const NONE: Spots = { tower: false, props: 0, spots: [] }
 
@@ -21,15 +21,17 @@ export function useTowerNearby(boxRef: RefObject<HTMLElement | null>) {
       const spots = [
         ...(scope?.querySelectorAll<HTMLElement>("[data-visit]") ?? []),
       ]
-      const tower = Boolean(scope?.querySelector("[data-cat-tower]"))
+      const towerEl =
+        scope?.querySelector<HTMLElement>("[data-cat-tower]") ?? undefined
+      const tower = Boolean(towerEl)
       const old = nearbyRef.current
       if (
-        old.tower === tower &&
+        old.towerEl === towerEl &&
         old.spots.length === spots.length &&
         old.spots.every((el, i) => el === spots[i])
       )
         return
-      const next = { tower, props: spots.length, spots }
+      const next = { tower, props: spots.length, spots, towerEl }
       nearbyRef.current = next
       setNearby(next)
     }

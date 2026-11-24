@@ -2,7 +2,7 @@ import { t } from "@/i18n"
 import { useEffect, useRef, useState } from "react"
 
 import {
-  CAT_DX,
+  CAT_HEAD,
   MAX_DESKS,
   OFFICE_SCALE,
   drawChair,
@@ -14,27 +14,13 @@ import {
   familyColor,
   colsForWidth,
   officeLayout,
-  seatFor,
 } from "@/office/office-draw"
-import {
-  drawTalk,
-  outsideY,
-  pathToDoor,
-  pathToSeat,
-  advanceVisit,
-  awayOnVisit,
-  offDesk,
-  startIdleWalk,
-  startVisit,
-  seatPoint,
-  step,
-  type DoorSide,
-  type Walker,
-} from "@/office/office-walk"
+import { awayOnVisit, drawTalk, type Walker } from "@/office/office-walk"
+import { SIT_OFFSET, seatPoint } from "@/office/walk-paths"
+import { moveCat } from "@/office/cat-move"
 import { coatFor, drawCat } from "@/office/sprites"
 import { DeskOverlays } from "@/office/desk-overlays"
 import { trips } from "@/office/visit-sync"
-import { rejoin } from "@/office/walk-return"
 import {
   idlePose,
   perkedUp,
@@ -42,13 +28,7 @@ import {
 } from "@/office/office-moods"
 import { usePixelLoop } from "@/office/use-pixel-loop"
 import { type SessionAgent } from "@/lib/agent-office"
-import {
-  IDLE_SLOT_MS,
-  STROLL_START_MS,
-  idleActivity,
-  recentMoment,
-  visitingName,
-} from "@/lib/agent-office-acts"
+import { recentMoment } from "@/lib/agent-office-acts"
 import { useTowerNearby } from "@/office/use-tower"
 
 /**
@@ -63,13 +43,11 @@ export function OfficeCanvas({
   agents,
   now,
   levelUps,
-  door = "bottom",
 }: {
   label: string
   agents: SessionAgent[]
   now: number
   levelUps: Set<string>
-  door?: DoorSide
 }) {
   const walkersRef = useRef(new Map<string, Walker>())
   // 방 안쪽 너비에 맞춰 책상 열 수를 고른다. 처음(서버 그림)은 기본 배치다.
@@ -107,117 +85,43 @@ export function OfficeCanvas({
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     ctx.translate(EDGE, EDGE)
-    // 퇴근길을 다 걸어 문밖으로 나간 고양이만 방 밖으로 친다. 높이로 가리면
-    // 배치가 바뀌어 방이 낮아질 때 아랫줄 고양이가 밖으로 몰려 사라진다.
-    const inside = (walker: Walker) => !walker.out
     drawRoom(ctx, room)
     seated.forEach((_, index) => drawChair(ctx, room, index))
     // 고개를 드는 고양이(찾아온 고양이가 있거나 일을 마친 동료가 부름)
     const visited = perkedUp(walkers, seated, nowRef.current)
     seated.forEach((agent, index) => {
-      const seat = seatPoint(room, index)
-      let walker = walkers.get(agent.key)
-      if (!walker) {
-        // 이미 앉아 있던 세션은 처음 그릴 때 바로 자리에 둔다. 이어서 연
-        // 세션(resume·clear·compact)도 자리에서 깨어나고, 새로 연 세션만
-        // 문에서 걸어 들어온다.
-        // 시작 직후 지침 파일 읽기(InstructionsLoaded)가 순간(moment)을 덮으므로
-        // 시작 방식은 따로 남긴 값(startedAs)으로 본다.
-        const resumed = agent.startedAs !== "" && agent.startedAs !== "startup"
-        const arriving =
-          !resumed && (agent.state === "idle" || agent.state === "thinking")
-        walker = arriving
-          ? {
-              x: room.door.x,
-              y: outsideY(room, door),
-              path: pathToSeat(room, index),
-              dir: door === "top" ? "front" : "back",
-            }
-          : { ...seat, path: [], dir: "front" }
-        walkers.set(agent.key, walker)
-      }
-      // 걸으러 나갈 수 있는 고양이(앉아 있고, 걷거나 찾아가는 중이 아님)는
-      // 메시지 보낸 상대에게 가서 얘기하거나(같은 방에 있을 때, 메시지마다
-      // 한 번), 오래 쉬면 산책·캣타워 차례에 걸어 나갔다 온다.
-      if (
-        !walker.visit &&
-        walker.path.length === 0 &&
-        inside(walker) &&
-        !still
-      ) {
-        const talkTo = visitingName(agent, nowRef.current)
-        if (talkTo && walker.played !== agent.visitAt) {
-          walker.played = agent.visitAt
-          const target = seated.findIndex(
-            (other) => other.key !== agent.key && other.peerName === talkTo
-          )
-          if (target >= 0)
-            startVisit(walker, room, index, target, seated[target].key)
-        } else {
-          startIdleWalk(
-            walker,
-            idleActivity(agent, nowRef.current, towerRef.current, seated),
-            Math.floor(nowRef.current / IDLE_SLOT_MS),
-            room,
-            index,
-            IDLE_SLOT_MS,
-            STROLL_START_MS,
-            nowRef.current
-          )
-        }
-      }
-      advanceVisit(
-        walker,
+      const walker = moveCat(walkers, agent, index, {
+        room,
+        seated,
         t,
-        (key) => seated.some((other) => other.key === key),
-        agent
-      )
-      // 자리가 바뀌면(세션이 늘거나 줄어 배치가 바뀐 경우) 앉은 고양이는 새 자리로 옮긴다.
-      if (!walker.visit && walker.path.length === 0 && inside(walker)) {
-        walker.x = seat.x
-        walker.y = seat.y
-        walker.dir = "front"
-      }
-      if (agent.state === "ended" && walker.path.length === 0) {
-        if (inside(walker)) {
-          walker.path = pathToDoor(room, index, door)
-          walker.leaving = true
-        }
-      }
-      // 퇴근했다가 다시 돌아온 세션은 문에서 걸어 들어와 앉는다.
-      if (agent.state !== "ended") rejoin(walker, room, index, door)
-      if (still) {
-        walker.path.length = 0
-        walker.visit = undefined
-      }
-      step(walker, dt)
-      if (walker.leaving && walker.path.length === 0) {
-        walker.leaving = false
-        walker.out = true
-      }
-
+        now: nowRef.current,
+        dt,
+        still,
+        nearby: towerRef.current,
+      })
       const walking = walker.path.length > 0
-      const gone = agent.state === "ended" && !walking
+      // 퇴근길을 다 걸어 문밖으로 나간 고양이는 그리지 않는다.
+      const gone = Boolean(walker.out)
       // 대사 상자는 고양이를 따라다닌다(산책·찾아가기·캣타워). 퇴근한 고양이는 자리에 둔다.
       const speech = speechRefs.current.get(agent.key)
-      // 휴게 공간 소품 곁에 있으면 그 고양이(visit-cats.tsx)가 대사를 옮긴다.
-      if (speech && !(awayOnVisit(walker) && trips.get(agent.key)?.prop)) {
-        // 문으로 들고 나는 고양이는 그림 밖에 있어 안 보이므로, 그동안은 대사를
-        // 자리 위에 둔다(빈 바닥에 상자만 떠 있지 않게).
-        const at =
-          gone || offDesk(walker, room) ? seatFor(room, index) : walker
-        const left = `${((at.x + CAT_DX) / room.w) * 100}%`
-        const top = `${((at.y - 14) / room.h) * 100}%`
+      // 휴게 공간에 나와 있으면 그 고양이(visit-cats.tsx)가 대사를 옮긴다.
+      // 거기 그려지지 못한 고양이(캣타워 층이 모자람 등)는 대사를 자리에 둔다.
+      const away = awayOnVisit(walker)
+      if (speech && !(away && trips.get(agent.key)?.shown)) {
+        // 머리 위: 발밑에서 앉은 높이(SIT_OFFSET)와 머리(CAT_HEAD)만큼 위
+        const at = gone || away ? seatPoint(room, index) : walker
+        const left = `${(at.x / room.w) * 100}%`
+        const top = `${((at.y - SIT_OFFSET - CAT_HEAD) / room.h) * 100}%`
         if (speech.style.left !== left) speech.style.left = left
         if (speech.style.top !== top) speech.style.top = top
         // 자리를 떠나면 책상 이름표(z-40)에 가리지 않게 그 위로 올린다.
-        const away = !gone && (walking || Boolean(walker.visit))
-        const z = away ? "45" : ""
+        const out = !gone && (walking || Boolean(walker.visit))
+        const z = out ? "45" : ""
         if (speech.style.zIndex !== z) speech.style.zIndex = z
       }
       const tie = familyColor(agent.family)
       const coat = coatFor(agent.key)
-      if (!gone && !awayOnVisit(walker)) {
+      if (!gone && !away) {
         const hop =
           agent.state === "needs_you" && !walking
             ? Math.abs(Math.round(Math.sin(t / 160) * 2))
@@ -258,7 +162,9 @@ export function OfficeCanvas({
       setStrollers(strolling)
     }
     for (const key of walkers.keys()) {
-      if (!seated.some((agent) => agent.key === key)) walkers.delete(key)
+      if (seated.some((agent) => agent.key === key)) continue
+      walkers.delete(key)
+      trips.delete(key)
     }
   })
 

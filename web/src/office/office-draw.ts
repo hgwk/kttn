@@ -24,6 +24,8 @@ const DESK_TOP = 44
 const MIN_OFFICE_W = 96
 // 고양이는 책상 오른쪽 절반에 앉고 왼쪽 절반에 모니터가 놓인다.
 export const CAT_DX = 7
+/** 앉은 고양이 발밑에서 머리 위까지(대사 상자 꼬리가 닿는 곳) */
+export const CAT_HEAD = 14
 
 const FAMILY_COLORS: Record<string, string> = {
   claude: "#ff8709",
@@ -71,7 +73,9 @@ export function officeLayout(count: number, fitCols?: number): OfficeLayout {
     w,
     h,
     offsetX: Math.floor((w - natural) / 2),
-    door: { x: 10, y: h - 8 },
+    // 고양이가 드나드는 문(왼쪽 위, 복도 쪽). 그림 밖에서 출발하면 경계에 몸이
+    // 잘려 보이므로 그림 안쪽 첫 줄(몸 높이 16)에 둔다.
+    door: { x: 10, y: 16 },
   }
 }
 

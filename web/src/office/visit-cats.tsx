@@ -1,8 +1,9 @@
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
 
-import { familyColor, type officeLayout } from "@/office/office-draw"
-import { WALK_SPEED, pathsToTower } from "@/office/office-walk"
+import { CAT_HEAD, familyColor, type officeLayout } from "@/office/office-draw"
+import { WALK_SPEED } from "@/office/office-walk"
+import { SIT_OFFSET, pathsToTower } from "@/office/walk-paths"
 import { OFFICE_SCALE } from "@/office/pixel"
 import type { VisitAction } from "@/office/props-catalog"
 import { coatFor, drawCat, type CatDir, type CatPose } from "@/office/sprites"
@@ -11,18 +12,43 @@ import { trips } from "@/office/visit-sync"
 import { type SessionAgent } from "@/lib/agent-office"
 import { idleActivity, propPick } from "@/lib/agent-office-acts"
 
-// 쉬는 고양이가 휴게 공간의 소품을 찾아가 하는 일을 그린다. 책상 구역
-// 그림판의 고양이가 아래 끝에 닿아 사라지면(visit-sync.ts) 그 자리에서 소품까지
-// 걸어 들어오고, 돌아갈 때는 같은 길로 걸어 나간다. 밥그릇·물 분수 앞에서는
-// 고개를 숙여 먹고, 침대·해먹·고타쓰 위에서는 자고, 레코드플레이어·피아노
-// 앞에서는 고개를 까딱이고, 장난감 곁에서는 뛰어논다. 어느 소품에 갈지는
-// 대사(cat-speech.tsx)와 같은 계산(propPick)으로 고른다.
+// 휴게 공간에 나온 고양이. 쉬는 고양이가 캣타워에 올라앉거나 소품을 찾아가
+// 하는 일을 그린다. 책상 구역 그림판의 고양이가 아래 끝에 닿아 사라지면
+// (visit-sync.ts) 그 자리에서 캣타워나 소품까지 걸어 들어오고, 돌아갈 때는 같은
+// 길로 걸어 나간다. 밥그릇·물 분수 앞에서는 고개를 숙여 먹고, 침대·해먹·고타쓰
+// 위와 캣타워 층에서는 자고, 레코드플레이어·피아노 앞에서는 고개를 까딱이고,
+// 장난감 곁에서는 뛰어논다. 어느 소품에 갈지는 대사(cat-speech.tsx)와 같은
+// 계산(propPick)으로 고른다. 나와 있는 동안 대사 상자도 이 고양이를 따라온다.
 
-const POSE: Record<VisitAction, CatPose> = {
+type Action = VisitAction | "perch"
+
+const POSE: Record<Action, CatPose> = {
   eat: "groom",
   nap: "sleep",
   groove: "alert",
   play: "walk",
+  perch: "sleep",
+}
+
+// 캣타워(20×29) 층마다 고양이가 엎드리는 자리. 발밑 가운데(논리 픽셀)다.
+const PERCHES = [
+  { x: 10, y: 6 },
+  { x: 9, y: 17 },
+]
+
+// 휴게 공간에서 제자리. 자는 고양이는 소품 위 가운데, 캣타워에서는 층 위,
+// 나머지는 소품 왼쪽 옆 바닥에 선다. transform은 걷는 동안 옮기는 데 쓴다.
+function placeFor(action: Action, perch: number): CSSProperties {
+  if (action === "perch") {
+    const at = PERCHES[perch]
+    return {
+      left: (at.x - 8) * OFFICE_SCALE,
+      top: (at.y - 16) * OFFICE_SCALE,
+    }
+  }
+  if (action === "nap")
+    return { left: "50%", bottom: "35%", marginLeft: -8 * OFFICE_SCALE }
+  return { left: -12 * OFFICE_SCALE, bottom: 0 }
 }
 
 // 이 고양이의 대사 상자를 휴게 공간의 고양이 머리 위로 옮긴다. 상자는 책상
@@ -34,25 +60,30 @@ function follow(key: string, cat: DOMRect, ratio: number) {
   const box = speech?.parentElement?.getBoundingClientRect()
   if (!speech || !box?.width || !box.height) return
   const x = cat.left + cat.width / 2
-  const y = cat.bottom - 15 * OFFICE_SCALE * ratio
+  const y = cat.bottom - (SIT_OFFSET + CAT_HEAD) * OFFICE_SCALE * ratio
   speech.style.left = `${((x - box.left) / box.width) * 100}%`
   speech.style.top = `${((y - box.top) / box.height) * 100}%`
+  speech.style.zIndex = "45"
 }
 
 function VisitCat({
   agent,
+  kind,
   action,
+  perch,
   exit,
 }: {
   agent: SessionAgent
-  action: VisitAction
+  kind: "tower" | "prop"
+  action: Action
+  perch: number
   /** 책상 구역 아래 끝, 그림판 고양이가 사라진 곳(화면 자리) */
   exit: () => DOMRect | undefined
 }) {
   const ref = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
     let frame = 0
-    // 지금 옮겨 둔 만큼. 제자리(소품 곁)를 잴 때 뺀다.
+    // 지금 옮겨 둔 만큼. 제자리를 잴 때 뺀다.
     let shift = { x: 0, y: 0 }
     const draw = () => {
       frame = requestAnimationFrame(draw)
@@ -61,11 +92,17 @@ function VisitCat({
       const trip = trips.get(agent.key)
       const t = Date.now()
       if (!el || !ctx) return
-      if (!trip || t >= trip.until || t < trip.arrived) {
+      if (
+        trip?.kind !== kind ||
+        t >= trip.until ||
+        t < trip.arrived ||
+        // 층이 모자라면(캣타워에 셋 이상) 올라가지 않는다.
+        (action === "perch" && perch >= PERCHES.length)
+      ) {
         el.style.visibility = "hidden"
         return
       }
-      trip.prop = true
+      trip.shown = true
       const box = el.getBoundingClientRect()
       const ratio = box.width / (el.offsetWidth || box.width) || 1
       const door = exit()
@@ -85,7 +122,7 @@ function VisitCat({
       let dir: CatDir = "front"
       if (s > Math.abs(dx)) {
         shift = { x: dx, y: dy * ((s - Math.abs(dx)) / Math.abs(dy)) }
-        dir = leaving ? "back" : "front"
+        dir = leaving === dy > 0 ? "front" : "back"
       } else {
         shift = { x: Math.abs(dx) ? dx * (s / Math.abs(dx)) : 0, y: 0 }
         dir = (dx > 0) !== leaving ? "left" : "right"
@@ -106,17 +143,14 @@ function VisitCat({
         t
       )
       el.style.visibility = ""
-      follow(agent.key, el.getBoundingClientRect(), ratio)
-      el.style.transform = `${nap ? "translateX(-50%) " : ""}translate(${shift.x}px, ${shift.y}px)`
+      el.style.transform = `translate(${shift.x}px, ${shift.y}px)`
       // 걷는 동안은 다른 소품보다 앞에 둔다.
       el.style.zIndex = walking ? "35" : ""
+      follow(agent.key, el.getBoundingClientRect(), ratio)
     }
-    const nap = action === "nap"
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
-  }, [agent.key, agent.family, action, exit])
-  // 자는 고양이는 소품 위 가운데에, 나머지는 소품 왼쪽 옆 바닥에 선다.
-  const nap = action === "nap"
+  }, [agent.key, agent.family, kind, action, perch, exit])
   return (
     <canvas
       ref={ref}
@@ -128,14 +162,17 @@ function VisitCat({
         visibility: "hidden",
         width: 16 * OFFICE_SCALE,
         height: 17 * OFFICE_SCALE,
-        left: nap ? "50%" : -12 * OFFICE_SCALE,
-        bottom: nap ? "35%" : 0,
+        ...placeFor(action, perch),
       }}
     />
   )
 }
 
-/** 이 책상 구역에서 소품을 찾아간 고양이들. 각 소품 요소 안에 그린다. */
+/**
+ * 이 책상 구역에서 휴게 공간에 나온 고양이들. 캣타워나 소품 요소 안에 그린다.
+ * 나설 차례이거나(현황 시각 기준) 아직 나와 있는(나들이 기록 기준) 고양이를
+ * 놓아 두고, 실제로 보일지는 나들이 기록(trips)으로 장면마다 정한다.
+ */
 export function VisitCats({
   agents,
   now,
@@ -149,17 +186,26 @@ export function VisitCats({
 }) {
   const doors = useRef(new Map<string, HTMLElement>())
   const exits = useRef(new Map<string, () => DOMRect | undefined>())
-  if (!nearby.spots.length) return null
+  let perched = 0
   return agents.map((agent, index) => {
     const trip = trips.get(agent.key)
-    // 깨서 걸어 나가는 동안에도 그린다.
-    const going =
-      idleActivity(agent, now, nearby, agents, true) === "prop" ||
-      Boolean(trip?.prop && now < trip.until)
-    if (!going) return null
-    const spot =
-      nearby.spots[propPick(agent.key, now, nearby.spots.length)]
-    const action = spot?.dataset.visit as VisitAction | undefined
+    // 현황은 몇 초 늦게 오므로 나들이가 끝난 직후에도 잠깐 둔다.
+    const out = trip && now < trip.until + 3000 ? trip.kind : undefined
+    const activity = idleActivity(agent, now, nearby, agents, true)
+    const kind =
+      out ?? (activity === "tower" || activity === "prop" ? activity : null)
+    if (!kind) return null
+    let spot: HTMLElement | undefined
+    let action: Action | undefined
+    let perch = 0
+    if (kind === "tower") {
+      spot = nearby.towerEl
+      action = "perch"
+      perch = perched++
+    } else {
+      spot = nearby.spots[propPick(agent.key, now, nearby.spots.length)]
+      action = spot?.dataset.visit as VisitAction | undefined
+    }
     if (!spot || !action) return null
     const end = pathsToTower(layout, index).go.at(-1) ?? { x: 0, y: 0 }
     let exit = exits.current.get(agent.key)
@@ -176,13 +222,16 @@ export function VisitCats({
             else doors.current.delete(agent.key)
           }}
           className="pointer-events-none absolute size-0"
-          style={{
-            left: `${(end.x / layout.w) * 100}%`,
-            top: "100%",
-          }}
+          style={{ left: `${(end.x / layout.w) * 100}%`, top: "100%" }}
         />
         {createPortal(
-          <VisitCat agent={agent} action={action} exit={exit} />,
+          <VisitCat
+            agent={agent}
+            kind={kind}
+            action={action}
+            perch={perch}
+            exit={exit}
+          />,
           spot
         )}
       </span>

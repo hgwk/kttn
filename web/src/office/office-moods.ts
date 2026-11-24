@@ -56,7 +56,7 @@ export function perkedUp(
 export function strollingKeys(walkers: Map<string, Walker>) {
   return [...walkers]
     .filter(
-      ([, walker]) => walker.visit && !walker.visit.to && !walker.visit.long
+      ([, walker]) => walker.visit && !walker.visit.to && !walker.visit.kind
     )
     .map(([key]) => key)
     .sort()
