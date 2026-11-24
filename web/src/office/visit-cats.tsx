@@ -1,21 +1,19 @@
 import { useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 
-import { familyColor } from "@/office/office-draw"
+import { familyColor, type officeLayout } from "@/office/office-draw"
+import { WALK_SPEED, pathsToTower } from "@/office/office-walk"
 import { OFFICE_SCALE } from "@/office/pixel"
 import type { VisitAction } from "@/office/props-catalog"
-import { coatFor, drawCat, type CatPose } from "@/office/sprites"
+import { coatFor, drawCat, type CatDir, type CatPose } from "@/office/sprites"
 import type { Spots } from "@/office/use-tower"
+import { trips } from "@/office/visit-sync"
 import { type SessionAgent } from "@/lib/agent-office"
-import {
-  IDLE_SLOT_MS,
-  TOWER_WALK_MS,
-  idleActivity,
-  propPick,
-} from "@/lib/agent-office-acts"
+import { idleActivity, propPick } from "@/lib/agent-office-acts"
 
-// 쉬는 고양이가 휴게 공간의 소품을 찾아가 하는 일을 그린다. 고양이는 책상에서
-// 걸어 나간 뒤(TOWER_WALK_MS) 소품 곁에 나타난다. 밥그릇·물 분수 앞에서는
+// 쉬는 고양이가 휴게 공간의 소품을 찾아가 하는 일을 그린다. 책상 구역
+// 그림판의 고양이가 아래 끝에 닿아 사라지면(visit-sync.ts) 그 자리에서 소품까지
+// 걸어 들어오고, 돌아갈 때는 같은 길로 걸어 나간다. 밥그릇·물 분수 앞에서는
 // 고개를 숙여 먹고, 침대·해먹·고타쓰 위에서는 자고, 레코드플레이어·피아노
 // 앞에서는 고개를 까딱이고, 장난감 곁에서는 뛰어논다. 어느 소품에 갈지는
 // 대사(cat-speech.tsx)와 같은 계산(propPick)으로 고른다.
@@ -30,31 +28,78 @@ const POSE: Record<VisitAction, CatPose> = {
 function VisitCat({
   agent,
   action,
-  now,
+  exit,
 }: {
   agent: SessionAgent
   action: VisitAction
-  now: number
+  /** 책상 구역 아래 끝, 그림판 고양이가 사라진 곳(화면 자리) */
+  exit: () => DOMRect | undefined
 }) {
   const ref = useRef<HTMLCanvasElement>(null)
-  // 까딱이기·뛰어놀기는 1초마다 몸을 한 칸 올렸다 내린다.
-  const beat = action === "groove" || action === "play" ? (now / 1000) % 2 : 0
-  const up = Math.floor(beat) === 1 ? 1 : 0
   useEffect(() => {
-    const ctx = ref.current?.getContext("2d")
-    if (!ctx) return
-    ctx.clearRect(0, 0, 16, 17)
-    drawCat(
-      ctx,
-      8,
-      16 - up,
-      coatFor(agent.key),
-      familyColor(agent.family),
-      POSE[action],
-      action === "play" ? "left" : "front",
-      now
-    )
-  }, [agent.key, agent.family, action, now, up])
+    let frame = 0
+    // 지금 옮겨 둔 만큼. 제자리(소품 곁)를 잴 때 뺀다.
+    let shift = { x: 0, y: 0 }
+    const draw = () => {
+      frame = requestAnimationFrame(draw)
+      const el = ref.current
+      const ctx = el?.getContext("2d")
+      const trip = trips.get(agent.key)
+      const t = Date.now()
+      if (!el || !ctx) return
+      if (!trip || t >= trip.until || t < trip.arrived) {
+        el.style.visibility = "hidden"
+        return
+      }
+      trip.prop = true
+      const box = el.getBoundingClientRect()
+      const ratio = box.width / (el.offsetWidth || box.width) || 1
+      const door = exit()
+      // 문(사라진 곳)에서 제자리 발밑까지. 세로로 먼저 내려온 뒤 가로로 간다.
+      const dx = door
+        ? (door.x - box.left - box.width / 2) / ratio + shift.x
+        : 0
+      const dy = door ? (door.y - box.bottom) / ratio + shift.y : 0
+      const dist = Math.abs(dx) + Math.abs(dy)
+      const walkMs = dist / OFFICE_SCALE / WALK_SPEED
+      trip.outMs = walkMs
+      const into = t - trip.arrived
+      const left = trip.until - t
+      const done = walkMs ? Math.min(1, into / walkMs, left / walkMs) : 1
+      const s = (1 - done) * dist
+      const leaving = left < into
+      let dir: CatDir = "front"
+      if (s > Math.abs(dx)) {
+        shift = { x: dx, y: dy * ((s - Math.abs(dx)) / Math.abs(dy)) }
+        dir = leaving ? "back" : "front"
+      } else {
+        shift = { x: Math.abs(dx) ? dx * (s / Math.abs(dx)) : 0, y: 0 }
+        dir = (dx > 0) !== leaving ? "left" : "right"
+      }
+      const walking = done < 1
+      // 까딱이기·뛰어놀기는 1초마다 몸을 한 칸 올렸다 내린다.
+      const bob = action === "groove" || action === "play"
+      const up = !walking && bob && Math.floor(t / 1000) % 2 ? 1 : 0
+      ctx.clearRect(0, 0, 16, 17)
+      drawCat(
+        ctx,
+        8,
+        16 - up,
+        coatFor(agent.key),
+        familyColor(agent.family),
+        walking ? "walk" : POSE[action],
+        walking ? dir : action === "play" ? "left" : "front",
+        t
+      )
+      el.style.visibility = ""
+      el.style.transform = `${nap ? "translateX(-50%) " : ""}translate(${shift.x}px, ${shift.y}px)`
+      // 걷는 동안은 다른 소품보다 앞에 둔다.
+      el.style.zIndex = walking ? "35" : ""
+    }
+    const nap = action === "nap"
+    frame = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(frame)
+  }, [agent.key, agent.family, action, exit])
   // 자는 고양이는 소품 위 가운데에, 나머지는 소품 왼쪽 옆 바닥에 선다.
   const nap = action === "nap"
   return (
@@ -65,11 +110,11 @@ function VisitCat({
       aria-hidden="true"
       className="pointer-events-none absolute z-20 [image-rendering:pixelated]"
       style={{
+        visibility: "hidden",
         width: 16 * OFFICE_SCALE,
         height: 17 * OFFICE_SCALE,
         left: nap ? "50%" : -12 * OFFICE_SCALE,
         bottom: nap ? "35%" : 0,
-        transform: nap ? "translateX(-50%)" : undefined,
       }}
     />
   )
@@ -80,22 +125,52 @@ export function VisitCats({
   agents,
   now,
   nearby,
+  layout,
 }: {
   agents: SessionAgent[]
   now: number
   nearby: Spots
+  layout: ReturnType<typeof officeLayout>
 }) {
-  if (!nearby.spots.length || now % IDLE_SLOT_MS < TOWER_WALK_MS) return null
-  return agents.map((agent) => {
-    if (idleActivity(agent, now, nearby, agents, true) !== "prop") return null
+  const doors = useRef(new Map<string, HTMLElement>())
+  const exits = useRef(new Map<string, () => DOMRect | undefined>())
+  if (!nearby.spots.length) return null
+  return agents.map((agent, index) => {
+    const trip = trips.get(agent.key)
+    // 깨서 걸어 나가는 동안에도 그린다.
+    const going =
+      idleActivity(agent, now, nearby, agents, true) === "prop" ||
+      Boolean(trip?.prop && now < trip.until)
+    if (!going) return null
     const spot =
       nearby.spots[propPick(agent.key, now, nearby.spots.length)]
     const action = spot?.dataset.visit as VisitAction | undefined
     if (!spot || !action) return null
-    return createPortal(
-      <VisitCat agent={agent} action={action} now={now} />,
-      spot,
-      agent.key
+    const end = pathsToTower(layout, index).go.at(-1) ?? { x: 0, y: 0 }
+    let exit = exits.current.get(agent.key)
+    if (!exit) {
+      exit = () => doors.current.get(agent.key)?.getBoundingClientRect()
+      exits.current.set(agent.key, exit)
+    }
+    return (
+      <span key={agent.key}>
+        <span
+          aria-hidden="true"
+          ref={(el) => {
+            if (el) doors.current.set(agent.key, el)
+            else doors.current.delete(agent.key)
+          }}
+          className="pointer-events-none absolute size-0"
+          style={{
+            left: `${(end.x / layout.w) * 100}%`,
+            top: "100%",
+          }}
+        />
+        {createPortal(
+          <VisitCat agent={agent} action={action} exit={exit} />,
+          spot
+        )}
+      </span>
     )
   })
 }

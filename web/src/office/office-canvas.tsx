@@ -168,7 +168,7 @@ export function OfficeCanvas({
         walker,
         t,
         (key) => seated.some((other) => other.key === key),
-        agent.state === "sleeping"
+        agent
       )
       // 자리가 바뀌면(세션이 늘거나 줄어 배치가 바뀐 경우) 앉은 고양이는 새 자리로 옮긴다.
       if (!walker.visit && walker.path.length === 0 && inside(walker)) {

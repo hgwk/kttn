@@ -36,7 +36,7 @@ export function DeskOverlays({
   const names = useCatNames()
   return (
     <>
-    <VisitCats agents={agents} now={now} nearby={tower} />
+    <VisitCats agents={agents} now={now} nearby={tower} layout={layout} />
     {agents.map((agent, index) => {
       const seat = seatFor(layout, index)
       return (

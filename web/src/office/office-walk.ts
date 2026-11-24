@@ -7,8 +7,9 @@ import {
   type OfficeLayout,
 } from "@/office/office-draw"
 import type { CatDir } from "@/office/sprites"
+import { holdTrip } from "@/office/visit-sync"
 
-const WALK_SPEED = 0.05 // 논리 픽셀/ms
+export const WALK_SPEED = 0.05 // 논리 픽셀/ms
 const SIT_OFFSET = 5
 
 export type Point = { x: number; y: number }
@@ -249,12 +250,13 @@ export function advanceVisit(
   walker: Walker,
   t: number,
   present: (key: string) => boolean,
-  /** 캣타워나 소품 곁에 계속 있어도 되는지. 일을 받아 깨면 걸어서 돌아온다. */
-  resting = true
+  /** 이 고양이. 캣타워나 소품에 가 있다가 일을 받아 깨면 걸어서 돌아온다. */
+  agent?: { key: string; state: string }
 ) {
   const visit = walker.visit
   if (!visit) return
-  if (visit.long && visit.stage !== "back" && !resting) {
+  const rest = agent?.state === "sleeping"
+  if (visit.long && agent && holdTrip(agent.key, visit, t, rest)) {
     visit.stage = "back"
     walker.path = visit.back
     return
