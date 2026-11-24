@@ -194,6 +194,10 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
             >
               {armed ? t("book.clearConfirm") : t("book.clear")}
             </button>
+            {/* 확인 단계를 화면 낭독기에 알린다(포커스된 버튼 이름 변화는 놓치기 쉽다). */}
+            <span role="status" className="sr-only">
+              {armed ? t("book.clearHint") : ""}
+            </span>
             <button
               type="button"
               aria-label={t("book.close")}

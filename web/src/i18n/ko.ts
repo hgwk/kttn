@@ -49,6 +49,7 @@ export const ko = {
   "book.close": "도감 닫기",
   "book.clear": "도감 초기화",
   "book.clearConfirm": "초기화 확인",
+  "book.clearHint": "한 번 더 누르면 도감을 지웁니다.",
   "book.level": "Lv.{n}",
   "book.tools": "도구 {n}회",
   "book.first": "처음 {date}",

@@ -48,6 +48,7 @@ export const ja: Record<MessageKey, string> = {
   "book.close": "図鑑を閉じる",
   "book.clear": "図鑑リセット",
   "book.clearConfirm": "リセット確認",
+  "book.clearHint": "もう一度押すと図鑑を消します。",
   "book.level": "Lv.{n}",
   "book.tools": "ツール {n}回",
   "book.first": "初登場 {date}",

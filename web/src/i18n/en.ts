@@ -48,6 +48,7 @@ export const en: Record<MessageKey, string> = {
   "book.close": "Close catalog",
   "book.clear": "Clear catalog",
   "book.clearConfirm": "Confirm clear",
+  "book.clearHint": "Press again to clear the catalog.",
   "book.level": "Lv.{n}",
   "book.tools": "{n} tool calls",
   "book.first": "first {date}",
