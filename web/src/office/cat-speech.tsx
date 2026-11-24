@@ -169,7 +169,7 @@ export function CatSpeech({
   const spots = typeof tower === "boolean" ? [] : tower.spots
   const visit =
     activity === "prop"
-      ? (spots[spotFor(agent.key, now, spots.length)]?.dataset.visit ?? "")
+      ? (spotFor(agent.key, now, spots)?.dataset.visit ?? "")
       : ""
   const lasted = stateDuration(stateSince(agent), now)
   // 시간을 앞에 붙이는 대사. 끝냈거나 퇴근한 뒤에는 "방금부터 다 했다냥"처럼

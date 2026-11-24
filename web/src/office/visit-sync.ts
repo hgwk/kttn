@@ -14,10 +14,13 @@ export type Trip = {
   until: number
   outMs: number
   shown?: boolean
-  /** 찾아간 소품 차례(propPick). 나들이 동안 바뀌지 않게 처음 고른 값을 둔다. */
-  spot?: number
-  /** 올라앉은 캣타워 층 */
+  /** 찾아간 소품. 나들이 동안 다른 소품이 들고 나도 바뀌지 않게 요소를 둔다. */
+  spot?: HTMLElement
+  /** 올라앉은 캣타워와 그 층 */
+  tower?: HTMLElement
   perch?: number
+  /** 이 기록을 만든 나들이. 같은 나들이면 기록을 이어 쓴다. */
+  of: object
 }
 
 export const trips = new Map<string, Trip>()
@@ -43,9 +46,16 @@ export function holdTrip(
     return false
   }
   if (visit.stage === "go") return !resting
+  // 같은 나들이면 기록을 이어 쓴다(그림판이 멈췄던 사이 당겨 둔 until도 그대로).
   let trip = trips.get(key)
-  if (!trip || trip.arrived > t || trip.until < t - 1000) {
-    trip = { kind: visit.kind, arrived: t, until: visit.until, outMs: 0 }
+  if (trip?.of !== visit) {
+    trip = {
+      kind: visit.kind,
+      arrived: t,
+      until: visit.until,
+      outMs: 0,
+      of: visit,
+    }
     trips.set(key, trip)
   }
   if (!resting) visit.until = Math.min(visit.until, t + trip.outMs)
@@ -61,25 +71,30 @@ export function cutTrip(trip: Trip, t: number) {
 }
 
 /**
- * 소품을 찾아간 고양이가 고른 소품 차례(count개 가운데). 나들이 중이면 처음
- * 고른 값을, 아니면 지금 시각으로 고른다. 대사와 그림이 같은 값을 쓴다.
+ * 소품을 찾아간 고양이가 고른 소품(spots 가운데). 나들이 중이면 처음 고른
+ * 소품을, 아니면 지금 시각으로 고른다. 대사와 그림이 같은 값을 쓴다. 고른
+ * 소품이 치워졌으면 없다(undefined).
  */
-export function spotFor(key: string, now: number, count: number) {
+export function spotFor(key: string, now: number, spots: HTMLElement[]) {
   const trip = trips.get(key)
-  if (trip?.kind !== "prop") return propPick(key, now, count)
-  trip.spot ??= propPick(key, trip.arrived, count)
-  return trip.spot
+  if (trip?.kind !== "prop") return spots[propPick(key, now, spots.length)]
+  trip.spot ??= spots[propPick(key, trip.arrived, spots.length)]
+  return trip.spot && spots.includes(trip.spot) ? trip.spot : undefined
 }
 
-/** 캣타워에 올라간 고양이의 층. 다른 고양이가 쓰지 않는 가장 낮은 번호다. */
-export function perchFor(key: string, now: number) {
+/**
+ * 캣타워(tower)에 올라간 고양이의 층. 같은 캣타워에서 다른 고양이가 쓰지
+ * 않는 가장 낮은 번호다.
+ */
+export function perchFor(key: string, now: number, tower?: HTMLElement) {
   const trip = trips.get(key)
   if (trip?.kind !== "tower") return 0
+  trip.tower ??= tower
   if (trip.perch === undefined) {
     const used = new Set(
       [...trips.values()]
-        .filter((other) => other !== trip && other.kind === "tower")
-        .filter((other) => other.until > now)
+        .filter((other) => other !== trip && other.tower === trip.tower)
+        .filter((other) => other.kind === "tower" && other.until > now)
         .map((other) => other.perch)
     )
     let perch = 0

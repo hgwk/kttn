@@ -203,11 +203,11 @@ export function VisitCats({
     if (kind === "tower") {
       spot = nearby.towerEl
       action = "perch"
-      perch = perchFor(agent.key, now)
+      perch = perchFor(agent.key, now, spot)
       // 층이 모자라면(캣타워에 셋 이상) 올라가지 않고 돌아간다.
       if (perch >= PERCHES.length) spot = undefined
     } else {
-      spot = nearby.spots[spotFor(agent.key, now, nearby.spots.length)]
+      spot = spotFor(agent.key, now, nearby.spots)
       action = spot?.dataset.visit as VisitAction | undefined
     }
     if (!spot || !action) {
