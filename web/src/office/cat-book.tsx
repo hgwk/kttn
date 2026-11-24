@@ -160,7 +160,11 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
         type="button"
         className={TOOL_BUTTON}
         aria-pressed={open}
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          // 창을 닫으면 초기화 확인 단계도 푼다(다시 열 때 알림이 든 채 열리지 않게).
+          setArmed(false)
+          setOpen((value) => !value)
+        }}
       >
         <ToggleMark on={open} />
         {t("book.button")}
@@ -202,7 +206,10 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
               type="button"
               aria-label={t("book.close")}
               className="px-1 text-xs hover:text-amber-300"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setArmed(false)
+                setOpen(false)
+              }}
             >
               ✕
             </button>
