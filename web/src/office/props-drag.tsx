@@ -65,6 +65,30 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener)
 }
 
+// 끄는 동안 소품이 움직일 수 있는 칸을 보인다. 반투명 바탕에 도트 네 칸(8px)
+// 격자를 깔고 테두리를 점선으로 두른다. 소품 아래에 깔리도록 맨 앞에 넣는다.
+function showGuide(bounds: Element) {
+  const guide = document.createElement("div")
+  guide.setAttribute("aria-hidden", "true")
+  Object.assign(guide.style, {
+    position: "absolute",
+    inset: "0",
+    pointerEvents: "none",
+    backgroundColor: "rgba(43, 42, 54, 0.22)",
+    backgroundImage:
+      "linear-gradient(rgba(247, 242, 232, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(247, 242, 232, 0.25) 1px, transparent 1px)",
+    backgroundSize: "8px 8px",
+    outline: "2px dashed #fbbf24",
+    outlineOffset: "-2px",
+  })
+  bounds.prepend(guide)
+  return guide
+}
+
+// 두 화면 자리가 겹치는지. 맞닿기만 한 것은 겹친 것이 아니다.
+const hits = (a: DOMRect, b: DOMRect) =>
+  a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+
 const snap = (value: number) => Math.round(value / GRID) * GRID
 // 칸 끝에 닿으면 칸 경계로 붙이되, 서버는 정수만 받으므로 반올림한다.
 const clamp = (value: number, lo: number, hi: number) =>
@@ -100,6 +124,14 @@ export function Movable({
     ratio: number
     lo: Offset
     hi: Offset
+    /** 끌기 시작할 때 이 소품의 화면 자리 */
+    rect: DOMRect
+    /** 겹치면 안 되는 같은 칸의 다른 소품·낮은 벽(화면 자리) */
+    blockers: DOMRect[]
+    /** 마지막으로 놓을 수 있던 자리 */
+    last: Offset
+    /** 끄는 동안 칸 위에 깐 자리 안내 */
+    guide: HTMLElement
   } | null>(null)
 
   const down = (event: ReactPointerEvent<HTMLSpanElement>) => {
@@ -115,7 +147,24 @@ export function Movable({
     const ratio = rect.width / (el.offsetWidth || rect.width) || 1
     const ox = offset?.x ?? 0
     const oy = offset?.y ?? 0
+    // 같은 칸의 다른 소품과 장애물(낮은 벽). 소품 안의 그림은 그 소품으로 센다.
+    // 처음부터 겹쳐 있던 것은 빼야 꼼짝 못 하는 일이 없다.
+    const blockers = [
+      ...bounds.querySelectorAll("[data-movable], [data-obstacle]"),
+    ]
+      .filter(
+        (other) =>
+          other !== el &&
+          !el.contains(other) &&
+          (other.matches("[data-movable]") || !other.closest("[data-movable]"))
+      )
+      .map((other) => other.getBoundingClientRect())
+      .filter((other) => !hits(rect, other))
     drag.current = {
+      guide: showGuide(bounds),
+      rect,
+      blockers,
+      last: { x: ox, y: oy },
       px: event.clientX,
       py: event.clientY,
       ox,
@@ -148,11 +197,31 @@ export function Movable({
             start.lo.y,
             start.hi.y
           )
-    setOffset(room, item, { x, y })
+    // 겹치면 가로나 세로 한쪽으로만 미끄러지고, 둘 다 막히면 제자리에 둔다.
+    const free = (at: Offset) => {
+      const dx = (at.x - start.ox) * start.ratio
+      const dy = (at.y - start.oy) * start.ratio
+      const moved = new DOMRect(
+        start.rect.x + dx,
+        start.rect.y + dy,
+        start.rect.width,
+        start.rect.height
+      )
+      return !start.blockers.some((other) => hits(moved, other))
+    }
+    const next = [
+      { x, y },
+      { x, y: start.last.y },
+      { x: start.last.x, y },
+    ].find(free)
+    if (!next) return
+    start.last = next
+    setOffset(room, item, next)
   }
 
   const up = () => {
     if (!drag.current) return
+    drag.current.guide.remove()
     drag.current = null
     save()
   }
@@ -160,6 +229,7 @@ export function Movable({
   return (
     <span
       className={className}
+      data-movable=""
       title="끌어서 옮기기 · 두 번 누르면 제자리"
       style={{
         display: "block",
