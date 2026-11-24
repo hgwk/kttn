@@ -15,6 +15,8 @@ func usage() {
   kttn init  [--yes] [--office-name NAME] [--lang ko|en|ja] [--port %d] [--preview]
   kttn serve [--port PORT]
   kttn hook  [--url URL] [--source claude] [--timeout 300ms]
+  kttn install | uninstall   add or remove the hook in ~/.claude/settings.json (instead of the plugin)
+  kttn version
 
 config: %s (KTTN_CONFIG overrides)
 env:    KTTN_URL, KTTN_TOKEN override the config for the hook; KTTN_STATE moves the session file
@@ -33,6 +35,12 @@ func main() {
 		exitOn("serve", runServe(os.Args[2:]))
 	case "init":
 		exitOn("init", runInit(os.Args[2:], os.Stdin, os.Stdout))
+	case "install":
+		exitOn("install", runInstall(os.Stdout))
+	case "uninstall":
+		exitOn("uninstall", runUninstall(os.Stdout))
+	case "version", "--version":
+		fmt.Println("kttn", version)
 	case "-h", "--help", "help":
 		usage()
 	default:
