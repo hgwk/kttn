@@ -87,11 +87,8 @@ export function WallDecor() {
                 grid={name === "clock" ? clock : undefined}
                 wall
               />
-              {/* 12월에는 창밖에 눈이 내린다(season.ts). 되풀이한 줄은 벽면
-                  밖으로 잘려 안 보이므로 첫 줄의 창에만 내린다. */}
-              {name === "window" && december && index < WALL_DECOR.length ? (
-                <Snow />
-              ) : null}
+              {/* 12월에는 창밖에 눈이 내린다(season.ts). 화면 밖의 창은 멈춘다. */}
+              {name === "window" && december ? <Snow /> : null}
             </span>
           </Movable>
         ))}
