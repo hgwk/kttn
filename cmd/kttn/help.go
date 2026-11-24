@@ -19,8 +19,9 @@ var helps = map[string]string{
   --yes takes the flags and saved values without asking.`,
 	"serve": `kttn serve [--port N]
   Run the office on 127.0.0.1 (default port from the config).`,
-	"hook": `kttn hook [--url URL] [--source claude] [--timeout 300ms]
-  The Claude Code hook. Reads one hook payload on stdin and reports it.`,
+	"hook": `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]
+  The Claude Code hook. Reads one hook payload on stdin and reports it.
+  Setup pins --config to the config it wrote.`,
 	"install": `kttn install
   Add the kttn hook to Claude Code's user settings (~/.claude/settings.json,
   or $CLAUDE_CONFIG_DIR/settings.json). Keeps every other setting and hook and

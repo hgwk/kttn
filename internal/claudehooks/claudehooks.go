@@ -11,6 +11,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -19,20 +20,33 @@ const Command = "kttn hook"
 
 // CommandFor is the hook command for a kttn binary outside the PATH.
 func CommandFor(exe string) string {
-	return "'" + strings.ReplaceAll(exe, "'", `'\''`) + "' hook"
+	return shellQuote(exe) + " hook"
 }
 
-// ours recognises a command Install wrote: `kttn hook`, or a kttn binary's
-// path (quoted or not) followed by ` hook`.
+// WithConfig pins a hook command to one config file. Claude Code started
+// from an IDE or the desktop app does not get the shell's XDG_* or KTTN_*
+// variables, and without the pin its hook would read another config and be
+// refused.
+func WithConfig(command, configPath string) string {
+	return command + " --config " + shellQuote(configPath)
+}
+
+// shellQuote quotes one word for the shell Claude Code runs hooks with.
+func shellQuote(word string) string {
+	return "'" + strings.ReplaceAll(word, "'", `'\''`) + "'"
+}
+
+// ourCommand matches what Install wrote: a kttn binary (bare, a path, or a
+// quoted path) running `hook`, with or without a pinned config.
+var ourCommand = regexp.MustCompile(`^(.+) hook( --config '([^']|'\\'')*')?$`)
+
+// ours recognises a command Install wrote, in any form it ever wrote.
 func ours(command string) bool {
-	if command == Command {
-		return true
-	}
-	exe, ok := strings.CutSuffix(command, " hook")
-	if !ok {
+	match := ourCommand.FindStringSubmatch(command)
+	if match == nil {
 		return false
 	}
-	return filepath.Base(strings.Trim(exe, "'\"")) == "kttn"
+	return filepath.Base(strings.Trim(match[1], "'\"")) == "kttn"
 }
 
 // Events are the hook events the office understands, the same list the plugin

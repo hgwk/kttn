@@ -14,25 +14,32 @@ import (
 // runHook never fails: a broken flag or config just drops the signal, since a
 // hook must not break the session.
 func runHook(args []string, stdin io.Reader) {
-	cfg, _, _ := config.Load(config.Path())
-	endpoint := cfg.EventsURL()
-	if env := os.Getenv("KTTN_URL"); env != "" {
-		endpoint = env
-	}
-	token := cfg.Token
-	if env := strings.TrimSpace(os.Getenv("KTTN_TOKEN")); env != "" {
-		token = env
-	}
 	fs := flag.NewFlagSet("hook", flag.ContinueOnError)
 	fs.SetOutput(os.Stderr)
-	url := fs.String("url", endpoint, "event endpoint of kttn serve")
+	configPath := fs.String("config", "", "config file (setup pins it; default: the usual place)")
+	url := fs.String("url", "", "event endpoint of kttn serve (default: from the config)")
 	source := fs.String("source", "claude", "agent family shown in the office")
 	timeout := fs.Duration("timeout", 300*time.Millisecond, "give up after this long")
 	if err := fs.Parse(args); err != nil {
 		return
 	}
+	if *configPath == "" {
+		*configPath = config.Path()
+	}
+	cfg, _, _ := config.Load(*configPath)
+	endpoint := cfg.EventsURL()
+	if env := os.Getenv("KTTN_URL"); env != "" {
+		endpoint = env
+	}
+	if *url != "" {
+		endpoint = *url
+	}
+	token := cfg.Token
+	if env := strings.TrimSpace(os.Getenv("KTTN_TOKEN")); env != "" {
+		token = env
+	}
 	hook.Run(stdin, hook.Options{
-		Endpoint: *url,
+		Endpoint: endpoint,
 		Source:   *source,
 		Token:    token,
 		Timeout:  *timeout,

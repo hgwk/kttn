@@ -88,6 +88,15 @@ func toolDirs(tools ...string) []string {
 	return dirs
 }
 
+// absPath makes a config or state path absolute, for a hook or service that
+// runs from another folder.
+func absPath(path string) string {
+	if abs, err := filepath.Abs(path); err == nil {
+		return abs
+	}
+	return path
+}
+
 // kttnEnv pins the service to the config and state files setup used. The
 // login service does not get this shell's KTTN_* or XDG_* variables, and
 // without them it would look in ~/.config, find no config and refuse every
@@ -142,6 +151,7 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 	if found, ok := m.onPath(); ok && found == exe {
 		command = claudehooks.Command
 	}
+	command = claudehooks.WithConfig(command, absPath(path))
 	settings := claudehooks.SettingsPath()
 	if _, err := claudehooks.InstallCommand(settings, command); err != nil {
 		return err

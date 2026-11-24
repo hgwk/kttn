@@ -189,3 +189,23 @@ func TestPluginEnabledSpotsTheKttnPlugin(t *testing.T) {
 		t.Fatal("wrong plugin detection")
 	}
 }
+
+func TestAPinnedConfigReplacesEveryEarlierFormAndOnlyThose(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "settings.json")
+	pinned := WithConfig(CommandFor("/Users/me/.local/bin/kttn"), "/Users/me/xdg/it's/kttn/config.json")
+	if pinned != `'/Users/me/.local/bin/kttn' hook --config '/Users/me/xdg/it'\''s/kttn/config.json'` {
+		t.Fatalf("command %q", pinned)
+	}
+	for _, earlier := range []string{Command, CommandFor("/opt/kttn"), WithConfig(Command, "/a b/config.json")} {
+		InstallCommand(path, earlier)
+		InstallCommand(path, pinned)
+		if stop := hooksOf(t, path)["Stop"]; len(stop) != 1 || stop[0].Hooks[0].Command != pinned {
+			t.Fatalf("after %q: %+v", earlier, stop)
+		}
+	}
+	for _, other := range []string{"kttn hook --config /x; rm -rf ~", "kttn hook --verbose", "kttn hook --config 'a' 'b'"} {
+		if ours(other) {
+			t.Errorf("%q taken for ours", other)
+		}
+	}
+}

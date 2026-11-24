@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"strconv"
 	"strings"
 
@@ -70,6 +71,11 @@ func runInit(args []string, in io.Reader, out io.Writer, service autostart.Servi
 		fmt.Fprintf(out, "Could not restart the office (%v); run `kttn` to apply the changes.\n", err)
 	} else if restarted {
 		fmt.Fprintln(out, "Restarted the office with the new settings.")
+		// The service is pinned to the config setup wrote; one written
+		// elsewhere (another XDG_CONFIG_HOME or KTTN_CONFIG) is not read.
+		if raw, err := os.ReadFile(service.Path()); err == nil && !strings.Contains(string(raw), absPath(path)) {
+			fmt.Fprintf(out, "The office at login reads another config than %s; run `kttn` to move it and the hooks here.\n", path)
+		}
 	} else if found {
 		fmt.Fprintln(out, "Restart `kttn serve` to apply the changes.")
 	} else {

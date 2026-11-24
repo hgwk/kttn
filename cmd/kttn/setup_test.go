@@ -98,7 +98,7 @@ func TestSetupUsesThePlainCommandWhenKttnIsOnThePath(t *testing.T) {
 		t.Fatal(err)
 	}
 	settings, _ := os.ReadFile(claudehooks.SettingsPath())
-	if !strings.Contains(string(settings), `"command": "kttn hook"`) {
+	if !strings.Contains(string(settings), `"command": "kttn hook --config '`+config.Path()+`'"`) {
 		t.Fatalf("settings:\n%s", settings)
 	}
 	if _, err := os.Stat(filepath.Join(m.home, ".local", "bin", "kttn")); err == nil {

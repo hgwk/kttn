@@ -121,7 +121,7 @@ check "config: port $PORT is not in use by anything else" "[ $PORT_FREE = 1 ]" "
 S="$CLAUDE_CONFIG_DIR/settings.json"
 EVENTS=$(json "$REPO/plugin/hooks/hooks.json" 'Object.keys(d.hooks).sort().join(",")')
 check "hooks: settings.json has exactly the plugin's 24 events with one kttn entry each" \
-  "[ \"\$(json '$S' 'Object.keys(d.hooks).sort().join(\",\")')\" = '$EVENTS' ] && json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook\$/.test(e.hooks[0].command)).length===1)' | grep -q true"
+  "[ \"\$(json '$S' 'Object.keys(d.hooks).sort().join(\",\")')\" = '$EVENTS' ] && json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook( |\$)/.test(e.hooks[0].command)).length===1)' | grep -q true"
 check "hooks: a symlinked settings.json stays a link, written through to its target" "[ -L '$S' ] && grep -q 'kttn' '$T/dotfiles/claude-settings.json'"
 check "hooks: the original settings kept as .bak beside the link, not in the dotfiles, indentation kept" "cmp -s '$T/original-settings.json' '$S.bak' && [ ! -e '$T/dotfiles/claude-settings.json.bak' ] && grep -q '^    \"model\"' '$T/dotfiles/claude-settings.json'"
 check "hooks: other keys and other tools' hooks kept" \
@@ -152,7 +152,7 @@ check "setup: no command line carried the screen key" "! grep -v '^osascript - |
 printf '' | run_setup > "$T/setup2.log" 2>&1
 check "rerun: asks nothing and keeps the token" "! grep -q 'Office name' '$T/setup2.log' && [ \"\$(json '$CFG' 'd.token' | tr -d '\"')\" = '$TOKEN' ]"
 check "rerun: the original .bak is not replaced" "cmp -s '$T/original-settings.json' '$S.bak'"
-check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook\$/.test(e.hooks[0].command)).length===1)' | grep -q true"
+check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook( |\$)/.test(e.hooks[0].command)).length===1)' | grep -q true"
 
 # --- a real signal ----------------------------------------------------------
 # Never talk to a server this run did not start: if setup picked a port that
@@ -180,7 +180,7 @@ if [ "${KTTN_E2E_CLAUDE:-1}" = 1 ] && command -v claude >/dev/null 2>&1; then
   node -e '
 const s=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));
 const keep=["SessionStart","UserPromptSubmit","Stop"];
-s.hooks=Object.fromEntries(keep.map(k=>[k,s.hooks[k].filter(e=>/kttn.* hook$/.test(e.hooks[0].command))]));
+s.hooks=Object.fromEntries(keep.map(k=>[k,s.hooks[k].filter(e=>/kttn.* hook( |$)/.test(e.hooks[0].command))]));
 // A headless session leaves the office once its process exits, so Stop holds
 // the process for a moment while the snapshot is read.
 s.hooks.Stop.push({hooks:[{type:"command",command:"sleep 3",timeout:5}]});
@@ -273,14 +273,7 @@ else
   check "uninstall: config stays" "[ -f '$CFG' ]"
 fi
 
-# --- XDG folders only ----------------------------------------------------------
-# The login service gets none of the shell's variables, so setup must pin it
-# to the config it wrote, or the service reads ~/.config and refuses events.
-XC="$T/xdg-config" XS="$T/xdg-state"
-printf 'XDG Office\nen\nn\n' | (cd "$T/work" && env -u KTTN_CONFIG -u KTTN_STATE XDG_CONFIG_HOME="$XC" XDG_STATE_HOME="$XS" \
-  CLAUDE_CONFIG_DIR="$T/claude-xdg" "$KTTN" setup) > "$T/setup-xdg.log" 2>&1
-SVC=$(cat "$PLIST" "$UNIT" 2>/dev/null)
-check "xdg: the service is pinned to the XDG config and state setup wrote" "[ -f '$XC/kttn/config.json' ] && echo \"\$SVC\" | grep -q '$XC/kttn/config.json' && echo \"\$SVC\" | grep -q '$XS/kttn/sessions.json'"
+. "$REPO/scripts/e2e-xdg.sh"
 
 # --- plugin path --------------------------------------------------------------
 if command -v claude >/dev/null 2>&1; then

@@ -108,7 +108,13 @@ func TestInitRestartsARegisteredServiceSoTheNewSettingsApply(t *testing.T) {
 	if len(calls) != 1 || calls[0] != "launchctl kickstart -k gui/501/"+autostart.Label {
 		t.Fatalf("calls %v", calls)
 	}
-	if !strings.Contains(out.String(), "Restarted the office") {
+	if !strings.Contains(out.String(), "Restarted the office") || !strings.Contains(out.String(), "reads another config") {
 		t.Fatalf("out %q", out.String())
+	}
+	// A service pinned to this config needs no word about it.
+	os.WriteFile(svc.Path(), []byte("<string>"+config.Path()+"</string>"), 0o644)
+	out.Reset()
+	if err := runInit([]string{"--yes"}, strings.NewReader(""), &out, svc); err != nil || strings.Contains(out.String(), "another config") {
+		t.Fatalf("out %q %v", out.String(), err)
 	}
 }

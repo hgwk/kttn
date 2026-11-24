@@ -147,6 +147,9 @@ reported twice:
   /plugin install kttn@kttn
   ```
 
+  The plugin's hooks cannot name your config, so if you keep it elsewhere
+  (`XDG_CONFIG_HOME` or `KTTN_CONFIG`), use `kttn` or `kttn install` instead.
+
 - **`kttn install`**, which adds the same hooks to `~/.claude/settings.json`
   (or `$CLAUDE_CONFIG_DIR/settings.json`), next to any hooks you already have,
   and keeps the previous file as `settings.json.bak`. `kttn uninstall` takes
@@ -165,7 +168,7 @@ worktree creation.
 | `kttn` or `kttn setup` | One-command setup: office name and language on the first run, Claude Code hooks, start at login, open the office. |
 | `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
 | `kttn serve [--port N]` | Runs the office on `127.0.0.1`. |
-| `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. |
+| `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. Setup pins `--config` to the config it wrote. |
 | `kttn install` | Adds the hook to Claude Code's user settings, for use without the plugin. |
 | `kttn uninstall` | Removes the hook and stops starting the office at login. The config and session state stay. |
 | `kttn open` | Opens the office in the browser with your screen key. |
@@ -174,7 +177,9 @@ worktree creation.
 Config lives in `~/.config/kttn/config.json` (mode 600; `KTTN_CONFIG` moves
 it). `KTTN_URL` and `KTTN_TOKEN` override the hook's address and token.
 Sessions survive a restart through `~/.local/state/kttn/sessions.json`
-(`KTTN_STATE` moves it).
+(`KTTN_STATE` moves it). `XDG_CONFIG_HOME` and `XDG_STATE_HOME` are followed
+too. Setup pins the hooks and the login service to these files, so after
+moving them run `kttn` again.
 
 The screen language follows `?lang=` in the address, then the config, then the
 browser, and falls back to English.

@@ -143,6 +143,9 @@ Chrome에서 주소를 여세요. 주소창의 ⊕로 앱처럼 설치하면 따
   /plugin install kttn@kttn
   ```
 
+  플러그인 훅은 설정 파일 위치를 적을 수 없으므로, 설정을 다른 곳(`XDG_CONFIG_HOME`이나
+  `KTTN_CONFIG`)에 둔다면 플러그인 대신 `kttn`이나 `kttn install`로 등록하세요.
+
 - **`kttn install`**: 같은 훅을 `~/.claude/settings.json`(또는
   `$CLAUDE_CONFIG_DIR/settings.json`)에 이미 있는 훅 옆에 넣고, 이전 파일을
   `settings.json.bak`으로 남깁니다. `kttn uninstall`은 그 훅만 빼고 나머지는 그대로
@@ -161,7 +164,7 @@ Chrome에서 주소를 여세요. 주소창의 ⊕로 앱처럼 설치하면 따
 | `kttn` 또는 `kttn setup` | 한 번에 설정: 처음이면 사무실 이름과 언어를 묻고, Claude Code 훅, 자동 시작, 사무실 열기. |
 | `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | 설정을 묻고(또는 `--yes`로 플래그를 받고), 이전 답을 기본값으로 두고, 원하는 포트를 다른 프로그램이 쓰면 다른 포트를 고르고, 훅과 서버가 함께 쓰는 토큰을 만듭니다. |
 | `kttn serve [--port N]` | `127.0.0.1`에서 사무실을 띄웁니다. |
-| `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | Claude Code 훅. 표준 입력으로 훅 내용을 받습니다. |
+| `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | Claude Code 훅. 표준 입력으로 훅 내용을 받습니다. 설정이 쓴 설정 파일을 `--config`로 고정합니다. |
 | `kttn install` | 플러그인 없이 쓸 때 Claude Code 사용자 설정에 훅을 넣습니다. |
 | `kttn uninstall` | 훅을 빼고 자동 시작을 멈춥니다. 설정과 세션 상태는 남습니다. |
 | `kttn open` | 화면 열쇠를 붙여 브라우저로 사무실을 엽니다. |
@@ -170,7 +173,8 @@ Chrome에서 주소를 여세요. 주소창의 ⊕로 앱처럼 설치하면 따
 설정은 `~/.config/kttn/config.json`(권한 600, `KTTN_CONFIG`로 옮김)에 있습니다.
 `KTTN_URL`과 `KTTN_TOKEN`은 훅의 주소와 토큰을 덮어씁니다. 세션은
 `~/.local/state/kttn/sessions.json`(`KTTN_STATE`로 옮김) 덕분에 재시작해도
-이어집니다.
+이어집니다. `XDG_CONFIG_HOME`과 `XDG_STATE_HOME`도 따릅니다. 설정이 훅과 자동 시작
+서비스를 이 파일들에 고정하므로, 위치를 옮긴 뒤에는 `kttn`을 다시 실행하세요.
 
 화면 언어는 주소의 `?lang=`, 설정, 브라우저 순서로 정하고, 모르면 영어입니다.
 

@@ -145,6 +145,10 @@ Chrome でアドレスを開いてください。アドレスバーの ⊕ か�
   /plugin install kttn@kttn
   ```
 
+  プラグインのフックは設定ファイルの場所を指定できないので、設定を別の場所
+  (`XDG_CONFIG_HOME` や `KTTN_CONFIG`)に置く場合は、プラグインではなく `kttn` か
+  `kttn install` で登録してください。
+
 - **`kttn install`**: 同じフックを `~/.claude/settings.json`(または
   `$CLAUDE_CONFIG_DIR/settings.json`)の既存のフックの隣に入れ、前のファイルを
   `settings.json.bak` として残します。`kttn uninstall` はそのフックだけを外し、
@@ -163,7 +167,7 @@ Chrome でアドレスを開いてください。アドレスバーの ⊕ か�
 | `kttn` または `kttn setup` | まとめて設定: 初回はオフィス名と言語を聞き、Claude Code のフック、自動起動、オフィスを開く。 |
 | `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | 設定を聞き(または `--yes` でフラグを使い)、前の答えを既定値にし、使いたいポートがほかに使われていれば別のポートを選び、フックとサーバーが共有するトークンを作ります。 |
 | `kttn serve [--port N]` | `127.0.0.1` でオフィスを動かします。 |
-| `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | Claude Code のフック。標準入力からフックの内容を読みます。 |
+| `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | Claude Code のフック。標準入力からフックの内容を読みます。設定時に書いた設定ファイルを `--config` で固定します。 |
 | `kttn install` | プラグインを使わない場合に、Claude Code のユーザー設定へフックを入れます。 |
 | `kttn uninstall` | フックを外し、自動起動を止めます。設定とセッションの状態は残ります。 |
 | `kttn open` | 画面の鍵を付けてブラウザーでオフィスを開きます。 |
@@ -172,7 +176,9 @@ Chrome でアドレスを開いてください。アドレスバーの ⊕ か�
 設定は `~/.config/kttn/config.json`(権限 600、`KTTN_CONFIG` で移動)にあります。
 `KTTN_URL` と `KTTN_TOKEN` はフックのアドレスとトークンを上書きします。セッションは
 `~/.local/state/kttn/sessions.json`(`KTTN_STATE` で移動)のおかげで再起動後も
-続きます。
+続きます。`XDG_CONFIG_HOME` と `XDG_STATE_HOME` にも従います。設定時にフックと
+自動起動のサービスをこれらのファイルに固定するので、場所を移したら `kttn` を
+もう一度実行してください。
 
 画面の言語は、アドレスの `?lang=`、設定、ブラウザーの順に決まり、分からなければ英語です。
 
