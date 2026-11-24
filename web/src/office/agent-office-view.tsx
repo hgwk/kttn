@@ -26,6 +26,7 @@ import { usePetting } from "@/office/petting"
 import { CatBook } from "@/office/cat-book"
 import { useCatalog } from "@/office/catalog"
 import { OfficePaper } from "@/office/office-paper"
+import { OfficeSounds } from "@/office/office-sounds"
 
 const POLL_MS = 2000
 const MAX_LEVEL_UPS = 40
@@ -216,6 +217,7 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
             <>
               <CatBook agents={working} />
               <OfficePaper agents={working} now={now} />
+              <OfficeSounds agents={snapshot.agents} levels={levels} />
               <OfficeCapture area={areaRef} />
               <button
                 type="button"

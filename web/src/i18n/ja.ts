@@ -64,6 +64,8 @@ export const ja: Record<MessageKey, string> = {
   "paper.quiet": "今日は静かな一日にゃ。",
   "paper.save": "保存",
   "paper.close": "新聞を閉じる",
+  "sound.on": "音 オン",
+  "sound.off": "音 オフ",
   "book.peak": "同時勤務の最高 {n}匹 ({date})",
   "title.legend": "伝説",
   "title.veteran": "ベテラン",

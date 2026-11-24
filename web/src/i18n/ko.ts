@@ -65,6 +65,8 @@ export const ko = {
   "paper.quiet": "오늘은 조용한 하루다냥.",
   "paper.save": "저장",
   "paper.close": "신문 닫기",
+  "sound.on": "소리 켜짐",
+  "sound.off": "소리 꺼짐",
   "book.peak": "최고 동시 근무 {n}마리 ({date})",
   "title.legend": "전설",
   "title.veteran": "베테랑",
