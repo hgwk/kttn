@@ -104,7 +104,7 @@ The all-time tool count is everything the session has used since it started,
 including tools from before the catalog first saw it (even right after a clear);
 the day's count holds only the tools seen that day. Nothing else from the
 session is in it. It keeps the latest 1,000 cats seen within 90 days, and
-**Clear catalog** on the screen (pressed twice) empties it.
+**Clear catalog** on the screen (pressed twice within 5 seconds) empties it.
 
 **Daily paper.** The paper button draws the day's office paper, and Save
 downloads it as a PNG to your computer. It holds the date, the cat names
