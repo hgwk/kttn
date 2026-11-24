@@ -103,8 +103,27 @@ func eventFromHook(raw []byte, source string, preview bool) (Event, bool) {
 	}
 	if preview {
 		event.Result = stopResult(input, tail)
+	} else if input.HookEventName == "TaskCreated" || input.HookEventName == "TaskCompleted" {
+		// A task title is the user's own words; it travels only with the
+		// answer preview, which the user opted into.
+		event.Detail = ""
 	}
 	return event, true
+}
+
+// stopErrors are the StopFailure kinds the office names; anything else is
+// sent as "other", never as Claude Code's own text.
+var stopErrors = map[string]bool{
+	"rate_limit": true, "server_error": true, "overloaded": true,
+	"authentication_failed": true, "billing_error": true,
+	"invalid_request": true, "max_output_tokens": true,
+}
+
+func stopErrorKind(raw string) string {
+	if stopErrors[raw] {
+		return raw
+	}
+	return "other"
 }
 
 func eventModel(input hookInput, tail []string) string {
@@ -135,7 +154,7 @@ func eventDetail(input hookInput) string {
 	case "PreCompact", "PostCompact", "Setup":
 		return input.Trigger
 	case "StopFailure":
-		return input.Error
+		return stopErrorKind(input.Error)
 	case "PostToolUseFailure":
 		if input.IsInterrupt {
 			return "interrupt"

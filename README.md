@@ -79,8 +79,8 @@ The hook sends one small event per hook call, and only these fields:
 - one short label: a file's base name, a command's first program (`go`, `npm`),
   a web host, a subagent type, an MCP server name, or the name of the session a
   message goes to
-- for a few events, a one-word reason: `startup`, `rate_limit`, `auto`, a task
-  title, a model name
+- for a few events, a one-word reason: `startup`, `rate_limit`, `auto`, a model
+  name; an error is one of a fixed set of kinds, never its text
 - on `SessionStart`, `UserPromptSubmit`, `Stop` and `Notification` (never on
   tool events), the Claude Code process ID and the session's name, so a closed
   terminal can be noticed and an open one keeps its desk
@@ -90,7 +90,7 @@ bodies.
 
 **Answer preview (off by default).** If you turn it on in `kttn init`, `Stop`
 also carries the first 300 characters of the answer the session just finished,
-so the cat can say what it did. The server keeps only the latest one per
+so the cat can say what it did, and task titles are sent for the desk checklist. The server keeps only the latest one per
 session, in memory and in its local state file.
 
 ## Install

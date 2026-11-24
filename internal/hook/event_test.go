@@ -107,8 +107,8 @@ func TestNewEventsSendOnlyAShortLabel(t *testing.T) {
 		{`"hook_event_name":"StopFailure","error":"rate_limit","error_details":"429 body"`, "rate_limit", ""},
 		{`"hook_event_name":"PostToolUseFailure","tool_name":"Bash","tool_input":{"command":"go test ./..."},"error":"exit 1 secret"`, "go", ""},
 		{`"hook_event_name":"PostToolUseFailure","tool_name":"Bash","is_interrupt":true`, "interrupt", ""},
-		{`"hook_event_name":"TaskCreated","task_id":"t1","task_subject":"Add login","task_description":"long"`, "Add login", "t1"},
-		{`"hook_event_name":"TaskCompleted","task_id":"t1","task_subject":"Add login"`, "Add login", "t1"},
+		{`"hook_event_name":"TaskCreated","task_id":"t1","task_subject":"Add login","task_description":"long"`, "", "t1"},
+		{`"hook_event_name":"TaskCompleted","task_id":"t1","task_subject":"Add login"`, "", "t1"},
 		{`"hook_event_name":"TeammateIdle","teammate_name":"researcher","team_name":"x"`, "researcher", ""},
 		{`"hook_event_name":"WorktreeRemove","worktree_path":"/a/.claude/worktrees/feature-auth"`, "feature-auth", ""},
 		{`"hook_event_name":"Elicitation","mcp_server_name":"github","message":"token?"`, "github", ""},
@@ -157,6 +157,22 @@ func TestOnceATurnEventsCarryThePID(t *testing.T) {
 	for _, event := range []string{"PreToolUse", "PostToolUse", "PostToolUseFailure", "SubagentStop", "InstructionsLoaded"} {
 		if carriesPID(event) {
 			t.Fatalf("%s must not look up the pid", event)
+		}
+	}
+}
+
+func TestTaskTitlesTravelOnlyWithThePreviewAndErrorsAreLabels(t *testing.T) {
+	task := []byte(`{"session_id":"s","hook_event_name":"TaskCreated","task_id":"t1","task_subject":"Fix the payroll export for Kim"}`)
+	if event, _ := eventFromHook(task, "claude", false); event.Detail != "" || event.ToolUseID != "t1" {
+		t.Fatalf("preview off: %+v", event)
+	}
+	if event, _ := eventFromHook(task, "claude", true); event.Detail != "Fix the payroll export for Kim" {
+		t.Fatalf("preview on: %+v", event)
+	}
+	for raw, want := range map[string]string{"rate_limit": "rate_limit", "overloaded": "overloaded", "socket hang up at 10.0.0.3": "other", "": "other"} {
+		body := []byte(`{"session_id":"s","hook_event_name":"StopFailure","error":"` + raw + `"}`)
+		if event, _ := eventFromHook(body, "claude", false); event.Detail != want {
+			t.Errorf("%q: got %q", raw, event.Detail)
 		}
 	}
 }
