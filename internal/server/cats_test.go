@@ -90,6 +90,8 @@ func TestTheScreensPickFillsANameAndAPersonsRenameReplacesIt(t *testing.T) {
 		{"k", `{"key":"claude|a","cat_name":"` + strings.Repeat("가", 33) + `"}`, 400},
 		{"k", `{"key":"claude|a","cat_name":"Na\u0007bi"}`, 400},
 		{"k", `{"key":"claude|a","cat_name":"Na\u202ebi"}`, 400},
+		{"k", `{"key":"claude|a","cat_name":"Na\u200bbi"}`, 400},
+		{"k", `{"key":"claude|a","cat_name":"Na\u2066bi"}`, 400},
 		{"k", `{"key":"claude|a","cat_name":"   "}`, 400},
 		{"k", `{"key":"claude|zz","cat_name":"Nabi"}`, 404},
 		{"k", `{"key":"claude|a","cat_name":" Nabi "}`, 200},
@@ -116,6 +118,12 @@ func TestTheScreensPickFillsANameAndAPersonsRenameReplacesIt(t *testing.T) {
 	}
 	if code := catCall(h, "GET", "/api/cats", "", "").Code; code != 401 {
 		t.Fatalf("list without the key: %d", code)
+	}
+}
+
+func TestAnEmojiSequenceIsAName(t *testing.T) {
+	if name, ok := catName("👩\u200d💻 Mochi"); !ok || name != "👩\u200d💻 Mochi" {
+		t.Fatalf("%q %v", name, ok)
 	}
 }
 
