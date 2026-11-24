@@ -106,7 +106,7 @@ func New(opts Options) *Handler {
 		agent := opts.Store.Apply(event)
 		state.schedule()
 		if cats != nil {
-			cats.record(agent, liveSessions(opts.Store))
+			cats.record(agent, event, liveSessions(opts.Store))
 		}
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
 	})

@@ -37,12 +37,9 @@ type cat struct {
 	// NightOwl is set once the cat was seen at work between midnight and
 	// 05:00 on this computer's clock, and stays set.
 	NightOwl bool `json:"night_owl"`
-}
-
-// peak is the most cats at work at once, and when that was first reached.
-type peak struct {
-	Count int    `json:"count"`
-	At    string `json:"at"`
+	// Day is today's work, by this computer's date; omitted until the cat
+	// has worked on some day.
+	Day *catDay `json:"day,omitempty"`
 }
 
 // catalog is the catalog file and the GET /api/cats answer.
@@ -89,7 +86,7 @@ func newCatBook(path string, now func() time.Time) *catBook {
 // record notes a session after an event, and live is how many sessions are
 // at the office right now. Headless runs are skipped: they leave as soon as
 // they end and would crowd everything else out.
-func (b *catBook) record(a office.Agent, live int) {
+func (b *catBook) record(a office.Agent, event office.Event, live int) {
 	if a.Headless || a.Key == "" {
 		return
 	}
@@ -108,6 +105,7 @@ func (b *catBook) record(a office.Agent, live int) {
 	if a.Name != "" {
 		c.SessionName = a.Name
 	}
+	b.countDay(c, clock.Format("2006-01-02"), a.ToolCount-c.Tools, event)
 	c.Tools = max(c.Tools, a.ToolCount)
 	if clock.Hour() < 5 && !resting[a.State] {
 		c.NightOwl = true
@@ -207,14 +205,6 @@ func (b *catBook) pruneLocked() {
 	sort.Slice(kept, func(i, j int) bool { return kept[i].LastSeen > kept[j].LastSeen })
 	for _, c := range kept[maxCats:] {
 		delete(b.cats, c.Key)
-	}
-}
-
-// expirePeakLocked drops a peak older than catKeep, so a newer, lower one
-// can take its place.
-func (b *catBook) expirePeakLocked() {
-	if b.peak != nil && b.peak.At < b.now().Add(-catKeep).UTC().Format(timeForm) {
-		b.peak = nil
 	}
 }
 
