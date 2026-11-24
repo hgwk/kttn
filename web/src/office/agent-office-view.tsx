@@ -3,12 +3,12 @@ import { useEffect, useRef, useState } from "react"
 
 import { EmptyOffice } from "@/office/empty-office"
 import { OfficeStage } from "@/office/office-stage"
+import { cn } from "@/lib/utils"
 import {
   OfficeCapture,
   TOOL_BUTTON,
 } from "@/office/office-capture"
 import { Building } from "@/office/building"
-import { Hud, HudItem } from "@/office/game-ui"
 import { WorldMap } from "@/office/world-map"
 import { CatNamesContext } from "@/office/cat-names"
 import {
@@ -164,48 +164,36 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
         ref={areaRef}
         className="grid content-start gap-4 bg-background [&:fullscreen]:overflow-y-auto [&:fullscreen]:p-6"
       >
-        <Hud>
-          {/* 현황 칸은 좁으면 저희끼리 줄을 바꾸고, 버튼 셋은 늘 첫 줄 오른쪽에 함께 선다. */}
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1.5 gap-y-3">
-            <HudItem
-              icon="clock"
-              label=""
-              value={gameClock(snapshot.generatedAt)}
-            />
-            {stale ? (
-              <HudItem
-                icon="warn"
-                label={t("hud.refreshFailed")}
-                value={t("hud.lastScreen")}
-                tone="alert"
-              />
-            ) : null}
-            {counts.needsYou ? (
-              <HudItem
-                icon="alert"
-                label={t("hud.needsYou")}
-                value={counts.needsYou}
-                tone="alert"
-              />
-            ) : null}
-            <HudItem
-              icon="work"
-              label={t("hud.busy")}
-              value={counts.busy}
-              tone={counts.busy ? "good" : "plain"}
-            />
-            <HudItem icon="wait" label={t("hud.waiting")} value={counts.waiting} />
-            <HudItem icon="sleep" label={t("hud.resting")} value={counts.resting} />
-            {counts.ended ? (
-              <HudItem icon="house" label={t("hud.ended")} value={counts.ended} />
-            ) : null}
-            <HudItem icon="star" label={t("hud.today")}
-              value={t("hud.toolCalls", { n: totalTools })} />
-          </div>
-        </Hud>
-
         <OfficeStage
           scene={offices.length ? "building" : "empty"}
+          status={
+            <div
+              role="status"
+              aria-label={t("hud.label")}
+              className="flex flex-wrap items-center gap-1"
+            >
+              <StatusChip text={gameClock(snapshot.generatedAt)} />
+              {stale ? (
+                <StatusChip text={t("status.refreshFailed")} tone="alert" />
+              ) : null}
+              {counts.needsYou ? (
+                <StatusChip
+                  text={t("status.needsYou", { n: counts.needsYou })}
+                  tone="alert"
+                />
+              ) : null}
+              <StatusChip
+                text={t("status.busy", { n: counts.busy })}
+                tone={counts.busy ? "good" : "plain"}
+              />
+              <StatusChip text={t("status.waiting", { n: counts.waiting })} />
+              <StatusChip text={t("status.resting", { n: counts.resting })} />
+              {counts.ended ? (
+                <StatusChip text={t("status.ended", { n: counts.ended })} />
+              ) : null}
+              <StatusChip text={t("status.toolsToday", { n: totalTools })} />
+            </div>
+          }
           tools={
             <>
               <OfficeCapture area={areaRef} />
@@ -230,12 +218,36 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
               side={side}
             />
           ) : (
-            <div className="grid min-h-0 min-w-0 gap-4 overflow-y-auto">
+            <div className="grid h-full min-h-0 min-w-0 grid-rows-[minmax(16rem,1fr)_auto] gap-4 overflow-y-auto">
               <EmptyOffice />
             </div>
           )}
         </OfficeStage>
       </div>
     </CatNamesContext>
+  )
+}
+
+/** 아래 줄의 현황 칸 하나. 확인 필요는 주황으로 깜빡이고, 일하는 중이면 초록이다. */
+function StatusChip({
+  text,
+  tone = "plain",
+}: {
+  text: string
+  tone?: "plain" | "alert" | "good"
+}) {
+  return (
+    <span
+      className={cn(
+        "px-1.5 py-0.5 text-[10px] tabular-nums",
+        tone === "alert"
+          ? "animate-pulse bg-amber-400 text-amber-950 motion-reduce:animate-none"
+          : tone === "good"
+            ? "bg-[#4caf5f] text-white"
+            : "bg-[#2b2a36]/85 text-[#f7f2e8]"
+      )}
+    >
+      {text}
+    </span>
   )
 }

@@ -8,9 +8,8 @@ import {
 } from "@/office/folder-room"
 import { MAX_DESKS } from "@/office/office-draw"
 import { planRooms, type PlanNode } from "@/office/room-plan"
-import { GameWindow } from "@/office/game-ui"
-import { PixelIcon } from "@/office/pixel-icon"
 import { RoomFrame } from "@/office/room-frame"
+import { cn } from "@/lib/utils"
 import { ScrollHint } from "@/office/scroll-hint"
 import {
   compactFolderTree,
@@ -27,7 +26,7 @@ import type { FolderNode, RepoOffice } from "@/lib/agent-office-layout"
  * 건물 하나가 이 PC다. 저장소마다 사무실이 하나씩 건물 복도를 따라 늘어서고,
  * 저장소 안 폴더는 그 사무실 안의 방이 된다. 다른 사무실 폴더 안에서 연
  * 사무실(예: ~/Project 안의 myrepo)은 그 바깥 사무실 안에 들어간다. 건물 벽 안쪽 바닥만 스크롤되고,
- * 오른쪽 칸(월드맵·기계실)은 그대로 있다.
+ * 오른쪽 칸(월드맵)은 그대로 있다.
  */
 export function Building({
   name,
@@ -83,8 +82,8 @@ export function Building({
         : []),
       ...insideOffices.map(officePlan),
     ],
-    // 폭은 제한하지 않는다. 방은 오른쪽으로 먼저 늘어서고, 건물 바닥은
-    // 가로로도 스크롤된다.
+    // 폭은 제한하지 않는다. 방은 오른쪽으로 먼저 늘어서고(키가 낮게), 건물은
+    // 카메라 틀 안에서 가로로도 스크롤된다.
     Number.POSITIVE_INFINITY
   )
   const cards = { now, seats, levelUps, plans }
@@ -113,36 +112,32 @@ export function Building({
   const outside = agents.length - seats.size
 
   return (
-    <GameWindow
-      labelledBy="office-building"
-      className="h-full min-h-0"
-      title={
-        <span className="inline-flex items-center gap-1.5">
-          <PixelIcon name="house" />
-          {name}
-        </span>
-      }
-      alert={counts.needsYou > 0}
-      extra={
-        <>
-          {counts.needsYou ? (
-            <span>{t("building.needsYou", { n: counts.needsYou })}</span>
-          ) : null}
-          <span>{t("building.offices", { n: offices.length })}</span>
-          <span>{t("building.cats", { n: agents.length })}</span>
-          {outside > 0 ? (
-            <span>{t("building.outside", { n: outside })}</span>
-          ) : null}
-        </>
-      }
-    >
+    // 바깥 창 틀 없이 TV 틀 하나만 둔다. 건물 이름은 벽 이름표에, 냥이 수는
+    // 아래 상태 줄에 있다. 확인이 필요하면 TV 틀 테두리가 주황이 된다.
+    <section aria-labelledby="office-building" className="h-full min-h-0">
+      <h2 id="office-building" className="sr-only">
+        {t("building.heading", {
+          name,
+          offices: offices.length,
+          cats: agents.length,
+        })}
+        {counts.needsYou
+          ? t("building.headingNeedsYou", { n: counts.needsYou })
+          : ""}
+        {outside > 0 ? t("building.headingOutside", { n: outside }) : ""}
+      </h2>
       {/* 화면 배율에 따라 안쪽 너비가 달라지므로 창 너비(컨테이너)로 옆 칸을 정한다. */}
       <div className="@container h-full min-h-0">
-        {/* 노트북 폭에서도 월드맵·기계실은 오른쪽에 둔다(건물은 가로로 스크롤된다).
+        {/* 노트북 폭에서도 월드맵은 오른쪽에 둔다(건물은 가로로 스크롤된다).
             아주 좁아 아래로 내려갈 때는 건물이 높이의 2/3를 쓴다. */}
         {/* 확대·축소는 건물을 보려는 것이라 옆 칸은 배율을 되돌려 같은 크기로 둔다. */}
         <div className="grid h-full min-h-0 grid-rows-[minmax(0,2fr)_minmax(0,1fr)] gap-3 @3xl:grid-cols-[minmax(0,1fr)_calc(21rem/var(--office-zoom,1))] @3xl:grid-rows-1">
-          <div className="relative flex min-h-0 min-w-0">
+          <div
+            className={cn(
+              "relative flex min-h-0 min-w-0",
+              counts.needsYou > 0 && "[&>div:last-child]:border-amber-400"
+            )}
+          >
             <ScrollHint />
             {home ? (
               <FolderRoom
@@ -168,7 +163,7 @@ export function Building({
               />
             )}
           </div>
-          {/* 월드맵 아래 기계실이 남는 높이를 채워, 옆 건물 바닥과 아래 끝이
+          {/* 월드맵이 남는 높이를 채워, 옆 건물 바닥과 아래 끝이
               맞는다(내용이 넘치면 그대로 스크롤된다). */}
           <div
             className="grid min-h-0 min-w-0 grid-rows-[auto_1fr] gap-3 overflow-y-auto"
@@ -178,6 +173,6 @@ export function Building({
           </div>
         </div>
       </div>
-    </GameWindow>
+    </section>
   )
 }

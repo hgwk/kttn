@@ -32,8 +32,8 @@ test("the language comes from the URL, then config, then the browser, else Engli
 
 test("t fills placeholders in the chosen language", () => {
   setLang("en")
-  assert.equal(t("hud.toolCalls", { n: 3 }), "3 tool calls")
+  assert.equal(t("status.toolsToday", { n: 3 }), "Today 3 tool calls")
   assert.equal(catWords(), enCatWords)
   setLang("ko")
-  assert.equal(t("hud.toolCalls", { n: 3 }), "도구 3회")
+  assert.equal(t("status.toolsToday", { n: 3 }), "오늘 도구 3회")
 })

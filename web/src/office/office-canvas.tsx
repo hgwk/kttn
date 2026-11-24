@@ -86,6 +86,8 @@ export function OfficeCanvas({
     nowRef.current = now
   }, [now])
   // 그림에서 지금 산책 중인 고양이(대사가 걸음과 맞게 바뀐다). 바뀔 때만 고친다.
+  // 고양이별 대사 상자. 그리는 고리에서 고양이 자리로 옮긴다.
+  const speechRefs = useRef(new Map<string, HTMLDivElement>())
   const [strollers, setStrollers] = useState("")
   const strollersRef = useRef("")
   const [hasTower, setHasTower] = useState(false)
@@ -198,6 +200,19 @@ export function OfficeCanvas({
 
       const walking = walker.path.length > 0
       const gone = agent.state === "ended" && !walking
+      // 대사 상자는 고양이를 따라다닌다(산책·찾아가기·캣타워). 퇴근한 고양이는 자리에 둔다.
+      const speech = speechRefs.current.get(agent.key)
+      if (speech) {
+        const at = gone ? seatFor(room, index) : walker
+        const left = `${((at.x + CAT_DX) / room.w) * 100}%`
+        const top = `${((at.y - 14) / room.h) * 100}%`
+        if (speech.style.left !== left) speech.style.left = left
+        if (speech.style.top !== top) speech.style.top = top
+        // 자리를 떠나면 책상 이름표(z-40)에 가리지 않게 그 위로 올린다.
+        const away = !gone && (walking || Boolean(walker.visit))
+        const z = away ? "45" : ""
+        if (speech.style.zIndex !== z) speech.style.zIndex = z
+      }
       const tie = familyColor(agent.family)
       const coat = coatFor(agent.key)
       if (!gone) {
@@ -266,6 +281,7 @@ export function OfficeCanvas({
           levelUps={levelUps}
           tower={hasTower}
           strollers={strollers}
+          speechRefs={speechRefs}
         />
       </div>
     </div>

@@ -30,22 +30,34 @@ export function boxIn(el: Element, floor: HTMLElement, scale: number): Box {
 export function readWalkMap(floor: HTMLElement, scale: number): WalkMap {
   const door = floor.querySelector("[data-door]")
   return {
-    // 바닥 크기는 집사를 뺀 내용(첫 자식)으로 잰다. scrollWidth를 쓰면 집사가
-    // 걸어가며 스크롤 영역을 넓혀 끝없이 걸어갈 수 있다.
-    floor: {
-      l: 0,
-      t: HEAD_ROOM,
-      r:
-        (floor.firstElementChild as HTMLElement | null)?.offsetWidth ??
-        floor.clientWidth,
-      b:
-        (floor.firstElementChild as HTMLElement | null)?.offsetHeight ??
-        floor.clientHeight,
-    },
+    // 걷는 곳은 건물 벽 안쪽 바닥([data-walk])이다. 건물이 카메라 틀 안에서
+    // 통째로 움직이므로 틀 전체를 쓰면 바깥 벽 위를 걷는다. 위쪽 HEAD_ROOM은
+    // 집사 머리가 벽 위로 잘리지 않게 둔다(위쪽 벽면은 장애물이라 어차피 못 간다).
+    floor: walkBox(floor, scale),
     door: door ? boxIn(door, floor, scale) : null,
     obstacles: [...floor.querySelectorAll("[data-obstacle]")].map((el) =>
       boxIn(el, floor, scale)
     ),
+  }
+}
+
+function walkBox(floor: HTMLElement, scale: number): Box {
+  const inner = floor.querySelector("[data-walk]")
+  if (inner) {
+    // 안쪽 테두리(2px)는 벽이다. 좌우는 몸통(32px)이 벽에 걸치지 않게 발(12px)
+    // 바깥으로 10px을 더 띄운다.
+    const box = boxIn(inner, floor, scale)
+    const side = 2 + (32 - FOOT_W) / 2
+    return { l: box.l + side, t: box.t + 2, r: box.r - side, b: box.b - 2 }
+  }
+  // 바닥 크기는 집사를 뺀 내용(첫 자식)으로 잰다. scrollWidth를 쓰면 집사가
+  // 걸어가며 스크롤 영역을 넓혀 끝없이 걸어갈 수 있다.
+  const first = floor.firstElementChild as HTMLElement | null
+  return {
+    l: 0,
+    t: HEAD_ROOM,
+    r: first?.offsetWidth ?? floor.clientWidth,
+    b: first?.offsetHeight ?? floor.clientHeight,
   }
 }
 

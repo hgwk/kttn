@@ -1,5 +1,4 @@
 import { t } from "@/i18n"
-import { PixelIcon } from "@/office/pixel-icon"
 import {
   OFFICE_SCALE,
   drawChair,
@@ -7,7 +6,6 @@ import {
   drawRoom,
   officeLayout,
 } from "@/office/office-draw"
-import { GameWindow } from "@/office/game-ui"
 import { RoomFrame } from "@/office/room-frame"
 import { usePixelLoop } from "@/office/use-pixel-loop"
 
@@ -26,16 +24,12 @@ export function EmptyOffice() {
   })
 
   return (
-    <GameWindow
-      labelledBy="office-empty"
-      title={
-        <span className="inline-flex items-center gap-1.5">
-          <PixelIcon name="house" />
-          {t("empty.title")}
-        </span>
-      }
-    >
-      <div className="flex max-w-full">
+    <section aria-labelledby="office-empty" className="h-full min-h-0">
+      <h2 id="office-empty" className="sr-only">
+        {t("empty.title")}
+      </h2>
+      {/* 다른 사무실 화면처럼 TV 틀이 남는 화면을 채운다. */}
+      <div className="flex h-full min-h-0 max-w-full">
         <RoomFrame
           label={t("empty.room")}
           ariaLabel={t("empty.roomLabel")}
@@ -48,8 +42,9 @@ export function EmptyOffice() {
               height={layout.h}
               role="img"
               aria-label={t("empty.drawing")}
-              style={{ width: layout.w * OFFICE_SCALE }}
-              className="block h-auto max-w-full [image-rendering:pixelated]"
+              // 좁은 창에서는 틀 폭에 맞춰 줄어든다(원래 크기보다 커지지는 않는다).
+              style={{ width: "100%", maxWidth: layout.w * OFFICE_SCALE }}
+              className="block h-auto [image-rendering:pixelated]"
             />
             <p className="max-w-sm bg-[#fffdf7]/90 px-2 py-1.5 text-sm text-[#2b2a36]">
               {t("empty.body")}
@@ -57,6 +52,6 @@ export function EmptyOffice() {
           </div>
         </RoomFrame>
       </div>
-    </GameWindow>
+    </section>
   )
 }

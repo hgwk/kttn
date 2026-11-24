@@ -48,7 +48,8 @@ export function speechFor(
         .join(" ")
     case "done":
       return agent.result
-        ? t("speech.doneResult", { result: agent.result })
+        ? // 결과 문장이 있으면 그것만 보인다(앞에 "다 했다냥!"을 붙이면 줄만 잡아먹는다).
+          agent.result
         : t("speech.done")
     case "idle":
       return t("speech.idle")

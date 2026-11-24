@@ -70,6 +70,7 @@ export function RoomFrame({
   deskWidth,
   lounge,
   corridor = true,
+  stretch = false,
   children,
 }: {
   id?: string
@@ -86,6 +87,8 @@ export function RoomFrame({
   className?: string
   /** 방 바깥 폭(px). 계산해 둔 배치가 있을 때 쓴다(room-plan.ts). */
   width?: number
+  /** width를 최소 폭으로만 쓰고 남는 폭까지 늘어난다(건물 바로 안의 사무실). */
+  stretch?: boolean
   /** 안쪽 방으로 가는 복도를 까는지. 방이 하나뿐인 건물은 문 바로 아래에 둔다. */
   corridor?: boolean
   /** 책상 구역 아래 남는 바닥에 놓는 휴게 공간 */
@@ -132,10 +135,13 @@ export function RoomFrame({
       style={{
         backgroundColor: building ? WALL_TOP : PARTITION,
         padding: WALL,
-        width,
+        width: stretch ? undefined : width,
+        minWidth: stretch ? width : undefined,
       }}
     >
       <div
+        // 건물 벽 안쪽 바닥. 집사는 이 안에서만 걷는다(butler-walk.ts).
+        data-walk={building ? "" : undefined}
         className="flex min-h-0 min-w-0 grow flex-col border-2 border-[#2b2a36]"
         style={floorStyle}
       >
@@ -168,10 +174,7 @@ export function RoomFrame({
             방 폭으로 브라우저가 줄을 바꾼다). 왼쪽은 문에서 복도로 오가는
             통로로 비운다. */}
         <div className="flex grow flex-col">
-          {/* 건물은 내용이 오른쪽으로 넓어져도 복도가 끝까지 이어지게 감싼다. */}
-          <div
-            className={cn("flex grow flex-col", building && "w-max min-w-full")}
-          >
+          <div className="flex grow flex-col">
             {wing && corridor ? (
               <div
                 aria-hidden="true"
@@ -184,11 +187,10 @@ export function RoomFrame({
                 // 방이 늘어나면(건물 바로 안의 사무실) 줄도 늘어나 남는 바닥을
                 // 책상 구역·안쪽 방 아래 휴게 공간이 채운다.
                 "flex grow content-stretch items-start gap-3",
-                // 건물은 줄을 바꾸지 않고 오른쪽으로 늘어서며 가로로 스크롤된다.
-                // 건물 바로 안의 사무실은 바닥 아래까지 늘인다(줌을 줄여도
-                // 아래에 빈 바닥이 남지 않는다).
+                // 건물은 줄을 바꾸지 않고 오른쪽으로 늘어선다(카메라 틀 안에서 가로로
+                // 스크롤된다). 건물 바로 안의 사무실은 바닥 아래까지 늘인다.
                 building
-                  ? "w-max grow flex-nowrap [&>section]:self-stretch"
+                  ? "grow flex-nowrap [&>section]:self-stretch"
                   : "flex-wrap",
                 // 왼쪽은 세로 복도. 모든 줄의 방이 복도에 닿는다.
                 wing && (corridor ? "relative pr-2 pb-3 pl-11" : "p-2")
@@ -200,7 +202,12 @@ export function RoomFrame({
               {children ? (
                 // 같은 줄의 큰 방만큼 아래로 늘어나고, 남는 바닥은 휴게 공간(lounge)이 채운다.
                 <div
-                  className="flex flex-none flex-col gap-3 self-stretch p-2"
+                  className={cn(
+                    "flex flex-col gap-3 self-stretch p-2",
+                    // 책상 폭을 계산해 둔 방은 그 폭을 지킨다. 계산이 없는 곳(빈
+                    // 사무실 안내)은 화면이 좁으면 줄어든다.
+                    deskWidth ? "flex-none" : "min-w-0 shrink"
+                  )}
                   style={{ width: deskWidth ? deskWidth + 16 : undefined }}
                 >
                   {children}

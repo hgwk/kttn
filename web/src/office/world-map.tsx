@@ -48,7 +48,7 @@ function toneOf(node: FolderNode): Tone {
   return states.length ? "rest" : "empty"
 }
 
-// 길 끝 지점 모양. 폴더 지점과 기계실이 함께 쓴다.
+// 길 끝 지점 모양. 폴더 지점이 쓴다.
 const SPOT_LINK =
   "relative z-10 inline-flex w-fit max-w-full items-center gap-1.5 border-2 border-[#2b2a36] bg-[#f4efe6] px-1.5 py-0.5 text-xs text-[#2b2a33] hover:bg-white focus-visible:outline-2 focus-visible:outline-amber-400"
 
@@ -80,7 +80,7 @@ function Spot({
   /** 누르면 건물 바닥을 그 방(앵커 id)으로 스크롤한다. */
   pick?: (anchor: string) => void
   town?: boolean
-  /** 하위 지점 뒤에 잇는 지점(기계실). */
+  /** 하위 지점 뒤에 잇는 지점. */
   extra?: ReactNode
 }) {
   const tone = toneOf(node)

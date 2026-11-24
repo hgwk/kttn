@@ -1,3 +1,5 @@
+import type { RefObject } from "react"
+
 import { CatDesk, CatMessage } from "@/office/cat-actions"
 import { useCatNames } from "@/office/cat-names"
 import { CatSpeech } from "@/office/cat-speech"
@@ -16,6 +18,7 @@ export function DeskOverlays({
   levelUps,
   tower,
   strollers,
+  speechRefs,
 }: {
   /** 자리에 앉은 고양이(MAX_DESKS 이하) */
   agents: SessionAgent[]
@@ -25,6 +28,8 @@ export function DeskOverlays({
   tower: boolean
   /** 산책 중인 세션 키를 줄바꿈으로 이은 것 */
   strollers: string
+  /** 세션 키별 대사 상자. 걷는 고양이를 따라 옮길 때 쓴다. */
+  speechRefs: RefObject<Map<string, HTMLDivElement>>
 }) {
   const names = useCatNames()
   return (
@@ -34,6 +39,11 @@ export function DeskOverlays({
       return (
         <div
           key={`speech-${agent.key}`}
+          // 캔버스 루프가 걷는 고양이를 따라 이 상자를 옮긴다(office-canvas.tsx).
+          ref={(el) => {
+            if (el) speechRefs.current.set(agent.key, el)
+            else speechRefs.current.delete(agent.key)
+          }}
           // 대사 상자는 집사(z-30)보다 위에 둔다. 집사가 옆에 서면(data-near)
           // 다른 상자들보다도 앞으로 나와 잘린 줄을 다 펼친다. 폭은 그대로 두어
           // 바닥 끝 밖으로 나가지 않고 위로만 길어진다.

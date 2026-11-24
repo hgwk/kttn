@@ -6,7 +6,8 @@ import { typing } from "@/office/butler-controls"
 
 // +/- 로 고르는 배율. 처음은 원래 크기(1)다.
 const ZOOMS = [0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.25, 1.5]
-// 틀 아래 조작 안내 한 줄의 높이. 페이지 본문(main)의 아래 여백은 따로 잰다.
+// 틀 아래 줄(버튼·현황·안내)을 재기 전의 높이. 재면 실제 높이를 쓴다.
+// 페이지 본문(main)의 아래 여백은 따로 잰다.
 const HINT_GAP = 28
 // 화면이 아주 낮아도 이 높이까지는 쓴다.
 const MIN_HEIGHT = 480
@@ -20,16 +21,20 @@ const MIN_HEIGHT = 480
 export function OfficeStage({
   scene,
   tools,
+  status,
   children,
 }: {
   /** 화면에 놓인 건물(바뀌면 집사가 그 건물 정문 안쪽에 선다). */
   scene: string
   /** 아래 안내 줄 왼쪽에 두는 버튼(캡처·녹화·전체화면) */
   tools?: ReactNode
+  /** 아래 줄 가운데 현황(시각·작업 중·대기 …) */
+  status?: ReactNode
   children: ReactNode
 }) {
   const outerRef = useRef<HTMLDivElement>(null)
   const innerRef = useRef<HTMLDivElement>(null)
+  const barRef = useRef<HTMLDivElement>(null)
   const [room, setRoom] = useState({ w: 0, h: 0 })
   const [scale, setScale] = useState(1)
 
@@ -47,7 +52,7 @@ export function OfficeStage({
         MIN_HEIGHT,
         window.innerHeight -
           offset -
-          HINT_GAP -
+          (barRef.current?.offsetHeight ?? HINT_GAP) -
           (document.fullscreenElement ? 0 : pad)
       )
       setRoom((old) => (old.w === w && old.h === h ? old : { w, h }))
@@ -55,6 +60,7 @@ export function OfficeStage({
     measure()
     const observer = new ResizeObserver(measure)
     observer.observe(outer)
+    if (barRef.current) observer.observe(barRef.current)
     window.addEventListener("resize", measure)
     document.addEventListener("fullscreenchange", measure)
     return () => {
@@ -100,7 +106,7 @@ export function OfficeStage({
             height: room.h ? room.h / scale : undefined,
             transform: scale === 1 ? undefined : `scale(${scale})`,
             transformOrigin: "top left",
-            // 옆 칸(월드맵·기계실)은 이 배율을 되돌려 늘 같은 크기로 둔다(building.tsx).
+            // 옆 칸(월드맵)은 이 배율을 되돌려 늘 같은 크기로 둔다(building.tsx).
             ["--office-zoom" as string]: scale,
           }}
         >
@@ -108,11 +114,14 @@ export function OfficeStage({
         </div>
         <Butler stageRef={innerRef} scale={scale} scene={scene} />
       </div>
-      <div className="mt-1 flex items-center justify-between gap-2">
+      {/* 아래 줄: 버튼 · 현황 · 조작 안내. 좁으면 줄을 바꾸고, 틀 높이는 이 줄
+          높이만큼 줄인다. */}
+      <div ref={barRef} className="flex flex-wrap items-center gap-1 pt-1">
         <div className="flex items-center gap-1">{tools}</div>
+        {status}
         <p
           aria-hidden="true"
-          className="w-fit bg-[#2b2a36]/85 px-1.5 py-0.5 text-[10px] text-[#f7f2e8]"
+          className="ml-auto w-fit bg-[#2b2a36]/85 px-1.5 py-0.5 text-[10px] text-[#f7f2e8]"
         >
           {t("stage.help", { scale: Math.round(scale * 100) })}
         </p>

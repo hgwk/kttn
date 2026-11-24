@@ -129,8 +129,10 @@ export function FolderRoom({
       floor={depth === 0 ? "wood" : roomFloor(id)}
       kind={depth === 0 ? "building" : "partition"}
       // 칸막이 방은 계산해 둔 폭을 그대로 쓴다(줄어들지 않는다).
-      className={depth === 0 ? undefined : "flex-none"}
+      className={depth > 1 ? "flex-none" : depth === 1 ? "grow" : undefined}
       width={depth === 0 ? undefined : plan?.width}
+      // 건물 바로 안의 사무실은 계산한 폭을 최소로 두고 줄의 남는 폭까지 늘어난다.
+      stretch={depth === 1}
       deskWidth={
         seated.length
           ? officeLayout(
@@ -163,8 +165,8 @@ export function FolderRoom({
               <div
                 key={entry.id}
                 className={cn(
-                  "flex flex-none flex-col self-stretch",
-                  depth === 0 && "[&>section]:grow"
+                  "flex flex-col self-stretch",
+                  depth === 0 ? "grow [&>section]:grow" : "flex-none"
                 )}
               >
                 {entry.child ? (
