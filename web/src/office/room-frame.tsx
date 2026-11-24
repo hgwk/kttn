@@ -143,7 +143,9 @@ export function RoomFrame({
           <div
             data-obstacle=""
             // 정문(left 18~50px) 바로 옆에 외투 걸이판과 우산꽂이를 두고 이름표는 그 오른쪽에 붙인다.
-            className="relative flex h-8 items-center gap-1.5 overflow-hidden border-b-2 border-[#2b2a36] pr-2 pl-[108px]"
+            // 벽 장식은 넓은 건물도 덮도록 길게 되풀이하므로, 그 길이가 건물 폭을
+            // 늘리지 않게 이 줄의 가로 크기는 내용과 떼어 놓는다(contain).
+            className="relative flex h-8 items-center gap-1.5 overflow-hidden border-b-2 border-[#2b2a36] pr-2 pl-[108px] [contain:inline-size]"
             style={{
               backgroundImage: `url("${TILE.wall}")`,
               backgroundSize: "64px 32px",
