@@ -56,8 +56,18 @@ type Snapshot struct {
 	GeneratedAt string         `json:"generatedAt"`
 }
 
+// Handler serves the office. SaveNow writes the sessions at once, for a
+// server that is about to stop.
+type Handler struct {
+	http.Handler
+	state *stateFile
+}
+
+// SaveNow writes pending session state instead of waiting for the timer.
+func (h *Handler) SaveNow() { h.state.flush() }
+
 // New builds the handler and loads saved sessions.
-func New(opts Options) http.Handler {
+func New(opts Options) *Handler {
 	if opts.Now == nil {
 		opts.Now = time.Now
 	}
@@ -85,12 +95,18 @@ func New(opts Options) http.Handler {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
 	})
 	mux.HandleFunc("GET /api/snapshot", func(w http.ResponseWriter, r *http.Request) {
-		if !screenKeyOK(w, r, opts.ScreenKey) {
-			return
+		// An office not set up yet answers anyone with its onboarding
+		// settings and no sessions, so the screen can say how to set up.
+		agents := []office.Agent{}
+		if opts.Settings.Configured {
+			if !screenKeyOK(w, r, opts.ScreenKey) {
+				return
+			}
+			agents = opts.Store.Snapshot()
 		}
 		w.Header().Set("Cache-Control", "no-store")
 		writeJSON(w, http.StatusOK, Snapshot{
-			Agents:      opts.Store.Snapshot(),
+			Agents:      agents,
 			Settings:    opts.Settings,
 			GeneratedAt: opts.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
 		})
@@ -103,7 +119,7 @@ func New(opts Options) http.Handler {
 		mux.HandleFunc("PUT /api/props", withScreenKey(opts.ScreenKey, putProps))
 	}
 	mux.Handle("GET /", staticHandler())
-	return withLoopback(withFrameAncestors(opts.EmbedOrigins, mux))
+	return &Handler{Handler: withLoopback(withFrameAncestors(opts.EmbedOrigins, mux)), state: state}
 }
 
 // reportBody admits a report from a local program (the hook)

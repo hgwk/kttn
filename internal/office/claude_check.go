@@ -12,7 +12,7 @@ import (
 
 // claudeCacheFor is how long one process listing answers liveness questions;
 // a snapshot asks about every session at once.
-const claudeCacheFor = time.Second
+var claudeCacheFor = time.Second
 
 // IsClaude reports whether a `ps` comm value names Claude Code.
 func IsClaude(comm string) bool {
@@ -36,7 +36,11 @@ func NewClaudeCheck(list func() (string, error)) func(int) bool {
 		mu.Lock()
 		defer mu.Unlock()
 		if alive == nil || time.Since(at) > claudeCacheFor {
-			alive = parseClaudePIDs(list)
+			// A failed listing keeps the last answer rather than ending
+			// every session; the next question tries again.
+			if fresh, ok := parseClaudePIDs(list); ok || alive == nil {
+				alive = fresh
+			}
 			at = time.Now()
 		}
 		return alive[pid]
@@ -44,17 +48,18 @@ func NewClaudeCheck(list func() (string, error)) func(int) bool {
 }
 
 func listOwnProcesses() (string, error) {
-	out, err := exec.Command("ps", "-U", strconv.Itoa(os.Getuid()), "-o", "pid=,comm=").Output()
+	// -ww: never cut a long executable path, or its name would be lost.
+	out, err := exec.Command("ps", "-ww", "-U", strconv.Itoa(os.Getuid()), "-o", "pid=,comm=").Output()
 	return string(out), err
 }
 
-// parseClaudePIDs reads `pid comm` lines. A failed listing means nothing is
-// known to be alive, so sessions fall back to their idle timers.
-func parseClaudePIDs(list func() (string, error)) map[int]bool {
-	pids := map[int]bool{}
+// parseClaudePIDs reads `pid comm` lines. ok is false when the listing
+// failed; nothing is known to be alive then.
+func parseClaudePIDs(list func() (string, error)) (pids map[int]bool, ok bool) {
+	pids = map[int]bool{}
 	out, err := list()
 	if err != nil {
-		return pids
+		return pids, false
 	}
 	for _, line := range strings.Split(out, "\n") {
 		fields := strings.Fields(line)
@@ -66,5 +71,5 @@ func parseClaudePIDs(list func() (string, error)) map[int]bool {
 			pids[pid] = true
 		}
 	}
-	return pids
+	return pids, true
 }

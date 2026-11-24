@@ -166,9 +166,11 @@ func withoutOurs(entries []json.RawMessage) []json.RawMessage {
 
 // write replaces the settings atomically. A symlinked settings.json (say,
 // from a dotfiles repo) is written through to its target, so the link stays.
-// The first rewrite keeps the user's original as .bak and later ones leave
-// it alone. The original's indentation is kept.
+// The first rewrite keeps the user's original as .bak beside the link, not
+// in the dotfiles repo where it could be committed; later ones leave it
+// alone. The original's indentation is kept.
 func write(path string, compact []byte) error {
+	backup := path + ".bak"
 	if target, err := filepath.EvalSymlinks(path); err == nil {
 		path = target
 	}
@@ -182,8 +184,8 @@ func write(path string, compact []byte) error {
 		return err
 	}
 	if readErr == nil {
-		if _, err := os.Stat(path + ".bak"); errors.Is(err, fs.ErrNotExist) {
-			if err := os.WriteFile(path+".bak", old, 0o600); err != nil {
+		if _, err := os.Lstat(backup); errors.Is(err, fs.ErrNotExist) {
+			if err := os.WriteFile(backup, old, 0o600); err != nil {
 				return err
 			}
 		}

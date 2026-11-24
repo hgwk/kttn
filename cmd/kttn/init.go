@@ -9,13 +9,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hgwk/kttn/internal/autostart"
 	"github.com/hgwk/kttn/internal/config"
 )
 
 // runInit asks for the onboarding values, keeping what an earlier init saved
 // as the defaults, picks a free port and writes the config with a token the
-// hook and server share. --yes takes the defaults and flags without asking.
-func runInit(args []string, in io.Reader, out io.Writer) error {
+// hook and server share, then restarts the login service if there is one.
+// --yes takes the defaults and flags without asking.
+func runInit(args []string, in io.Reader, out io.Writer, service autostart.Service) error {
 	path := config.Path()
 	cfg, found, err := config.Load(path)
 	if err != nil {
@@ -46,7 +48,10 @@ func runInit(args []string, in io.Reader, out io.Writer) error {
 	if cfg.Lang != "" && cfg.Lang != "ko" && cfg.Lang != "en" && cfg.Lang != "ja" {
 		return fmt.Errorf("language %q is not ko, en or ja", cfg.Lang)
 	}
-	picked := config.PickPort(cfg.Port, found)
+	if _, err := cfg.EnsureKeys(); err != nil {
+		return err
+	}
+	picked := config.PickPort(cfg.Port, cfg.ScreenKey)
 	if picked == 0 {
 		return fmt.Errorf("no free port from %d upward", cfg.Port)
 	}
@@ -54,13 +59,22 @@ func runInit(args []string, in io.Reader, out io.Writer) error {
 		fmt.Fprintf(out, "Port %d is taken; using %d.\n", cfg.Port, picked)
 		cfg.Port = picked
 	}
-	if _, err := cfg.EnsureKeys(); err != nil {
-		return err
-	}
 	if err := config.Save(path, cfg); err != nil {
 		return err
 	}
-	fmt.Fprintf(out, "Saved %s\nNext: run `kttn serve` and open http://127.0.0.1:%d\n", path, cfg.Port)
+	fmt.Fprintf(out, "Saved %s\n", path)
+	// The running office read the old config at start; restart it so the
+	// new port, token and message setting apply now.
+	restarted, err := service.Restart()
+	if err != nil {
+		fmt.Fprintf(out, "Could not restart the office (%v); run `kttn` to apply the changes.\n", err)
+	} else if restarted {
+		fmt.Fprintln(out, "Restarted the office with the new settings.")
+	} else if found {
+		fmt.Fprintln(out, "Restart `kttn serve` to apply the changes.")
+	} else {
+		fmt.Fprintf(out, "Next: run `kttn serve` and open http://127.0.0.1:%d\n", cfg.Port)
+	}
 	return nil
 }
 

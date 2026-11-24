@@ -15,7 +15,7 @@ import (
 func TestScreenRoutesNeedTheScreenKey(t *testing.T) {
 	store := office.NewStore(time.Now, func(int) bool { return true })
 	focused := 0
-	h := New(Options{Store: store, ScreenKey: "screen-secret", PropsPath: filepath.Join(t.TempDir(), "props.json"),
+	h := New(Options{Store: store, ScreenKey: "screen-secret", Settings: Settings{Configured: true}, PropsPath: filepath.Join(t.TempDir(), "props.json"),
 		Focus: func(int) error { focused++; return nil }})
 	post(h, "127.0.0.1:5886", jsonType, `{"source":"claude","session":"s1","event":"UserPromptSubmit","pid":4242}`)
 	call := func(method, path, key, body string) int {
@@ -55,5 +55,29 @@ func TestScreenRoutesNeedTheScreenKey(t *testing.T) {
 	// The page itself and the hook's own route do not use the screen key.
 	if code := get(h, "127.0.0.1:5886", "/manifest.webmanifest").Code; code == 401 {
 		t.Fatal("static files must load without the key")
+	}
+}
+
+// An office not set up yet has keys nobody knows: the screen still gets its
+// onboarding, but no sessions, and nothing reaches a terminal.
+func TestAnUnconfiguredOfficeShowsOnboardingAndNothingElse(t *testing.T) {
+	store := office.NewStore(time.Now, func(int) bool { return true })
+	store.Apply(office.Event{Source: "claude", Session: "old", Project: "p", Event: "Stop"})
+	focused := 0
+	h := New(Options{Store: store, Token: "t", ScreenKey: "nobody-knows", Focus: func(int) error { focused++; return nil }})
+	rec := get(h, "127.0.0.1:5886", "/api/snapshot")
+	if rec.Code != 200 || !strings.HasPrefix(rec.Body.String(), `{"agents":[],"settings":`) || !strings.Contains(rec.Body.String(), `"configured":false`) {
+		t.Fatalf("onboarding snapshot %d %s", rec.Code, rec.Body.String())
+	}
+	req := httptest.NewRequest("POST", "http://127.0.0.1:5886/api/focus", strings.NewReader(`{"key":"claude|old"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", "http://127.0.0.1:5886")
+	focusRec := httptest.NewRecorder()
+	h.ServeHTTP(focusRec, req)
+	if focusRec.Code != 401 || focused != 0 {
+		t.Fatalf("focus %d, focused %d", focusRec.Code, focused)
+	}
+	if code := post(h, "127.0.0.1:5886", jsonType, `{"source":"claude","session":"s","event":"Stop"}`).Code; code != 401 {
+		t.Fatalf("event without the token: %d", code)
 	}
 }

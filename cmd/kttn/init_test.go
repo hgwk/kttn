@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/hgwk/kttn/internal/autostart"
 	"github.com/hgwk/kttn/internal/config"
 )
 
@@ -15,7 +16,7 @@ func TestInitAsksSavesAndKeepsItsAnswersAsNextDefaults(t *testing.T) {
 	t.Setenv("KTTN_CONFIG", path)
 	var out bytes.Buffer
 	answers := "우리 팀\nja\n\ny\n"
-	if err := runInit(nil, strings.NewReader(answers), &out); err != nil {
+	if err := runInit(nil, strings.NewReader(answers), &out, noService(t)); err != nil {
 		t.Fatal(err)
 	}
 	cfg, found, err := config.Load(path)
@@ -27,7 +28,7 @@ func TestInitAsksSavesAndKeepsItsAnswersAsNextDefaults(t *testing.T) {
 	}
 	token := cfg.Token
 	// A second run with blank answers keeps everything, the token included.
-	if err := runInit(nil, strings.NewReader("\n\n\n\n"), &out); err != nil {
+	if err := runInit(nil, strings.NewReader("\n\n\n\n"), &out, noService(t)); err != nil {
 		t.Fatal(err)
 	}
 	again, _, _ := config.Load(path)
@@ -40,7 +41,7 @@ func TestInitWithYesTakesFlagsAndKeepsPreviewOff(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	t.Setenv("KTTN_CONFIG", path)
 	var out bytes.Buffer
-	if err := runInit([]string{"--yes", "--office-name", "Lab"}, strings.NewReader(""), &out); err != nil {
+	if err := runInit([]string{"--yes", "--office-name", "Lab"}, strings.NewReader(""), &out, noService(t)); err != nil {
 		t.Fatal(err)
 	}
 	cfg, _, _ := config.Load(path)
@@ -50,7 +51,7 @@ func TestInitWithYesTakesFlagsAndKeepsPreviewOff(t *testing.T) {
 	if info, _ := os.Stat(path); info.Mode().Perm() != 0o600 {
 		t.Fatalf("mode %v", info.Mode().Perm())
 	}
-	if err := runInit([]string{"--yes", "--lang", "fr"}, strings.NewReader(""), &out); err == nil {
+	if err := runInit([]string{"--yes", "--lang", "fr"}, strings.NewReader(""), &out, noService(t)); err == nil {
 		t.Fatal("unknown language accepted")
 	}
 }
@@ -59,13 +60,13 @@ func TestInitAsksForMessagesAndYesKeepsThemOffUnlessFlagged(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	t.Setenv("KTTN_CONFIG", path)
 	var out bytes.Buffer
-	if err := runInit(nil, strings.NewReader("Lab\nen\n\nn\ny\n"), &out); err != nil {
+	if err := runInit(nil, strings.NewReader("Lab\nen\n\nn\ny\n"), &out, noService(t)); err != nil {
 		t.Fatal(err)
 	}
 	if cfg, _, _ := config.Load(path); !cfg.Messages || !strings.Contains(out.String(), "Off by default") {
 		t.Fatalf("asked and answered yes: %+v", cfg)
 	}
-	if err := runInit([]string{"--yes"}, strings.NewReader(""), &out); err != nil {
+	if err := runInit([]string{"--yes"}, strings.NewReader(""), &out, noService(t)); err != nil {
 		t.Fatal(err)
 	}
 	if cfg, _, _ := config.Load(path); !cfg.Messages {
@@ -73,12 +74,41 @@ func TestInitAsksForMessagesAndYesKeepsThemOffUnlessFlagged(t *testing.T) {
 	}
 	fresh := filepath.Join(t.TempDir(), "config.json")
 	t.Setenv("KTTN_CONFIG", fresh)
-	runInit([]string{"--yes"}, strings.NewReader(""), &out)
+	runInit([]string{"--yes"}, strings.NewReader(""), &out, noService(t))
 	if cfg, _, _ := config.Load(fresh); cfg.Messages {
 		t.Fatal("--yes turned messages on")
 	}
-	runInit([]string{"--yes", "--messages"}, strings.NewReader(""), &out)
+	runInit([]string{"--yes", "--messages"}, strings.NewReader(""), &out, noService(t))
 	if cfg, _, _ := config.Load(fresh); !cfg.Messages {
 		t.Fatal("--messages did not turn them on")
+	}
+}
+
+// noService is a login service that was never registered.
+func noService(t *testing.T) autostart.Service {
+	return autostart.Service{GOOS: "darwin", Home: t.TempDir(), UID: 501, Run: func(string, ...string) (string, error) {
+		t.Fatal("nothing registered, nothing to restart")
+		return "", nil
+	}}
+}
+
+func TestInitRestartsARegisteredServiceSoTheNewSettingsApply(t *testing.T) {
+	t.Setenv("KTTN_CONFIG", filepath.Join(t.TempDir(), "config.json"))
+	var calls []string
+	svc := autostart.Service{GOOS: "darwin", Home: t.TempDir(), UID: 501, Run: func(name string, args ...string) (string, error) {
+		calls = append(calls, name+" "+strings.Join(args, " "))
+		return "", nil
+	}}
+	os.MkdirAll(filepath.Dir(svc.Path()), 0o755)
+	os.WriteFile(svc.Path(), []byte("plist"), 0o644)
+	var out bytes.Buffer
+	if err := runInit([]string{"--yes", "--messages"}, strings.NewReader(""), &out, svc); err != nil {
+		t.Fatal(err)
+	}
+	if len(calls) != 1 || calls[0] != "launchctl kickstart -k gui/501/"+autostart.Label {
+		t.Fatalf("calls %v", calls)
+	}
+	if !strings.Contains(out.String(), "Restarted the office") {
+		t.Fatalf("out %q", out.String())
 	}
 }

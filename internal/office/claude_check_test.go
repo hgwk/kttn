@@ -3,6 +3,7 @@ package office
 import (
 	"errors"
 	"testing"
+	"time"
 )
 
 func TestOnlyThisUsersClaudeProcessesCountAsAlive(t *testing.T) {
@@ -18,5 +19,24 @@ func TestOnlyThisUsersClaudeProcessesCountAsAlive(t *testing.T) {
 	broken := NewClaudeCheck(func() (string, error) { return "", errors.New("no ps") })
 	if broken(101) {
 		t.Fatal("a failed listing must not keep sessions alive")
+	}
+}
+
+func TestOneFailedListingKeepsTheLastAnswer(t *testing.T) {
+	defer func(was time.Duration) { claudeCacheFor = was }(claudeCacheFor)
+	claudeCacheFor = 0
+	fail := false
+	alive := NewClaudeCheck(func() (string, error) {
+		if fail {
+			return "", errors.New("ps hiccup")
+		}
+		return "101 claude\n", nil
+	})
+	if !alive(101) {
+		t.Fatal("first listing")
+	}
+	fail = true
+	if !alive(101) {
+		t.Fatal("a ps hiccup ended every session")
 	}
 }

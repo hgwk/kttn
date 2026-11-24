@@ -171,8 +171,11 @@ func TestASymlinkedSettingsFileStaysALinkAndTheFirstBackupIsKept(t *testing.T) {
 	if !strings.Contains(string(written), "\n\t\"model\"") || !strings.Contains(string(written), Command) {
 		t.Fatalf("target not updated with its tab indentation:\n%s", written)
 	}
-	if bak, _ := os.ReadFile(real + ".bak"); string(bak) != original {
+	if bak, _ := os.ReadFile(link + ".bak"); string(bak) != original {
 		t.Fatalf("the second run replaced the original backup:\n%s", bak)
+	}
+	if _, err := os.Stat(real + ".bak"); err == nil {
+		t.Fatal("a backup landed in the dotfiles repo")
 	}
 }
 

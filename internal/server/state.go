@@ -60,6 +60,16 @@ func (f *stateFile) schedule() {
 	}
 }
 
+// flush saves now when a save is waiting.
+func (f *stateFile) flush() {
+	f.mu.Lock()
+	pending := f.timer != nil && f.timer.Stop()
+	f.mu.Unlock()
+	if pending {
+		f.save()
+	}
+}
+
 func (f *stateFile) save() {
 	f.mu.Lock()
 	f.timer = nil

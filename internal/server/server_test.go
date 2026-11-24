@@ -18,7 +18,7 @@ const stopBody = `{"source":"claude","session":"s1","project":"myrepo","event":"
 func newServer(t *testing.T, token, statePath string) (http.Handler, *office.Store) {
 	t.Helper()
 	store := office.NewStore(time.Now, func(int) bool { return true })
-	return New(Options{Store: store, Token: token, StatePath: statePath}), store
+	return New(Options{Store: store, Token: token, StatePath: statePath, Settings: Settings{Configured: true}}), store
 }
 
 func post(h http.Handler, host string, headers map[string]string, body string) *httptest.ResponseRecorder {

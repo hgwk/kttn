@@ -34,10 +34,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 0
 	case "serve":
 		return report(stderr, name, runServe(rest, stderr))
-	case "init":
-		return report(stderr, name, runInit(rest, stdin, stdout))
-	case "setup", "install", "uninstall", "open":
-		if len(rest) > 0 {
+	case "setup", "install", "uninstall", "open", "init":
+		if len(rest) > 0 && name != "init" {
 			return report(stderr, name, fmt.Errorf("unexpected argument %q", rest[0]))
 		}
 		if name == "install" {
@@ -48,6 +46,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			return report(stderr, name, err)
 		}
 		switch name {
+		case "init":
+			return report(stderr, name, runInit(rest, stdin, stdout, m.service))
 		case "setup":
 			return report(stderr, name, runSetup(stdin, stdout, m))
 		case "open":

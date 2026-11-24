@@ -67,7 +67,7 @@ func TestLinuxRegistersAUserUnit(t *testing.T) {
 		t.Fatal(err)
 	}
 	raw, _ := os.ReadFile(s.Path())
-	if !strings.Contains(string(raw), "Environment=PATH=/opt/homebrew/bin:") || !strings.Contains(string(raw), `ExecStart="/opt/my \"kttn\"/kttn" serve`) || !strings.Contains(string(raw), "WantedBy=default.target") {
+	if !strings.Contains(string(raw), `Environment="PATH=/opt/homebrew/bin:`) || !strings.Contains(string(raw), `ExecStart="/opt/my \"kttn\"/kttn" serve`) || !strings.Contains(string(raw), "WantedBy=default.target") {
 		t.Fatalf("unit:\n%s", raw)
 	}
 	if !strings.HasSuffix(s.Path(), ".config/systemd/user/kttn.service") || len(r.calls) != 3 || !strings.Contains(r.calls[2], "restart kttn.service") {
@@ -115,5 +115,27 @@ func TestRemoveStopsALoadedAgentWhoseFileIsGone(t *testing.T) {
 	s := Service{GOOS: "darwin", Home: t.TempDir(), UID: 501, Run: r.run}
 	if removed, _ := s.Remove(); removed || len(r.calls) != 1 || !strings.Contains(r.calls[0], "bootout") {
 		t.Fatalf("removed %v calls %v", removed, r.calls)
+	}
+}
+
+func TestTheServiceFindsTmuxWhereSetupFoundItAndKeepsSetupsConfig(t *testing.T) {
+	s := Service{GOOS: "darwin", Home: t.TempDir(), UID: 501, Run: (&recorder{}).run,
+		PathDirs: []string{"/opt/local/bin", "/usr/bin"},
+		Env:      map[string]string{"KTTN_STATE": "/tmp/s & t", "KTTN_CONFIG": "/tmp/c.json"}}
+	plist := string(s.plist("/k"))
+	for _, want := range []string{
+		"<string>/opt/local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>",
+		"<key>KTTN_CONFIG</key>\n\t\t<string>/tmp/c.json</string>\n\t\t<key>KTTN_STATE</key>\n\t\t<string>/tmp/s &amp; t</string>",
+	} {
+		if !strings.Contains(plist, want) {
+			t.Errorf("plist lacks %q:\n%s", want, plist)
+		}
+	}
+	if err := xml.Unmarshal([]byte(plist), new(struct{})); err != nil {
+		t.Fatal(err)
+	}
+	s.GOOS = "linux"
+	if unit := string(s.unit("/k")); !strings.Contains(unit, `Environment="KTTN_CONFIG=/tmp/c.json"`) || !strings.Contains(unit, `Environment="PATH=/opt/local/bin:/opt/homebrew/bin:`) {
+		t.Errorf("unit:\n%s", unit)
 	}
 }

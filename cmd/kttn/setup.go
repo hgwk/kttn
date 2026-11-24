@@ -47,7 +47,9 @@ func realMachine() (machine, error) {
 		home: home,
 		service: autostart.Service{
 			GOOS: runtime.GOOS, Home: home, UID: os.Getuid(),
-			Run: autostart.Run(terminal.Exec),
+			Run:      autostart.Run(terminal.Exec),
+			PathDirs: toolDirs("tmux"),
+			Env:      kttnEnv(),
 		},
 		onPath: func() (string, bool) {
 			found, err := exec.LookPath("kttn")
@@ -57,13 +59,7 @@ func realMachine() (machine, error) {
 			resolved, err := filepath.EvalSymlinks(found)
 			return resolved, err == nil
 		},
-		open: func(url string) {
-			opener := "xdg-open"
-			if runtime.GOOS == "darwin" {
-				opener = "open"
-			}
-			_ = exec.Command(opener, url).Start()
-		},
+		open: func(url string) { _ = openPrivately(url) },
 		ready: func(url string) bool {
 			client := http.Client{Timeout: 300 * time.Millisecond}
 			resp, err := client.Get(url + "api/snapshot")
@@ -75,6 +71,34 @@ func realMachine() (machine, error) {
 			return resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusUnauthorized
 		},
 	}, nil
+}
+
+// toolDirs is where this shell finds the tools, so the login service finds
+// the same ones.
+func toolDirs(tools ...string) []string {
+	var dirs []string
+	for _, tool := range tools {
+		if found, err := exec.LookPath(tool); err == nil {
+			if abs, err := filepath.Abs(found); err == nil {
+				dirs = append(dirs, filepath.Dir(abs))
+			}
+		}
+	}
+	return dirs
+}
+
+// kttnEnv carries a KTTN_CONFIG or KTTN_STATE that setup ran with into the
+// service, or it would serve the default config with another token.
+func kttnEnv() map[string]string {
+	env := map[string]string{}
+	for _, name := range []string{"KTTN_CONFIG", "KTTN_STATE"} {
+		if value := os.Getenv(name); value != "" {
+			if abs, err := filepath.Abs(value); err == nil {
+				env[name] = abs
+			}
+		}
+	}
+	return env
 }
 
 // runSetup is `kttn` with no arguments: set up the office, hook Claude Code,
@@ -94,11 +118,12 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 			return fmt.Errorf("language %q is not ko, en or ja", cfg.Lang)
 		}
 		askMessages(&ask, &cfg)
-		if cfg.Port = config.PickPort(cfg.Port, false); cfg.Port == 0 {
-			return fmt.Errorf("no free port from %d upward", config.DefaultPort)
-		}
+		// The key is new, so no kttn already running can answer to it.
 		if _, err = cfg.EnsureKeys(); err != nil {
 			return err
+		}
+		if cfg.Port = config.PickPort(cfg.Port, cfg.ScreenKey); cfg.Port == 0 {
+			return fmt.Errorf("no free port from %d upward", config.DefaultPort)
 		}
 		if err := config.Save(path, cfg); err != nil {
 			return err
@@ -147,7 +172,7 @@ func refreshConfig(path string, cfg *config.Config, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	if port := config.PickPort(cfg.Port, true); port != 0 && port != cfg.Port {
+	if port := config.PickPort(cfg.Port, cfg.ScreenKey); port != 0 && port != cfg.Port {
 		fmt.Fprintf(out, "Port %d is taken by something else; using %d.\n", cfg.Port, port)
 		cfg.Port, changed = port, true
 	}

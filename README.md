@@ -184,8 +184,9 @@ browser, and falls back to English.
 Click a cat and the butler walks over and brings that session's terminal tab to
 the front. Click its speech bubble to type a message into the session's input;
 Enter is pressed for you. **Messages are off by default:** setup asks once, and
-`kttn init` (or `kttn init --yes --messages`) turns them on; while they are off
-the server refuses them with 403 and the bubble only says how to turn them on.
+`kttn init` (or `kttn init --yes --messages`) turns them on and restarts the
+office so it applies at once; while they are off the server refuses them with
+403 and the bubble only says how to turn them on.
 
 kttn finds the tab from the session's process: process → tty → the terminal
 pane on that tty. It tries, in order:
@@ -199,8 +200,9 @@ pane on that tty. It tries, in order:
 
 A terminal that is not installed or not running is skipped; one that is not
 running is never launched. AppleScript asks for automation permission the first
-time. The login service runs with `/opt/homebrew/bin` and `/usr/local/bin` on its
-`PATH`, so a Homebrew `tmux` is found.
+time. The login service runs with `/opt/homebrew/bin`, `/usr/local/bin` and the
+folder where setup found `tmux` on its `PATH`, so a Homebrew, MacPorts or nix
+`tmux` is found.
 
 Messages are limited to 2,000 characters, control characters are removed, and
 nothing is sent to a session that is waiting on a permission prompt, a question

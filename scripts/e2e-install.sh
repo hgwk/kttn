@@ -1,7 +1,8 @@
 #!/bin/sh
 # End-to-end check of the install a real user does, isolated from this
 # computer's own kttn: temp HOME, Claude config, kttn config/state and npm
-# dirs; launchctl, systemctl, open and xdg-open are stubs that only record.
+# dirs; launchctl, systemctl, open, xdg-open and osascript are stubs that
+# only record (osascript records its stdin after a "|").
 #
 #   scripts/e2e-install.sh             # npx @hgwk/kttn@latest
 #   scripts/e2e-install.sh 0.2.0       # a published version
@@ -41,12 +42,15 @@ for tool in launchctl systemctl open xdg-open; do
   printf '#!/bin/sh\necho "%s $*" >> "%s/stub.log"\n' "$tool" "$T" > "$T/stub/$tool"
   chmod +x "$T/stub/$tool"
 done
+printf '#!/bin/sh\necho "osascript $* | $(cat)" >> "%s/stub.log"\n' "$T" > "$T/stub/osascript"
+chmod +x "$T/stub/osascript"
 export HOME="$T/home" CLAUDE_CONFIG_DIR="$T/claude"
 export KTTN_CONFIG="$T/home/.config/kttn/config.json" KTTN_STATE="$T/home/.local/state/kttn/sessions.json"
 export npm_config_cache="$T/npm-cache" npm_config_prefix="$T/npm-prefix" npm_config_update_notifier=false
 export PATH="$T/stub:$PATH"
 unset KTTN_URL KTTN_TOKEN
 if [ "$(command -v launchctl)" != "$T/stub/launchctl" ] || [ "$(command -v systemctl)" != "$T/stub/systemctl" ] \
+  || [ "$(command -v osascript)" != "$T/stub/osascript" ] \
   || [ "$HOME" = "$REAL_HOME" ] || [ "$CLAUDE_CONFIG_DIR" = "$REAL_HOME/.claude" ]; then
   echo "REFUSE: isolation is not in place (stubs not first on PATH or HOME not temporary)" >&2
   exit 1
@@ -100,7 +104,7 @@ EVENTS=$(json "$REPO/plugin/hooks/hooks.json" 'Object.keys(d.hooks).sort().join(
 check "hooks: settings.json has exactly the plugin's 24 events with one kttn entry each" \
   "[ \"\$(json '$S' 'Object.keys(d.hooks).sort().join(\",\")')\" = '$EVENTS' ] && json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook\$/.test(e.hooks[0].command)).length===1)' | grep -q true"
 check "hooks: a symlinked settings.json stays a link, written through to its target" "[ -L '$S' ] && grep -q 'kttn' '$T/dotfiles/claude-settings.json'"
-check "hooks: the original settings kept as .bak, with its indentation" "cmp -s '$T/original-settings.json' '$T/dotfiles/claude-settings.json.bak' && grep -q '^    \"model\"' '$T/dotfiles/claude-settings.json'"
+check "hooks: the original settings kept as .bak beside the link, not in the dotfiles, indentation kept" "cmp -s '$T/original-settings.json' '$S.bak' && [ ! -e '$T/dotfiles/claude-settings.json.bak' ] && grep -q '^    \"model\"' '$T/dotfiles/claude-settings.json'"
 check "hooks: other keys and other tools' hooks kept" \
   "json '$S' 'd.model===\"keep-me\" && d.hooks.Stop.some(e=>e.hooks[0].command===\"echo other-tool\")' | grep -q true"
 
@@ -109,18 +113,26 @@ UNIT="$HOME/.config/systemd/user/kttn.service"
 if [ "$(uname)" = Darwin ]; then
   check "autostart: LaunchAgent plist names the label, binary + serve, and the log" \
     "grep -q '<string>io.github.hgwk.kttn</string>' '$PLIST' && grep -q -e '<string>$KTTN</string>' -e '<string>$KTTN_SEEN</string>' '$PLIST' && grep -q '<string>serve</string>' '$PLIST' && grep -q '.local/state/kttn/serve.log' '$PLIST'"
-  check "autostart: the service PATH includes Homebrew" "grep -q '<string>/opt/homebrew/bin:' '$PLIST'"
+  check "autostart: the service PATH includes Homebrew" "grep -q '<string>[^<]*/opt/homebrew/bin:' '$PLIST'"
+  check "autostart: the service reads the config setup used" "grep -A1 '<key>KTTN_CONFIG</key>' '$PLIST' | grep -q 'kttn/config.json</string>'"
   check "autostart: stub launchctl saw bootout then bootstrap" \
     "grep -n 'launchctl' '$T/stub.log' | head -2 | tr '\n' ' ' | grep -q 'bootout.*bootstrap'"
 else
   check "autostart: systemd user unit runs the binary with serve" "grep -q 'serve' '$UNIT'"
   check "autostart: stub systemctl saw daemon-reload, enable, restart" "grep -q 'restart kttn.service' '$T/stub.log'"
+  check "autostart: the service reads the config setup used" "grep -q 'Environment=\"KTTN_CONFIG=' '$UNIT'"
 fi
-check "setup: stub opened the office with the screen key" "[ -n '$SKEY' ] && grep -q 'open http://127.0.0.1:$PORT/#k=$SKEY' '$T/stub.log'"
+# The key never goes on a command line, where other users could read it.
+if [ "$(uname)" = Darwin ]; then
+  check "setup: opened the office with the screen key through osascript's stdin" "[ -n '$SKEY' ] && grep -q '^osascript - | open location \"http://127.0.0.1:$PORT/#k=$SKEY\"' '$T/stub.log'"
+else
+  check "setup: opened the office through a private redirect page" "[ -n '$SKEY' ] && grep -q 'xdg-open .*open.html' '$T/stub.log' && grep -q '#k=$SKEY' \"\$(dirname '$KTTN_STATE')/open.html\" && [ \"\$(stat -c %a \"\$(dirname '$KTTN_STATE')/open.html\")\" = 600 ]"
+fi
+check "setup: no command line carried the screen key" "! grep -v '^osascript - |' '$T/stub.log' | grep -q '$SKEY'"
 
 printf '' | run_setup > "$T/setup2.log" 2>&1
 check "rerun: asks nothing and keeps the token" "! grep -q 'Office name' '$T/setup2.log' && [ \"\$(json '$CFG' 'd.token' | tr -d '\"')\" = '$TOKEN' ]"
-check "rerun: the original .bak is not replaced" "cmp -s '$T/original-settings.json' '$T/dotfiles/claude-settings.json.bak'"
+check "rerun: the original .bak is not replaced" "cmp -s '$T/original-settings.json' '$S.bak'"
 check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook\$/.test(e.hooks[0].command)).length===1)' | grep -q true"
 
 # --- a real signal ----------------------------------------------------------
@@ -133,6 +145,11 @@ KH="X-Kttn-Key: $SKEY"
 for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf -H "$KH" "http://127.0.0.1:$PORT/api/snapshot" >/dev/null && break; sleep 0.3; done
 check "serve: answers on the test port $PORT" "curl -sf -H '$KH' http://127.0.0.1:$PORT/api/snapshot"
 check "screen key: snapshot without the key is refused" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT/api/snapshot)\" = 401 ]"
+# Rerunning while the office runs must not move it: the hooks would follow
+# the new port and the running office would hear nothing.
+printf '' | run_setup > "$T/setup3.log" 2>&1
+"$KTTN" init --yes > "$T/init-live.log" 2>&1
+check "rerun: setup and init with the office running keep port $PORT" "[ \"\$(json '$CFG' 'd.port')\" = '$PORT' ] && ! grep -q 'taken' '$T/setup3.log' '$T/init-live.log'"
 check "screen key: a message forged with the right Origin but no key is refused" \
   "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://127.0.0.1:$PORT' -H 'Content-Type: application/json' -d '{\"key\":\"x\",\"text\":\"!id\"}' http://127.0.0.1:$PORT/api/message)\" = 401 ]"
 

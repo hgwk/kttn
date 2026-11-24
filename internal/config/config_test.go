@@ -50,12 +50,23 @@ func TestPickPortSkipsAPortSomethingElseHolds(t *testing.T) {
 	}
 	defer ln.Close()
 	taken := ln.Addr().(*net.TCPAddr).Port
-	if got := PickPort(taken, true); got == taken || got == 0 {
+	if got := PickPort(taken, "k"); got == taken || got == 0 {
 		t.Fatalf("picked %d for taken %d", got, taken)
 	}
 	ln.Close()
-	if got := PickPort(taken, true); got != taken {
+	if got := PickPort(taken, "k"); got != taken {
 		t.Fatalf("free port %d not kept, got %d", taken, got)
+	}
+}
+
+func TestAKttnWithoutAConfigIsNotThisConfigsServer(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(`{"agents":[],"settings":{"configured":false}}`))
+	}))
+	defer srv.Close()
+	port := srv.Listener.Addr().(*net.TCPAddr).Port
+	if got := PickPort(port, "mine"); got == port || got == 0 {
+		t.Fatalf("took the port of a kttn that holds no key: %d", got)
 	}
 }
 
@@ -82,16 +93,23 @@ func TestEmbedOriginsDefaultToNoneAndDropOddValues(t *testing.T) {
 	}
 }
 
-func TestAFirstSetupDoesNotTakeAnotherConfigsKttn(t *testing.T) {
+func TestOnlyTheKttnHoldingThisScreenKeyKeepsItsPort(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte(`{"agents":[]}`))
+		if r.Header.Get("X-Kttn-Key") != "mine" {
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error":"screen key required"}`))
+			return
+		}
+		w.Write([]byte(`{"agents":[],"settings":{"configured":true}}`))
 	}))
 	defer srv.Close()
 	port := srv.Listener.Addr().(*net.TCPAddr).Port
-	if got := PickPort(port, true); got != port {
+	if got := PickPort(port, "mine"); got != port {
 		t.Fatalf("rerun should keep its own kttn's port %d, got %d", port, got)
 	}
-	if got := PickPort(port, false); got == port || got == 0 {
-		t.Fatalf("first setup took another kttn's port %d", got)
+	for _, key := range []string{"another config's", ""} {
+		if got := PickPort(port, key); got == port || got == 0 {
+			t.Fatalf("key %q took another kttn's port %d", key, got)
+		}
 	}
 }

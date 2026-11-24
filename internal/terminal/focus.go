@@ -35,7 +35,7 @@ func TTY(run Run, pid int) (string, error) {
 	if pid <= 1 {
 		return "", ErrNoProcess
 	}
-	out, err := run("/bin/ps", "-o", "tty=,comm=", "-p", strconv.Itoa(pid))
+	out, err := run("/bin/ps", "-ww", "-o", "tty=,comm=", "-p", strconv.Itoa(pid))
 	if err != nil {
 		return "", ErrNoProcess
 	}
