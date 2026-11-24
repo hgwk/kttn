@@ -43,6 +43,8 @@ function bump() {
   for (const listener of listeners) listener()
 }
 
+const BUTTONS = "button, a, [role=button]"
+
 // 7×6 도트 하트(1이 칠한 칸)
 const HEART = ["0110110", "1111111", "1111111", "0111110", "0011100", "0001000"]
 const DOT = 3
@@ -133,21 +135,35 @@ function nearCat() {
  */
 export function usePetting() {
   useEffect(() => {
+    // 마우스로 누른 버튼. 그 버튼에 남은 포커스는 키보드로 간 것이 아니다.
+    let clicked: Element | null = null
     const down = (event: KeyboardEvent) => {
+      // Tab으로 포커스를 옮기면 그다음 버튼은 키보드로 간 것이다.
+      if (event.key === "Tab") clicked = null
       if (event.key !== " " || event.repeat) return
       if (event.metaKey || event.ctrlKey || event.altKey) return
       if (typing(event.target)) return
-      // 키보드로 버튼(책상, 말풍선 등)에 가 있으면 스페이스는 그 버튼을 누른다.
+      // 키보드(Tab)로 버튼(책상, 말풍선 등)에 가 있으면 스페이스는 그 버튼을
+      // 누른다. 마우스로 누른 버튼에 남은 포커스(Chrome)에서는 쓰다듬는다.
+      // :focus-visible로는 못 가른다(Chrome은 키를 누르는 순간 참으로 바꾼다).
       const target = event.target as Element | null
-      if (target?.closest?.("button, a, [role=button]")) return
+      const focused = target?.closest?.(BUTTONS)
+      if (focused && focused !== clicked) return
       const speech = nearCat()
       if (!speech) return
       event.preventDefault()
       heart(speech)
       bump()
     }
+    const point = (event: PointerEvent) => {
+      clicked = (event.target as Element | null)?.closest?.(BUTTONS) ?? null
+    }
+    window.addEventListener("pointerdown", point, true)
     window.addEventListener("keydown", down)
-    return () => window.removeEventListener("keydown", down)
+    return () => {
+      window.removeEventListener("pointerdown", point, true)
+      window.removeEventListener("keydown", down)
+    }
   }, [])
   return useSyncExternalStore(
     (listener) => {
