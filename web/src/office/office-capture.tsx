@@ -62,11 +62,23 @@ function recorderType() {
 
 /**
  * 화면 아래 안내 줄의 작은 버튼 모양(캡처, 녹화, 전체화면, 도감 등). 켜고 끄는
- * 버튼(aria-pressed)은 색만으로 알지 못하는 사람도 알 수 있게 앞에 ●(켜짐)
- * 또는 ○(꺼짐)를 단다.
+ * 버튼(aria-pressed)은 색만으로 알지 못하는 사람도 알 수 있게 글자 앞에
+ * ToggleMark를 단다.
  */
 export const TOOL_BUTTON =
-  "bg-[#2b2a36]/85 px-1.5 py-0.5 text-[10px] text-[#f7f2e8] hover:bg-[#2b2a36] focus-visible:outline-2 focus-visible:outline-amber-400 disabled:opacity-50 aria-pressed:bg-[#c0392b] aria-pressed:before:mr-1 aria-pressed:before:content-['●'] aria-[pressed=false]:before:mr-1 aria-[pressed=false]:before:content-['○']"
+  "bg-[#2b2a36]/85 px-1.5 py-0.5 text-[10px] text-[#f7f2e8] hover:bg-[#2b2a36] focus-visible:outline-2 focus-visible:outline-amber-400 disabled:opacity-50 aria-pressed:bg-[#c0392b]"
+
+/**
+ * 켜고 끄는 버튼 글자 앞의 ●(켜짐)/○(꺼짐). 화면 낭독기는 aria-pressed로 상태를
+ * 읽으므로 이 모양은 읽지 않게 숨긴다(CSS content로 달면 이름에 섞여 두 번 읽힌다).
+ */
+export function ToggleMark({ on }: { on: boolean }) {
+  return (
+    <span aria-hidden="true" className="mr-1">
+      {on ? "●" : "○"}
+    </span>
+  )
+}
 
 /** 화면 아래 안내 줄의 캡처·녹화 버튼. area 안의 건물 바닥을 찾아 담는다. */
 export function OfficeCapture({
@@ -193,6 +205,7 @@ export function OfficeCapture({
         aria-pressed={recording}
         title={t("capture.recordTitle")}
       >
+        <ToggleMark on={recording} />
         {recording ? t("capture.stop") : t("capture.record")}
       </button>
       {note ? (

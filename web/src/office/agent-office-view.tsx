@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils"
 import {
   OfficeCapture,
   TOOL_BUTTON,
+  ToggleMark,
 } from "@/office/office-capture"
 import { Building } from "@/office/building"
 import { WorldMap } from "@/office/world-map"
@@ -225,6 +226,7 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
                 onClick={toggleFull}
                 aria-pressed={full}
               >
+                <ToggleMark on={full} />
                 {full ? t("hud.fullscreenOff") : t("hud.fullscreen")}
               </button>
             </>

@@ -1,7 +1,7 @@
 import { t } from "@/i18n"
 import { useEffect, useRef, useState } from "react"
 
-import { TOOL_BUTTON } from "@/office/office-capture"
+import { TOOL_BUTTON, ToggleMark } from "@/office/office-capture"
 import type { SessionAgent } from "@/lib/agent-office"
 import { soundCues, type SoundCue } from "@/lib/agent-office-sounds"
 
@@ -158,6 +158,7 @@ export function OfficeSounds({
       aria-pressed={on}
       onClick={toggle}
     >
+      <ToggleMark on={on} />
       {t("sound.label")}
     </button>
   )

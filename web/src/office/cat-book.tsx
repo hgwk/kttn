@@ -2,7 +2,7 @@ import { t, type MessageKey } from "@/i18n"
 import { useEffect, useRef, useState } from "react"
 
 import { useCatNames } from "@/office/cat-names"
-import { TOOL_BUTTON } from "@/office/office-capture"
+import { TOOL_BUTTON, ToggleMark } from "@/office/office-capture"
 import { familyColor } from "@/office/office-draw"
 import { coatFor, drawCat } from "@/office/sprites"
 import type { SessionAgent } from "@/lib/agent-office"
@@ -161,6 +161,7 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
         aria-pressed={open}
         onClick={() => setOpen((value) => !value)}
       >
+        <ToggleMark on={open} />
         {t("book.button")}
       </button>
       {open ? (
