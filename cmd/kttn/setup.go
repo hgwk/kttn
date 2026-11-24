@@ -26,7 +26,7 @@ type machine struct {
 	exe     string // the running kttn binary
 	home    string
 	service autostart.Service
-	onPath  func() (string, bool) // where `kttn` resolves on the PATH
+	onPath  func() (string, bool) // where `kttn` is on the PATH, links not followed
 	open    func(url string)
 	ready   func(url string) bool
 }
@@ -57,8 +57,8 @@ func realMachine() (machine, error) {
 			if err != nil {
 				return "", false
 			}
-			resolved, err := filepath.EvalSymlinks(found)
-			return resolved, err == nil
+			abs, err := filepath.Abs(found)
+			return abs, err == nil
 		},
 		open: func(url string) { _ = openPrivately(url) },
 		ready: func(url string) bool {
@@ -86,6 +86,16 @@ func toolDirs(tools ...string) []string {
 		}
 	}
 	return dirs
+}
+
+func sameFile(a, b string) bool {
+	if ra, err := filepath.EvalSymlinks(a); err == nil {
+		a = ra
+	}
+	if rb, err := filepath.EvalSymlinks(b); err == nil {
+		b = rb
+	}
+	return a == b
 }
 
 // absPath makes a config or state path absolute, for a hook or service that
@@ -147,9 +157,13 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 	if err != nil {
 		return err
 	}
+	// The hook runs this binary by its full path: a bare `kttn` would run
+	// whichever kttn comes first on the PATH, maybe one too old for the
+	// --config flag. When this binary is what the PATH finds, the PATH's own
+	// entry (say a Homebrew link) is used, so an upgrade carries the hook.
 	command := claudehooks.CommandFor(exe)
-	if found, ok := m.onPath(); ok && found == exe {
-		command = claudehooks.Command
+	if found, ok := m.onPath(); ok && sameFile(found, exe) {
+		command = claudehooks.CommandFor(found)
 	}
 	command = claudehooks.WithConfig(command, absPath(path))
 	settings := claudehooks.SettingsPath()

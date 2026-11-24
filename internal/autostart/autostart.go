@@ -140,6 +140,20 @@ func (s Service) Restart() (bool, error) {
 	return err == nil, err
 }
 
+// Mentions reports whether the registered service file holds value as
+// Register would have written it (XML-escaped in a plist, quoted in a unit).
+func (s Service) Mentions(value string) bool {
+	raw, err := os.ReadFile(s.Path())
+	if err != nil {
+		return false
+	}
+	written := xmlText(value)
+	if s.GOOS != "darwin" {
+		written = strings.Trim(systemdQuote(value), `"`)
+	}
+	return strings.Contains(string(raw), written)
+}
+
 // Remove stops the service and deletes its file. It reports whether there
 // was one.
 func (s Service) Remove() (bool, error) {

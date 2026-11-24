@@ -89,16 +89,25 @@ func TestSetupDoesEverythingOnceAndAgainWithoutAsking(t *testing.T) {
 	}
 }
 
-func TestSetupUsesThePlainCommandWhenKttnIsOnThePath(t *testing.T) {
+// A Homebrew-style link on the PATH is what the hook runs, by its full path:
+// an upgrade moves the link, and an older kttn earlier on the PATH is never
+// picked instead.
+func TestSetupRunsTheHookThroughThePathsLinkByItsFullPath(t *testing.T) {
 	m, _, _ := fakeMachine(t)
-	m.exe = filepath.Join(t.TempDir(), "kttn")
-	m.onPath = func() (string, bool) { return m.exe, true }
+	dir := t.TempDir()
+	m.exe = filepath.Join(dir, "Cellar", "kttn", "0.2.4", "kttn")
+	os.MkdirAll(filepath.Dir(m.exe), 0o755)
+	os.WriteFile(m.exe, []byte("binary"), 0o755)
+	link := filepath.Join(dir, "bin", "kttn")
+	os.MkdirAll(filepath.Dir(link), 0o755)
+	os.Symlink(m.exe, link)
+	m.onPath = func() (string, bool) { return link, true }
 	var out bytes.Buffer
 	if err := runSetup(strings.NewReader("Lab\n\n"), &out, m); err != nil {
 		t.Fatal(err)
 	}
 	settings, _ := os.ReadFile(claudehooks.SettingsPath())
-	if !strings.Contains(string(settings), `"command": "kttn hook --config '`+config.Path()+`'"`) {
+	if !strings.Contains(string(settings), `"command": "'`+link+`' hook --config '`+config.Path()+`'"`) {
 		t.Fatalf("settings:\n%s", settings)
 	}
 	if _, err := os.Stat(filepath.Join(m.home, ".local", "bin", "kttn")); err == nil {

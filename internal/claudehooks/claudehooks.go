@@ -40,13 +40,25 @@ func shellQuote(word string) string {
 // quoted path) running `hook`, with or without a pinned config.
 var ourCommand = regexp.MustCompile(`^(.+) hook( --config '([^']|'\\'')*')?$`)
 
-// ours recognises a command Install wrote, in any form it ever wrote.
+// quotedWord is one word shellQuote wrote.
+var quotedWord = regexp.MustCompile(`^'(([^']|'\\'')*)'$`)
+
+// ours recognises a command Install wrote, in any form it ever wrote. The
+// program must be one word, quoted the way shellQuote quotes or plain with
+// nothing the shell would act on, so a user's own `x && kttn hook` line is
+// never taken for ours.
 func ours(command string) bool {
 	match := ourCommand.FindStringSubmatch(command)
 	if match == nil {
 		return false
 	}
-	return filepath.Base(strings.Trim(match[1], "'\"")) == "kttn"
+	exe := match[1]
+	if quoted := quotedWord.FindStringSubmatch(exe); quoted != nil {
+		exe = strings.ReplaceAll(quoted[1], `'\''`, "'")
+	} else if strings.ContainsAny(exe, " \t;&|$`<>()'\"\\*?") {
+		return false
+	}
+	return filepath.Base(exe) == "kttn"
 }
 
 // Events are the hook events the office understands, the same list the plugin

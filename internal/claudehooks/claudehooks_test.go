@@ -196,14 +196,15 @@ func TestAPinnedConfigReplacesEveryEarlierFormAndOnlyThose(t *testing.T) {
 	if pinned != `'/Users/me/.local/bin/kttn' hook --config '/Users/me/xdg/it'\''s/kttn/config.json'` {
 		t.Fatalf("command %q", pinned)
 	}
-	for _, earlier := range []string{Command, CommandFor("/opt/kttn"), WithConfig(Command, "/a b/config.json")} {
+	for _, earlier := range []string{Command, CommandFor("/opt/kttn"), CommandFor("/Users/o'neil/bin/kttn"), "/usr/local/bin/kttn hook", WithConfig(Command, "/a b/config.json")} {
 		InstallCommand(path, earlier)
 		InstallCommand(path, pinned)
 		if stop := hooksOf(t, path)["Stop"]; len(stop) != 1 || stop[0].Hooks[0].Command != pinned {
 			t.Fatalf("after %q: %+v", earlier, stop)
 		}
 	}
-	for _, other := range []string{"kttn hook --config /x; rm -rf ~", "kttn hook --verbose", "kttn hook --config 'a' 'b'"} {
+	for _, other := range []string{"kttn hook --config /x; rm -rf ~", "kttn hook --verbose", "kttn hook --config 'a' 'b'",
+		"x && /opt/y/kttn hook", "cd /tmp; kttn hook", "'a' 'b/kttn' hook", "$HOME/kttn hook", "echo hi | kttn hook"} {
 		if ours(other) {
 			t.Errorf("%q taken for ours", other)
 		}

@@ -139,3 +139,20 @@ func TestTheServiceFindsTmuxWhereSetupFoundItAndKeepsSetupsConfig(t *testing.T) 
 		t.Errorf("unit:\n%s", unit)
 	}
 }
+
+func TestMentionsReadsTheValueTheWayRegisterWroteIt(t *testing.T) {
+	odd := "/Users/me/R&D 100%/kttn/config.json"
+	for _, goos := range []string{"darwin", "linux"} {
+		s := Service{GOOS: goos, Home: t.TempDir(), UID: 501, Run: (&recorder{}).run, Env: map[string]string{"KTTN_CONFIG": odd}}
+		if s.Mentions(odd) {
+			t.Fatalf("%s: nothing registered yet", goos)
+		}
+		bootstrapWait = 0
+		if err := s.Register("/k"); err != nil {
+			t.Fatal(err)
+		}
+		if !s.Mentions(odd) || s.Mentions("/Users/me/other/config.json") {
+			t.Errorf("%s: wrong answer", goos)
+		}
+	}
+}

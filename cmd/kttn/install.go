@@ -19,7 +19,14 @@ const version = "0.2.4"
 func runInstall(out io.Writer) error {
 	path := claudehooks.SettingsPath()
 	_, statErr := os.Stat(path)
-	n, err := claudehooks.InstallCommand(path, claudehooks.WithConfig(claudehooks.Command, absPath(config.Path())))
+	// The kttn the PATH finds now, by its full path, so a different kttn
+	// earlier on some later PATH is never run instead.
+	command := claudehooks.Command
+	found, lookErr := exec.LookPath("kttn")
+	if lookErr == nil {
+		command = claudehooks.CommandFor(absPath(found))
+	}
+	n, err := claudehooks.InstallCommand(path, claudehooks.WithConfig(command, absPath(config.Path())))
 	if err != nil {
 		return err
 	}
@@ -27,7 +34,7 @@ func runInstall(out io.Writer) error {
 	if statErr == nil {
 		fmt.Fprintln(out, "The previous file is kept as settings.json.bak.")
 	}
-	if _, err := exec.LookPath("kttn"); err != nil {
+	if lookErr != nil {
 		fmt.Fprintln(out, "Note: `kttn` is not on your PATH, so the hook will not run. Install with `npm i -g @hgwk/kttn` or put the binary on your PATH.")
 	}
 	fmt.Fprintln(out, "If you also installed the kttn plugin, remove one of the two.")
