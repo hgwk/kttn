@@ -1,0 +1,146 @@
+// Package server is `kttn serve`: it receives hook events and automation
+// reports, and serves the office's state and screen, on this computer only.
+package server
+
+import (
+	"crypto/subtle"
+	"encoding/json"
+	"io"
+	"net/http"
+	"time"
+
+	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/terminal"
+)
+
+// maxEventBytes bounds one hook or automation body; both carry short labels.
+const maxEventBytes = 4096
+
+// Settings are the onboarding values the screen shows.
+type Settings struct {
+	OfficeName string `json:"officeName"`
+	HomeRepo   string `json:"homeRepo"`
+	Lang       string `json:"lang"`
+	// Configured is false until `kttn init` has run; the screen then shows how.
+	Configured bool `json:"configured"`
+}
+
+// Options configures a server.
+type Options struct {
+	Store       *office.Store
+	Automations *office.Automations
+	Settings    Settings
+	// Token, when set, must arrive as "Authorization: Bearer <token>".
+	Token string
+	// StatePath is the restart file; empty keeps state in memory only.
+	StatePath string
+	Now       func() time.Time
+	// Focus brings a Claude Code process's terminal tab forward.
+	Focus func(pid int) error
+	// Send types a message into a session's input.
+	Send func(pid int, state, text string) error
+}
+
+// Snapshot is what the screen polls.
+type Snapshot struct {
+	Agents      []office.Agent      `json:"agents"`
+	Automations []office.Automation `json:"automations"`
+	Settings    Settings            `json:"settings"`
+	GeneratedAt string              `json:"generatedAt"`
+}
+
+// New builds the handler and loads saved sessions.
+func New(opts Options) http.Handler {
+	if opts.Now == nil {
+		opts.Now = time.Now
+	}
+	if opts.Focus == nil {
+		opts.Focus = func(int) error { return terminal.ErrNoTab }
+	}
+	if opts.Send == nil {
+		opts.Send = func(int, string, string) error { return terminal.ErrNoTab }
+	}
+	if opts.Automations == nil {
+		opts.Automations = office.NewAutomations(opts.Now)
+	}
+	state := &stateFile{path: opts.StatePath, store: opts.Store}
+	state.load()
+	mux := http.NewServeMux()
+	mux.HandleFunc("POST /api/events", func(w http.ResponseWriter, r *http.Request) {
+		body, ok := reportBody(w, r, opts.Token)
+		if !ok {
+			return
+		}
+		event, err := office.ParseEvent(body)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
+		agent := opts.Store.Apply(event)
+		state.schedule()
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
+	})
+	mux.HandleFunc("POST /api/automation", func(w http.ResponseWriter, r *http.Request) {
+		body, ok := reportBody(w, r, opts.Token)
+		if !ok {
+			return
+		}
+		run, err := office.ParseAutomation(body, opts.Now())
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
+		opts.Automations.Record(run)
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
+	})
+	mux.HandleFunc("GET /api/snapshot", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, http.StatusOK, Snapshot{
+			Agents:      opts.Store.Snapshot(),
+			Automations: opts.Automations.Snapshot(),
+			Settings:    opts.Settings,
+			GeneratedAt: opts.Now().UTC().Format("2006-01-02T15:04:05.000Z"),
+		})
+	})
+	mux.HandleFunc("POST /api/focus", focusHandler(opts))
+	mux.HandleFunc("POST /api/message", messageHandler(opts))
+	mux.Handle("GET /", staticHandler())
+	return withLoopback(mux)
+}
+
+// reportBody admits a report from a local program (the hook, an automation)
+// and decodes it. It writes the refusal itself when it says no.
+func reportBody(w http.ResponseWriter, r *http.Request, token string) (any, bool) {
+	if !hookRequest(r) {
+		writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
+		return nil, false
+	}
+	if token != "" {
+		want := []byte("Bearer " + token)
+		if subtle.ConstantTimeCompare([]byte(r.Header.Get("Authorization")), want) != 1 {
+			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "bad token"})
+			return nil, false
+		}
+	}
+	raw, err := io.ReadAll(io.LimitReader(r.Body, maxEventBytes+1))
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unreadable body"})
+		return nil, false
+	}
+	if len(raw) > maxEventBytes {
+		writeJSON(w, http.StatusRequestEntityTooLarge, map[string]string{"error": "body too large"})
+		return nil, false
+	}
+	var body any
+	if json.Unmarshal(raw, &body) != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid JSON body"})
+		return nil, false
+	}
+	return body, true
+}
+
+func writeJSON(w http.ResponseWriter, status int, value any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(value)
+}
