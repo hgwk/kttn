@@ -1,3 +1,4 @@
+import { t } from "@/i18n"
 import {
   useRef,
   useSyncExternalStore,
@@ -118,7 +119,7 @@ export function Movable({
   item,
   axis = "xy",
   className,
-  title = "끌어서 옮기기 · 두 번 누르면 제자리",
+  title,
   children,
 }: {
   room: string
@@ -247,7 +248,7 @@ export function Movable({
     <span
       className={className}
       data-movable=""
-      title={title}
+      title={title ?? t("props.moveHint")}
       style={{
         display: "block",
         cursor: "grab",

@@ -1,3 +1,4 @@
+import { t } from "@/i18n"
 import { useEffect, type DragEvent } from "react"
 
 import { Prop } from "@/office/lounge"
@@ -116,16 +117,16 @@ export function PropPalette() {
     >
       <h3
         id="office-props"
-        title="끌어서 휴게 공간이나 위쪽 벽에 놓기"
+        title={t("props.paletteHint")}
         className="inline-flex w-fit items-center gap-1.5 bg-[#2b2a36] px-1.5 py-px text-xs text-[#f7f2e8]"
       >
         <PixelIcon name="plant" />
-        소품
+        {t("props.title")}
       </h3>
       <div className="grid content-start gap-2 border-2 border-[#2b2a36] bg-[#f4efe6] p-2">
         {[
-          { label: "벽에 걸기", names: HANG },
-          { label: "바닥에 두기", names: FLOOR },
+          { label: t("props.wall"), names: HANG },
+          { label: t("props.floor"), names: FLOOR },
         ].map((group) => (
           <div key={group.label} className="grid gap-1">
             <p className="text-[10px] text-[#2b2a36]">{group.label}</p>
@@ -164,7 +165,7 @@ export function AddedProps({ room }: { room: string }) {
         item={key}
         axis={hang ? "x" : "xy"}
         className="absolute top-0 left-0 z-10"
-        title="끌어서 옮기기 · 두 번 누르면 치우기"
+        title={t("props.addedHint")}
       >
         <Prop name={name} wall={hang} />
       </Movable>
