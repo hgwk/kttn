@@ -1,3 +1,4 @@
+import { useMessagesOn } from "@/office/messages-setting"
 import { apiFetch } from "@/lib/screen-key"
 import { useState, type CSSProperties, type ReactNode } from "react"
 
@@ -72,8 +73,10 @@ export function CatMessage({
   const [text, setText] = useState("")
   const [note, setNote] = useState("")
   const [sending, setSending] = useState(false)
-  const blocked =
-    agent.state === "needs_you"
+  const messagesOn = useMessagesOn()
+  const blocked = !messagesOn
+    ? t("action.messagesOff")
+    : agent.state === "needs_you"
       ? t("action.blockedNeedsYou")
       : agent.state === "ended"
         ? t("action.blockedEnded")

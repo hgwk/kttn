@@ -196,6 +196,7 @@ export const ko = {
   "action.failed": "실패했습니다",
   "action.openTab": "{name} 탭으로 이동",
   "action.openTabTitle": "{name}에게 집사가 가서 터미널 탭을 엽니다",
+  "action.messagesOff": "메시지 보내기는 꺼져 있습니다. 켜려면 터미널에서 kttn init을 실행하세요.",
   "action.blockedNeedsYou": "확인 창이 떠 있어 지금은 보낼 수 없습니다. 터미널에서 먼저 답해 주세요.",
   "action.blockedEnded": "퇴근한 세션이라 보낼 수 없습니다.",
   "action.sendFailedBecause": "보내지 못했습니다: {reason}",

@@ -64,7 +64,7 @@ func TestFocusTakesOnlyScreenClicksAndReportsWhatHappened(t *testing.T) {
 func TestMessagesGoToTheSessionUnderTheSameGuard(t *testing.T) {
 	store := office.NewStore(time.Now, func(int) bool { return true })
 	var got []string
-	h := New(Options{Store: store, Send: func(pid int, state, text string) error {
+	h := New(Options{Store: store, Settings: Settings{Messages: true}, Send: func(pid int, state, text string) error {
 		got = append(got, state+":"+text)
 		if state == "needs_you" {
 			return terminal.ErrNotReady
@@ -89,5 +89,23 @@ func TestMessagesGoToTheSessionUnderTheSameGuard(t *testing.T) {
 	post(h, "127.0.0.1", jsonType, `{"source":"claude","session":"s1","event":"PermissionRequest"}`)
 	if code := send("http://127.0.0.1:5886", `{"key":"claude|s1","text":"yes"}`); code != 409 {
 		t.Fatalf("waiting session: %d", code)
+	}
+}
+
+func TestMessagesAreOffUnlessTurnedOn(t *testing.T) {
+	store := office.NewStore(time.Now, func(int) bool { return true })
+	sent := 0
+	h := New(Options{Store: store, Send: func(int, string, string) error { sent++; return nil }})
+	post(h, "127.0.0.1", jsonType, `{"source":"claude","session":"s1","event":"Stop","pid":4242}`)
+	req := httptest.NewRequest(http.MethodPost, "http://127.0.0.1:5886/api/message", strings.NewReader(`{"key":"claude|s1","text":"hi"}`))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Origin", "http://127.0.0.1:5886")
+	rec := httptest.NewRecorder()
+	h.ServeHTTP(rec, req)
+	if rec.Code != 403 || sent != 0 || !strings.Contains(rec.Body.String(), "kttn init") {
+		t.Fatalf("messages off: %d %q sent %d", rec.Code, rec.Body.String(), sent)
+	}
+	if body := get(h, "127.0.0.1", "/api/snapshot").Body.String(); !strings.Contains(body, `"messages":false`) {
+		t.Fatalf("snapshot does not tell the screen: %s", body)
 	}
 }

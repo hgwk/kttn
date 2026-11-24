@@ -31,6 +31,9 @@ type Config struct {
 	ScreenKey string `json:"screen_key,omitempty"`
 	// Preview lets Stop carry the opening of the answer to the screen.
 	Preview bool `json:"preview"`
+	// Messages lets the screen type into a session's input from its speech
+	// bubble. Off unless the user turns it on.
+	Messages bool `json:"messages"`
 	// EmbedOrigins are the pages allowed to show the office in an iframe,
 	// besides the office itself. None by default.
 	EmbedOrigins *[]string `json:"embed_origins,omitempty"`

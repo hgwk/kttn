@@ -97,9 +97,13 @@ func focusHandler(opts Options) http.HandlerFunc {
 }
 
 // messageHandler types the speech-bubble message into the session's input.
-// The text is never logged.
+// It is off unless the user turned messages on. The text is never logged.
 func messageHandler(opts Options) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !opts.Settings.Messages {
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": "messages are off; turn them on with kttn init"})
+			return
+		}
 		// A Hangul character is three bytes in UTF-8; Send counts characters.
 		if agent, body, ok := actionTarget(w, r, opts.Store, terminal.MaxMessage*4+512); ok {
 			terminalStatus(w, opts.Send(agent.PID, agent.State, body.Text))

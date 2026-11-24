@@ -93,6 +93,7 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 		if cfg.Lang != "" && cfg.Lang != "ko" && cfg.Lang != "en" && cfg.Lang != "ja" {
 			return fmt.Errorf("language %q is not ko, en or ja", cfg.Lang)
 		}
+		askMessages(&ask, &cfg)
 		if cfg.Port = config.PickPort(cfg.Port, false); cfg.Port == 0 {
 			return fmt.Errorf("no free port from %d upward", config.DefaultPort)
 		}

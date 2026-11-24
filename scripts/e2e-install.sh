@@ -54,9 +54,16 @@ fi
 pass "isolation: temp HOME, CLAUDE_CONFIG_DIR, KTTN_CONFIG/STATE, npm dirs, stub launchctl first on PATH"
 
 # --- install: the one-command setup -----------------------------------------
-cat > "$T/claude/settings.json" <<'EOF'
-{"model": "keep-me", "hooks": {"Stop": [{"hooks": [{"type": "command", "command": "echo other-tool"}]}]}}
+# settings.json is a symlink into a dotfiles folder, as many people keep it.
+mkdir -p "$T/dotfiles"
+cat > "$T/dotfiles/claude-settings.json" <<'EOF'
+{
+    "model": "keep-me",
+    "hooks": {"Stop": [{"hooks": [{"type": "command", "command": "echo other-tool"}]}]}
+}
 EOF
+cp "$T/dotfiles/claude-settings.json" "$T/original-settings.json"
+ln -s "$T/dotfiles/claude-settings.json" "$T/claude/settings.json"
 START=$(date +%s)
 if [ "$WANT" = local ]; then
   (cd "$REPO/web" && npm ci --no-audit --no-fund >/dev/null 2>&1 && npm run build >/dev/null 2>&1) \
@@ -66,7 +73,7 @@ if [ "$WANT" = local ]; then
 else
   run_setup() { (cd "$T/work" && npx -y "@hgwk/kttn@$WANT"); }
 fi
-printf 'E2E Office\nen\n' | run_setup > "$T/setup1.log" 2>&1
+printf 'E2E Office\nen\nn\n' | run_setup > "$T/setup1.log" 2>&1
 check "setup: first run finishes and names the office address" "grep -q 'The office is at' '$T/setup1.log'" "see setup output"
 [ "$WANT" = local ] || KTTN="$T/home/.local/bin/kttn"
 check "setup: npx binary copied to a stable path" "[ -x '$KTTN' ]"
@@ -80,7 +87,7 @@ echo "      under test: $VERSION"
 CFG=$KTTN_CONFIG
 check "config: written with mode 600" "[ \"\$(stat -f %Lp '$CFG' 2>/dev/null || stat -c %a '$CFG')\" = 600 ]"
 check "config: office name and language from stdin" "[ \"\$(json '$CFG' 'd.office_name+\"/\"+d.lang')\" = '\"E2E Office/en\"' ]"
-check "config: token present, answer preview off" "json '$CFG' 'd.token.length>=32 && d.preview===false' | grep -q true"
+check "config: token and screen key present, answer preview and messages off" "json '$CFG' 'd.token.length>=32 && d.screen_key.length>=32 && d.preview===false && d.messages===false' | grep -q true"
 PORT=$(json "$CFG" 'd.port')
 TOKEN=$(json "$CFG" 'd.token' | tr -d '"')
 SKEY=$(json "$CFG" 'd.screen_key||""' | tr -d '"')
@@ -92,6 +99,8 @@ S="$CLAUDE_CONFIG_DIR/settings.json"
 EVENTS=$(json "$REPO/plugin/hooks/hooks.json" 'Object.keys(d.hooks).sort().join(",")')
 check "hooks: settings.json has exactly the plugin's 24 events with one kttn entry each" \
   "[ \"\$(json '$S' 'Object.keys(d.hooks).sort().join(\",\")')\" = '$EVENTS' ] && json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook\$/.test(e.hooks[0].command)).length===1)' | grep -q true"
+check "hooks: a symlinked settings.json stays a link, written through to its target" "[ -L '$S' ] && grep -q 'kttn' '$T/dotfiles/claude-settings.json'"
+check "hooks: the original settings kept as .bak, with its indentation" "cmp -s '$T/original-settings.json' '$T/dotfiles/claude-settings.json.bak' && grep -q '^    \"model\"' '$T/dotfiles/claude-settings.json'"
 check "hooks: other keys and other tools' hooks kept" \
   "json '$S' 'd.model===\"keep-me\" && d.hooks.Stop.some(e=>e.hooks[0].command===\"echo other-tool\")' | grep -q true"
 
@@ -100,6 +109,7 @@ UNIT="$HOME/.config/systemd/user/kttn.service"
 if [ "$(uname)" = Darwin ]; then
   check "autostart: LaunchAgent plist names the label, binary + serve, and the log" \
     "grep -q '<string>io.github.hgwk.kttn</string>' '$PLIST' && grep -q -e '<string>$KTTN</string>' -e '<string>$KTTN_SEEN</string>' '$PLIST' && grep -q '<string>serve</string>' '$PLIST' && grep -q '.local/state/kttn/serve.log' '$PLIST'"
+  check "autostart: the service PATH includes Homebrew" "grep -q '<string>/opt/homebrew/bin:' '$PLIST'"
   check "autostart: stub launchctl saw bootout then bootstrap" \
     "grep -n 'launchctl' '$T/stub.log' | head -2 | tr '\n' ' ' | grep -q 'bootout.*bootstrap'"
 else
@@ -110,6 +120,7 @@ check "setup: stub opened the office with the screen key" "[ -n '$SKEY' ] && gre
 
 printf '' | run_setup > "$T/setup2.log" 2>&1
 check "rerun: asks nothing and keeps the token" "! grep -q 'Office name' '$T/setup2.log' && [ \"\$(json '$CFG' 'd.token' | tr -d '\"')\" = '$TOKEN' ]"
+check "rerun: the original .bak is not replaced" "cmp -s '$T/original-settings.json' '$T/dotfiles/claude-settings.json.bak'"
 check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook\$/.test(e.hooks[0].command)).length===1)' | grep -q true"
 
 # --- a real signal ----------------------------------------------------------
@@ -183,14 +194,32 @@ check "privacy: no prompt or answer text reached the server" "! grep -q '$SECRET
 for p in / /manifest.webmanifest /icons/office-icon-192.png /icons/office-icon-512.png /icons/office-icon-maskable-512.png; do
   check "screen: GET $p is 200" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT$p)\" = 200 ]"
 done
-check "screen: frame-ancestors header" "curl -sI http://127.0.0.1:$PORT/ | grep -qi \"content-security-policy: frame-ancestors 'self'\""
+check "screen: frame-ancestors is the office itself only by default" "curl -sI http://127.0.0.1:$PORT/ | tr -d '\r' | grep -qix \"content-security-policy: frame-ancestors 'self'\""
 check "screen: a foreign Host is refused" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: evil.example' http://127.0.0.1:$PORT/)\" = 403 ]"
 check "screen: an event without the token is refused" \
   "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:$PORT/api/events)\" = 401 ]"
 
+msg() { curl -s -o /dev/null -w '%{http_code}' -H "$KH" -H "Origin: http://127.0.0.1:$PORT" -H 'Content-Type: application/json' -d '{"key":"claude|no-such-session","text":"hi"}' "http://127.0.0.1:$PORT/api/message"; }
+check "messages: off by default, a keyed message is refused with 403" "[ \"\$(msg)\" = 403 ]"
+kill "$SERVE_PID" 2>/dev/null; SERVE_PID=""
+"$KTTN" init --yes --messages >/dev/null 2>&1
+"$KTTN" serve > "$T/serve2.log" 2>&1 &
+SERVE_PID=$!
+for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf -H "$KH" "http://127.0.0.1:$PORT/api/snapshot" >/dev/null && break; sleep 0.3; done
+check "messages: after kttn init --messages the gate opens (unknown session gets 404, not 403)" "[ \"\$(msg)\" = 404 ]"
 kill "$SERVE_PID" 2>/dev/null; SERVE_PID=""
 else
   SIGNAL=skipped
+fi
+
+# --- npm -g -------------------------------------------------------------------
+# A global install runs setup from node_modules; hooks and the service must
+# end up on the stable copy, not inside npm's tree.
+if [ "$WANT" != local ]; then
+  npm i -g "@hgwk/kttn@$WANT" >/dev/null 2>&1
+  (cd "$T/work" && "$T/npm-prefix/bin/kttn" setup) > "$T/setup-global.log" 2>&1
+  check "npm -g: hooks and the login service do not point into node_modules" \
+    "! grep -q node_modules '$S' && ! grep -q node_modules '$PLIST' '$UNIT' 2>/dev/null && grep -q '.local/bin/kttn' '$S'"
 fi
 
 # --- removal ------------------------------------------------------------------

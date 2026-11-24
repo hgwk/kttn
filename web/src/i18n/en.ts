@@ -196,6 +196,7 @@ export const en: Record<MessageKey, string> = {
   "action.failed": "Failed",
   "action.openTab": "Open {name}'s tab",
   "action.openTabTitle": "The butler walks to {name} and opens its terminal tab",
+  "action.messagesOff": "Sending messages is off. Turn it on with kttn init in a terminal.",
   "action.blockedNeedsYou": "A prompt is open, so this can't be sent now. Answer it in the terminal first.",
   "action.blockedEnded": "This session has gone home, so this can't be sent.",
   "action.sendFailedBecause": "Not sent: {reason}",

@@ -163,7 +163,7 @@ worktree creation.
 | Command | What it does |
 | --- | --- |
 | `kttn` or `kttn setup` | One-command setup: office name and language on the first run, Claude Code hooks, start at login, open the office. |
-| `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
+| `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
 | `kttn serve [--port N]` | Runs the office on `127.0.0.1`. |
 | `kttn hook [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. |
 | `kttn install` | Adds the hook to Claude Code's user settings, for use without the plugin. |
@@ -183,7 +183,9 @@ browser, and falls back to English.
 
 Click a cat and the butler walks over and brings that session's terminal tab to
 the front. Click its speech bubble to type a message into the session's input;
-Enter is pressed for you.
+Enter is pressed for you. **Messages are off by default:** setup asks once, and
+`kttn init` (or `kttn init --yes --messages`) turns them on; while they are off
+the server refuses them with 403 and the bubble only says how to turn them on.
 
 kttn finds the tab from the session's process: process → tty → the terminal
 pane on that tty. It tries, in order:

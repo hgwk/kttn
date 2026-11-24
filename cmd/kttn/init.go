@@ -27,10 +27,11 @@ func runInit(args []string, in io.Reader, out io.Writer) error {
 	lang := fs.String("lang", cfg.Lang, "screen language: ko, en or ja (empty follows the browser)")
 	port := fs.Int("port", cfg.Port, "port for kttn serve")
 	preview := fs.Bool("preview", cfg.Preview, "show the opening of each finished answer")
+	messages := fs.Bool("messages", cfg.Messages, "let the screen type into a session from its speech bubble")
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	cfg.OfficeName, cfg.Lang, cfg.Port, cfg.Preview = *name, *lang, *port, *preview
+	cfg.OfficeName, cfg.Lang, cfg.Port, cfg.Preview, cfg.Messages = *name, *lang, *port, *preview, *messages
 
 	if !*yes {
 		ask := prompter{in: bufio.NewReader(in), out: out}
@@ -40,6 +41,7 @@ func runInit(args []string, in io.Reader, out io.Writer) error {
 		fmt.Fprintln(out, "Answer preview sends the first 300 characters of each finished answer to the")
 		fmt.Fprintln(out, "office screen on this computer. Prompts and file contents are never sent.")
 		cfg.Preview = ask.yesNo("Show answer previews?", cfg.Preview)
+		askMessages(&ask, &cfg)
 	}
 	if cfg.Lang != "" && cfg.Lang != "ko" && cfg.Lang != "en" && cfg.Lang != "ja" {
 		return fmt.Errorf("language %q is not ko, en or ja", cfg.Lang)
@@ -114,4 +116,11 @@ func (p prompter) yesNo(question string, current bool) bool {
 		return false
 	}
 	return current
+}
+
+// askMessages explains and asks for typing from the screen; off by default.
+func askMessages(ask *prompter, cfg *config.Config) {
+	fmt.Fprintln(ask.out, "Messages let you click a cat's speech bubble and type into that session's")
+	fmt.Fprintln(ask.out, "input; Enter is pressed for you. Off by default.")
+	cfg.Messages = ask.yesNo("Allow messages from the screen?", cfg.Messages)
 }

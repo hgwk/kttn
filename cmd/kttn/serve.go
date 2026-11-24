@@ -51,6 +51,7 @@ func runServe(args []string, stderr io.Writer) error {
 		Settings: server.Settings{
 			OfficeName: cfg.OfficeName,
 			Lang:       cfg.Lang,
+			Messages:   cfg.Messages,
 			Configured: found,
 		},
 	})

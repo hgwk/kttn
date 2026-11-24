@@ -11,6 +11,8 @@ export type OfficeSettings = {
   lang: string
   /** kttn init을 마쳤는지. 아니면 화면이 설정 안내를 보인다. */
   configured: boolean
+  /** 말풍선에서 세션에 메시지를 보낼 수 있는지(기본 꺼짐) */
+  messages: boolean
 }
 
 export type ServerSnapshot = OfficeSnapshot & { settings: OfficeSettings }
@@ -33,6 +35,7 @@ export function readSnapshot(raw: unknown): ServerSnapshot {
       officeName: text(settings.officeName),
       lang: text(settings.lang),
       configured: settings.configured === true,
+      messages: settings.messages === true,
     },
   }
 }

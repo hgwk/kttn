@@ -1,3 +1,4 @@
+import { MessagesContext } from "@/office/messages-setting"
 import { useEffect, useState } from "react"
 
 import { pickLang, setLang, t } from "@/i18n"
@@ -36,7 +37,9 @@ export function App() {
     <main className="mx-auto grid max-w-[1600px] gap-4 p-4">
       {initial && !initial.settings.configured ? <OnboardingNote /> : null}
       {initial ? (
-        <AgentOfficeView initial={initial} />
+        <MessagesContext value={initial.settings.messages}>
+          <AgentOfficeView initial={initial} />
+        </MessagesContext>
       ) : (
         <p className="text-sm text-muted-foreground">
           {failed === "key"

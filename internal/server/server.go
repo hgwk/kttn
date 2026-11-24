@@ -20,6 +20,8 @@ const maxEventBytes = 4096
 type Settings struct {
 	OfficeName string `json:"officeName"`
 	Lang       string `json:"lang"`
+	// Messages says whether typing into a session from the screen is on.
+	Messages bool `json:"messages"`
 	// Configured is false until `kttn init` has run; the screen then shows how.
 	Configured bool `json:"configured"`
 }

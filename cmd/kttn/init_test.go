@@ -54,3 +54,31 @@ func TestInitWithYesTakesFlagsAndKeepsPreviewOff(t *testing.T) {
 		t.Fatal("unknown language accepted")
 	}
 }
+
+func TestInitAsksForMessagesAndYesKeepsThemOffUnlessFlagged(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	t.Setenv("KTTN_CONFIG", path)
+	var out bytes.Buffer
+	if err := runInit(nil, strings.NewReader("Lab\nen\n\nn\ny\n"), &out); err != nil {
+		t.Fatal(err)
+	}
+	if cfg, _, _ := config.Load(path); !cfg.Messages || !strings.Contains(out.String(), "Off by default") {
+		t.Fatalf("asked and answered yes: %+v", cfg)
+	}
+	if err := runInit([]string{"--yes"}, strings.NewReader(""), &out); err != nil {
+		t.Fatal(err)
+	}
+	if cfg, _, _ := config.Load(path); !cfg.Messages {
+		t.Fatal("--yes rerun dropped the earlier answer")
+	}
+	fresh := filepath.Join(t.TempDir(), "config.json")
+	t.Setenv("KTTN_CONFIG", fresh)
+	runInit([]string{"--yes"}, strings.NewReader(""), &out)
+	if cfg, _, _ := config.Load(fresh); cfg.Messages {
+		t.Fatal("--yes turned messages on")
+	}
+	runInit([]string{"--yes", "--messages"}, strings.NewReader(""), &out)
+	if cfg, _, _ := config.Load(fresh); !cfg.Messages {
+		t.Fatal("--messages did not turn them on")
+	}
+}

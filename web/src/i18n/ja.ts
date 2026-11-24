@@ -196,6 +196,7 @@ export const ja: Record<MessageKey, string> = {
   "action.failed": "失敗しました",
   "action.openTab": "{name} のタブを開く",
   "action.openTabTitle": "執事が {name} のところへ行き、ターミナルのタブを開きます",
+  "action.messagesOff": "メッセージ送信はオフです。ターミナルで kttn init を実行してオンにしてください。",
   "action.blockedNeedsYou": "確認ダイアログが開いているため今は送れません。先にターミナルで答えてください。",
   "action.blockedEnded": "退勤したセッションなので送れません。",
   "action.sendFailedBecause": "送れませんでした: {reason}",
