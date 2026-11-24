@@ -14,7 +14,7 @@ func TestCleanMessageDropsControlCharacters(t *testing.T) {
 }
 
 func TestSendRefusesWhatCouldGoWrong(t *testing.T) {
-	f := &fake{answers: map[string]string{"/bin/ps": "ttys003"}}
+	f := &fake{answers: map[string]string{"/bin/ps": "ttys003 claude"}}
 	cases := []struct {
 		state, text string
 		want        error
@@ -37,7 +37,7 @@ func TestSendRefusesWhatCouldGoWrong(t *testing.T) {
 func TestSendPastesThenPressesEnterInKaku(t *testing.T) {
 	submitDelay = 0
 	f := &fake{answers: map[string]string{
-		"/bin/ps":               "ttys003",
+		"/bin/ps":               "ttys003 claude",
 		kaku + " cli list":      `[{"pane_id":7,"tty_name":"/dev/ttys003"}]`,
 		kaku + " cli send-text": "",
 	}}
@@ -52,7 +52,7 @@ func TestSendPastesThenPressesEnterInKaku(t *testing.T) {
 func TestSendTypesLiterallyIntoTmux(t *testing.T) {
 	submitDelay = 0
 	f := &fake{answers: map[string]string{
-		"/bin/ps":         "ttys009",
+		"/bin/ps":         "ttys009 claude",
 		"tmux list-panes": "/dev/ttys009 %4",
 		"tmux send-keys":  "",
 	}}

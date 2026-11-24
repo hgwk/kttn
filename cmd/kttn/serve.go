@@ -30,7 +30,7 @@ func runServe(args []string, stderr io.Writer) error {
 		fmt.Fprintln(stderr, "kttn: no config yet; run `kttn init` to name the office and pair the hook")
 	}
 	handler := server.New(server.Options{
-		Store:        office.NewStore(time.Now, office.ProcessAlive),
+		Store:        office.NewStore(time.Now, office.NewClaudeCheck(nil)),
 		Token:        cfg.Token,
 		StatePath:    server.StatePath(),
 		EmbedOrigins: cfg.Embedders(),

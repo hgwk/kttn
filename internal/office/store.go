@@ -3,7 +3,6 @@ package office
 import (
 	"sort"
 	"sync"
-	"syscall"
 	"time"
 )
 
@@ -65,13 +64,6 @@ func (a *Agent) clone() Agent {
 		c.Moment = &m
 	}
 	return c
-}
-
-// ProcessAlive reports whether a process of this user still runs. A
-// permission error also means it exists.
-func ProcessAlive(pid int) bool {
-	err := syscall.Kill(pid, 0)
-	return err == nil || err == syscall.EPERM
 }
 
 // Store holds every session. It is safe for concurrent use.

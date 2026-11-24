@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,16 +28,22 @@ var (
 
 var ttyName = regexp.MustCompile(`^ttys?\d+$`)
 
-// TTY returns the controlling terminal of a process as /dev/ttysNNN.
+// TTY returns the controlling terminal of a Claude Code process as
+// /dev/ttysNNN. A pid that now belongs to another program (it was reused
+// after the session ended) is refused, so nothing is typed into it.
 func TTY(run Run, pid int) (string, error) {
 	if pid <= 1 {
 		return "", ErrNoProcess
 	}
-	out, err := run("/bin/ps", "-o", "tty=", "-p", strconv.Itoa(pid))
+	out, err := run("/bin/ps", "-o", "tty=,comm=", "-p", strconv.Itoa(pid))
 	if err != nil {
 		return "", ErrNoProcess
 	}
-	name := strings.TrimSpace(out)
+	fields := strings.Fields(out)
+	if len(fields) < 2 || !strings.Contains(filepath.Base(strings.Join(fields[1:], " ")), "claude") {
+		return "", ErrNoProcess
+	}
+	name := fields[0]
 	if !ttyName.MatchString(name) {
 		return "", ErrNoTab
 	}

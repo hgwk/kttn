@@ -39,7 +39,7 @@ const kaku = "/Applications/Kaku.app/Contents/MacOS/kaku"
 
 func TestFocusFindsTheKakuPaneByTheSessionsTTY(t *testing.T) {
 	f := &fake{answers: map[string]string{
-		"/bin/ps":                   "ttys003\n",
+		"/bin/ps":                   "ttys003 claude\n",
 		kaku + " cli list":          `[{"pane_id":1,"tty_name":"/dev/ttys001"},{"pane_id":7,"tty_name":"/dev/ttys003"}]`,
 		kaku + " cli activate-pane": "",
 		"/usr/bin/open -a Kaku":     "",
@@ -54,7 +54,7 @@ func TestFocusFindsTheKakuPaneByTheSessionsTTY(t *testing.T) {
 
 func TestTmuxWinsBecauseItsPaneSitsInsideAnotherTerminal(t *testing.T) {
 	f := &fake{answers: map[string]string{
-		"/bin/ps":                  "ttys009",
+		"/bin/ps":                  "ttys009 claude",
 		"tmux list-panes":          "/dev/ttys002 %1\n/dev/ttys009 %4\n",
 		"tmux select-window -t %4": "",
 		"tmux select-pane -t %4":   "",
@@ -69,7 +69,7 @@ func TestTmuxWinsBecauseItsPaneSitsInsideAnotherTerminal(t *testing.T) {
 
 func TestAppleScriptTerminalsGetTheTTYAsAnArgument(t *testing.T) {
 	f := &fake{answers: map[string]string{
-		"/bin/ps":            "ttys005",
+		"/bin/ps":            "ttys005 claude",
 		"/usr/bin/osascript": "none",
 	}}
 	if err := Focus(f.run, 4242); !errors.Is(err, ErrNoTab) {
@@ -87,7 +87,7 @@ func TestAppleScriptTerminalsGetTheTTYAsAnArgument(t *testing.T) {
 }
 
 func TestFocusRefusesSessionsWithoutAUsableProcess(t *testing.T) {
-	f := &fake{answers: map[string]string{"/bin/ps": "??"}}
+	f := &fake{answers: map[string]string{"/bin/ps": "?? claude"}}
 	if err := Focus(f.run, 0); !errors.Is(err, ErrNoProcess) {
 		t.Fatalf("pid 0: %v", err)
 	}
@@ -97,5 +97,25 @@ func TestFocusRefusesSessionsWithoutAUsableProcess(t *testing.T) {
 	f.answers["/bin/ps"] = "ERR"
 	if err := Focus(f.run, 4242); !errors.Is(err, ErrNoProcess) {
 		t.Fatalf("gone process: %v", err)
+	}
+}
+
+// A pid reused by another program after the session ended must never be
+// typed into or focused, even when it has a terminal.
+func TestAPidThatIsNoLongerClaudeIsRefused(t *testing.T) {
+	f := &fake{answers: map[string]string{
+		"/bin/ps":          "ttys003 -zsh",
+		kaku + " cli list": `[{"pane_id":7,"tty_name":"/dev/ttys003"}]`,
+		kaku + " cli":      "",
+		"/usr/bin/open":    "",
+	}}
+	if err := Focus(f.run, 4242); !errors.Is(err, ErrNoProcess) {
+		t.Fatalf("focus: %v", err)
+	}
+	if err := Send(f.run, 4242, "idle", "ls"); !errors.Is(err, ErrNoProcess) {
+		t.Fatalf("send: %v", err)
+	}
+	if f.ran(kaku) {
+		t.Fatalf("reached the terminal: %v", f.calls)
 	}
 }
