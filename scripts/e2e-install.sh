@@ -279,13 +279,8 @@ fi
 XC="$T/xdg-config" XS="$T/xdg-state"
 printf 'XDG Office\nen\nn\n' | (cd "$T/work" && env -u KTTN_CONFIG -u KTTN_STATE XDG_CONFIG_HOME="$XC" XDG_STATE_HOME="$XS" \
   CLAUDE_CONFIG_DIR="$T/claude-xdg" "$KTTN" setup) > "$T/setup-xdg.log" 2>&1
-if [ "$(uname)" = Darwin ]; then
-  check "xdg: the service is pinned to the XDG config and state setup wrote" \
-    "[ -f '$XC/kttn/config.json' ] && grep -A1 '<key>KTTN_CONFIG</key>' '$PLIST' | grep -q '$XC/kttn/config.json' && grep -A1 '<key>KTTN_STATE</key>' '$PLIST' | grep -q '$XS/kttn/sessions.json'"
-else
-  check "xdg: the service is pinned to the XDG config and state setup wrote" \
-    "[ -f '$XC/kttn/config.json' ] && grep -q 'KTTN_CONFIG=$XC/kttn/config.json' '$UNIT' && grep -q 'KTTN_STATE=$XS/kttn/sessions.json' '$UNIT'"
-fi
+SVC=$(cat "$PLIST" "$UNIT" 2>/dev/null)
+check "xdg: the service is pinned to the XDG config and state setup wrote" "[ -f '$XC/kttn/config.json' ] && echo \"\$SVC\" | grep -q '$XC/kttn/config.json' && echo \"\$SVC\" | grep -q '$XS/kttn/sessions.json'"
 
 # --- plugin path --------------------------------------------------------------
 if command -v claude >/dev/null 2>&1; then
