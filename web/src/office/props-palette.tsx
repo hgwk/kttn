@@ -73,11 +73,25 @@ const FLOOR_GROUPS = {
     "miniFridge",
     "coffeeMachine",
     "printer",
+    "microwave",
+    "electricKettle",
+    "robotVacuum",
+    "floorFan",
     "floorLamp",
     "heater",
     "radiator",
   ],
-  hobby: ["arcade", "piano", "guitar", "bicycle", "globe", "fishTank"],
+  hobby: [
+    "arcade",
+    "piano",
+    "guitar",
+    "recordPlayer",
+    "easel",
+    "telescope",
+    "bicycle",
+    "globe",
+    "fishTank",
+  ],
   plant: [
     "monstera",
     "plant",
@@ -99,7 +113,15 @@ const FLOOR_GROUPS = {
     "catFoodBag",
     "foodBowl",
   ],
-  misc: ["box", "giftBoxes", "laundryBasket", "trash"],
+  misc: [
+    "box",
+    "giftBoxes",
+    "laundryBasket",
+    "backpack",
+    "broom",
+    "stepLadder",
+    "trash",
+  ],
 } satisfies Record<string, ItemName[]>
 const MIME = "application/x-kttn-prop"
 const WALL_ROOM = "wall"
