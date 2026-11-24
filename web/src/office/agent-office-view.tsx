@@ -163,14 +163,14 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
       .filter((entry) => now - Date.parse(entry.at) < LEVEL_UP_MS)
       .map((entry) => entry.key)
   )
-  // 오늘 쓴 도구 수. 서버 도감의 하루 집계(day)가 있으면 그 합을, 없으면
-  // (이전 서버) 지금 있는 세션들의 누적 도구 수 합을 쓴다.
+  // 오늘 쓴 도구 수. 서버 도감이 있으면 하루 집계(day) 가운데 오늘 것의 합을
+  // 쓴다(오늘 기록이 없으면 0, 자정 직후 어제까지의 누적이 '오늘'로 보이지
+  // 않게). 도감이 없는 이전 서버에서만 지금 세션들의 누적 도구 수 합을 쓴다.
   const today = new Date(now).toLocaleDateString("sv")
-  const counted = (catalog?.cats ?? []).filter(
-    (cat) => cat.day?.date === today
-  )
-  const totalTools = counted.length
-    ? counted.reduce((sum, cat) => sum + (cat.day?.tools ?? 0), 0)
+  const totalTools = catalog
+    ? catalog.cats
+        .filter((cat) => cat.day?.date === today)
+        .reduce((sum, cat) => sum + (cat.day?.tools ?? 0), 0)
     : snapshot.agents.reduce((sum, agent) => sum + agent.toolCount, 0)
 
   return (
