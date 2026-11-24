@@ -86,11 +86,11 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
   const told = useRef(new Set<string>())
   // 지금 이름을 보내는 중인 세션(같은 이름을 겹쳐 보내지 않는다)
   const sending = useRef(new Set<string>())
-  // 초기화는 두 번 눌러야 한다(한 번 누르면 3초 동안 확인 단계)
+  // 초기화는 두 번 눌러야 한다(한 번 누르면 5초 동안 확인 단계)
   const [armed, setArmed] = useState(false)
   useEffect(() => {
     if (!armed) return
-    const timer = window.setTimeout(() => setArmed(false), 3000)
+    const timer = window.setTimeout(() => setArmed(false), 5000)
     return () => window.clearTimeout(timer)
   }, [armed])
   const clear = async () => {
