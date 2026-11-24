@@ -1,5 +1,5 @@
 import { t, type MessageKey } from "@/i18n"
-import { useEffect, type DragEvent } from "react"
+import { useEffect, useState, type DragEvent } from "react"
 
 import { Prop } from "@/office/lounge"
 import { OFFICE_SCALE } from "@/office/pixel"
@@ -43,54 +43,48 @@ const HANG: ItemName[] = [
   "wallTV",
   "airConditioner",
 ]
-const FLOOR: ItemName[] = [
-  "bookshelf",
-  "lockers",
-  "cabinet",
-  "vendingMachine",
-  "waterCooler",
-  "miniFridge",
-  "coffeeMachine",
-  "printer",
-  "whiteboard",
-  "arcade",
-  "piano",
-  "guitar",
-  "bicycle",
-  "sofa",
-  "bench",
-  "floorCushion",
-  "stool",
-  "teaTable",
-  "kotatsu",
-  "ottoman",
-  "beanBag",
-  "rug",
-  "floorLamp",
-  "heater",
-  "radiator",
-  "coatRack",
-  "umbrellaStand",
-  "globe",
-  "monstera",
-  "plant",
-  "snakePlant",
-  "ficus",
-  "cactus",
-  "fishTank",
-  "christmasTree",
-  "giftBoxes",
-  "catBed",
-  "catHouse",
-  "catTunnel",
-  "catFoodBag",
-  "scratcher",
-  "yarn",
-  "box",
-  "laundryBasket",
-  "foodBowl",
-  "trash",
-]
+// 바닥에 두는 소품을 쓰임새별 탭으로 나눈다. 새 소품은 맞는 무리에 넣는다.
+const FLOOR_GROUPS = {
+  floor: [
+    "bookshelf",
+    "lockers",
+    "cabinet",
+    "whiteboard",
+    "sofa",
+    "bench",
+    "ottoman",
+    "stool",
+    "teaTable",
+    "kotatsu",
+    "floorCushion",
+    "beanBag",
+    "rug",
+    "coatRack",
+    "umbrellaStand",
+  ],
+  appliance: [
+    "vendingMachine",
+    "waterCooler",
+    "miniFridge",
+    "coffeeMachine",
+    "printer",
+    "floorLamp",
+    "heater",
+    "radiator",
+  ],
+  hobby: ["arcade", "piano", "guitar", "bicycle", "globe", "fishTank"],
+  plant: ["monstera", "plant", "snakePlant", "ficus", "cactus", "christmasTree"],
+  cat: [
+    "catBed",
+    "catHouse",
+    "catTunnel",
+    "scratcher",
+    "yarn",
+    "catFoodBag",
+    "foodBowl",
+  ],
+  misc: ["box", "giftBoxes", "laundryBasket", "trash"],
+} satisfies Record<string, ItemName[]>
 const MIME = "application/x-kttn-prop"
 const WALL_ROOM = "wall"
 
@@ -136,7 +130,17 @@ function over(event: globalThis.DragEvent) {
 }
 
 /** 월드맵 아래 소품 목록. 소품을 끌어 휴게 공간이나 위쪽 벽에 놓는다. */
+const GROUPS: { id: string; label: MessageKey; names: ItemName[] }[] = [
+  { id: "wall", label: "props.wall", names: HANG },
+  ...Object.entries(FLOOR_GROUPS).map(([id, names]) => ({
+    id,
+    label: `props.${id}` as MessageKey,
+    names,
+  })),
+]
+
 export function PropPalette() {
+  const [tab, setTab] = useState("floor")
   useEffect(() => {
     document.addEventListener("dragover", over)
     document.addEventListener("drop", drop)
@@ -162,27 +166,52 @@ export function PropPalette() {
         <PixelIcon name="plant" />
         {t("props.title")}
       </h3>
-      <div className="grid content-start gap-2 border-2 border-[#2b2a36] bg-[#f4efe6] p-2">
-        {[
-          { label: t("props.wall"), names: HANG },
-          { label: t("props.floor"), names: FLOOR },
-        ].map((group) => (
-          <div key={group.label} className="grid gap-1">
-            <p className="text-[10px] text-[#2b2a36]">{group.label}</p>
-            <ul className="flex flex-wrap items-end gap-2">
-              {group.names.map((name) => (
-                <li
-                  key={name}
-                  draggable
-                  onDragStart={start(name)}
-                  title={t(`item.${name}` as MessageKey)}
-                  className="cursor-grab"
-                >
-                  <Prop name={name} wall />
-                </li>
-              ))}
-            </ul>
-          </div>
+      {/* 벽 장식과 가구를 탭으로 나눈다. 고른 탭의 소품만 보인다. */}
+      <div>
+        <div
+          role="tablist"
+          aria-label={t("props.title")}
+          className="flex flex-wrap"
+        >
+          {GROUPS.map((group) => (
+            <button
+              key={group.id}
+              type="button"
+              role="tab"
+              id={`props-tab-${group.id}`}
+              aria-selected={tab === group.id}
+              aria-controls={`props-panel-${group.id}`}
+              onClick={() => setTab(group.id)}
+              className={
+                tab === group.id
+                  ? "-mb-0.5 border-2 border-b-0 border-[#2b2a36] bg-[#f4efe6] px-1 py-0.5 text-[11px] text-[#2b2a36]"
+                  : "border-2 border-b-0 border-transparent px-1 py-0.5 text-[11px] text-[#f7f2e8] opacity-70 hover:opacity-100"
+              }
+            >
+              {t(group.label)}
+            </button>
+          ))}
+        </div>
+        {GROUPS.filter((group) => group.id === tab).map((group) => (
+          <ul
+            key={group.id}
+            role="tabpanel"
+            id={`props-panel-${group.id}`}
+            aria-labelledby={`props-tab-${group.id}`}
+            className="flex flex-wrap items-end gap-2 border-2 border-[#2b2a36] bg-[#f4efe6] p-2"
+          >
+            {group.names.map((name) => (
+              <li
+                key={name}
+                draggable
+                onDragStart={start(name)}
+                title={t(`item.${name}` as MessageKey)}
+                className="cursor-grab"
+              >
+                <Prop name={name} wall />
+              </li>
+            ))}
+          </ul>
         ))}
       </div>
     </section>
