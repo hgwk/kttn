@@ -225,6 +225,7 @@ if [ "$SIGNAL" = claude ]; then
   check "signal: Claude Code pid filled in" "json '$T/snap.json' 'd.agents.some(a=>a.pid>1)' | grep -q true"
 fi
 check "privacy: no prompt or answer text reached the server" "! grep -q '$SECRET' '$T/snap.json' '$KTTN_STATE'"
+[ "$SIGNAL" = payload ] && . "$REPO/scripts/e2e-catalog.sh"
 
 # --- screen -------------------------------------------------------------------
 for p in / /manifest.webmanifest /icons/office-icon-192.png /icons/office-icon-512.png /icons/office-icon-maskable-512.png; do

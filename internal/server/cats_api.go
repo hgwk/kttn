@@ -29,8 +29,8 @@ func catName(raw string) (string, bool) {
 	return name, true
 }
 
-// catsHandlers serves the catalog to the office screen: the list, the first
-// name of a cat, and clearing it all. Writes need the screen's own origin.
+// catsHandlers serves the catalog to the office screen: the list, naming a
+// cat, and clearing it all. Writes need the screen's own origin.
 func catsHandlers(b *catBook) (list, name, clear http.HandlerFunc) {
 	list = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
@@ -49,6 +49,7 @@ func catsHandlers(b *catBook) (list, name, clear http.HandlerFunc) {
 		var body struct {
 			Key     string `json:"key"`
 			CatName string `json:"cat_name"`
+			Replace bool   `json:"replace"`
 		}
 		if json.Unmarshal(raw, &body) != nil || body.Key == "" {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "key and cat_name are required"})
@@ -59,7 +60,7 @@ func catsHandlers(b *catBook) (list, name, clear http.HandlerFunc) {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "a name is 1 to 32 characters, no control characters"})
 			return
 		}
-		saved, ok := b.name(body.Key, clean)
+		saved, ok := b.name(body.Key, clean, body.Replace)
 		if !ok {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "no such cat"})
 			return

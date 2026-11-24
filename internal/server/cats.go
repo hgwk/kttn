@@ -28,7 +28,8 @@ type cat struct {
 	Folder      string `json:"folder"`
 	Model       string `json:"model"`
 	SessionName string `json:"session_name"`
-	// CatName is the name the screen gave the cat; the first one stays.
+	// CatName is the name the screen gave the cat. The screen's automatic
+	// name only fills an empty one; a person's rename replaces it.
 	CatName   string `json:"cat_name"`
 	FirstSeen string `json:"first_seen"`
 	LastSeen  string `json:"last_seen"`
@@ -104,11 +105,14 @@ func (b *catBook) list() []cat {
 	return out
 }
 
-// name gives a known cat its first name; a later one does not replace it.
-func (b *catBook) name(key, name string) (cat, bool) {
+// name names a known cat. Without replace it only fills an empty name: the
+// screen sends the name it picked for whichever cats are on screen, and that
+// pick must not rename a cat that already has one. A person's rename passes
+// replace, and the last one wins.
+func (b *catBook) name(key, name string, replace bool) (cat, bool) {
 	b.mu.Lock()
 	c, ok := b.cats[key]
-	if ok && c.CatName == "" {
+	if ok && (replace || c.CatName == "") {
 		c.CatName = name
 	}
 	var out cat

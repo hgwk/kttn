@@ -78,7 +78,7 @@ func TestTheCatalogKeepsEverySessionItSawInTheOrderItMetThem(t *testing.T) {
 	}
 }
 
-func TestACatKeepsItsFirstNameAndOnlyAValidOne(t *testing.T) {
+func TestTheScreensPickFillsANameAndAPersonsRenameReplacesIt(t *testing.T) {
 	h, _, _ := catServer(t)
 	hookEvent(h, "a", "Stop", "")
 	for _, c := range []struct {
@@ -99,7 +99,10 @@ func TestACatKeepsItsFirstNameAndOnlyAValidOne(t *testing.T) {
 		}
 	}
 	if got := catList(t, h)[0].CatName; got != "Nabi" {
-		t.Fatalf("name %q", got)
+		t.Fatalf("the screen's pick renamed the cat: %q", got)
+	}
+	if rec := catCall(h, "PUT", "/api/cats/name", "k", `{"key":"claude|a","cat_name":"Navi","replace":true}`); rec.Code != 200 || !strings.Contains(rec.Body.String(), `"cat_name":"Navi"`) {
+		t.Fatalf("rename %d %s", rec.Code, rec.Body)
 	}
 	req := httptest.NewRequest("PUT", "http://127.0.0.1:5886/api/cats/name", strings.NewReader(`{"key":"claude|a","cat_name":"x"}`))
 	req.Header.Set("Content-Type", "application/json")

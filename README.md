@@ -98,7 +98,7 @@ in `~/.local/state/kttn/cats.json` (mode 600, next to the session state): the
 repository, folder, model and session names, the name the screen gave the cat,
 when it was first and last seen, and how many tools it used. Nothing else from
 the session is in it. It keeps the latest 1,000 cats seen within 90 days, and
-**Clear catalog** on the screen empties it.
+**Clear catalog** on the screen (pressed twice) empties it.
 
 ## Install
 
