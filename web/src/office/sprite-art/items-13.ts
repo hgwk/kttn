@@ -1,0 +1,97 @@
+import type { Grid } from "./palette"
+
+// 가구와 기기 13. 소품 팔레트로 놓는 벽 장식과 가전. sprite-data.ts가
+// 합쳐 ITEMS로 낸다.
+export const ITEMS_13 = {
+  // 세계 지도. 자작나무 틀 속 하늘색 바다에 초록 대륙과 빨간 핀 하나.
+  worldMap: [
+    "kkkkkkkkkkkkkkkkkkkk",
+    "kAAAAAAAAAAAAAAAAAAk",
+    "kAXXXXXXXXXXXXXXXXAk",
+    "kAXFFFXXXXFFFFXXXXAk",
+    "kAXFFFFXXFFFFFFFXXAk",
+    "kAXXFFXXXFFMFFFFFXAk",
+    "kAXXXFXXXXFFXXXFXXAk",
+    "kAXXXFFXXXXFXXXXXXAk",
+    "kAXXXXFXXXXXXXFFXXAk",
+    "kAXXXXXXXXXXXXFFXXAk",
+    "kAAAAAAAAAAAAAAAAAAk",
+    "kkkkkkkkkkkkkkkkkkkk",
+  ],
+  // 하트 네온사인. 검은 판 위 분홍 네온관 하트와 전선.
+  neonHeart: [
+    "kkkkkkkkkkkkk",
+    "kxxxxxxxxxxxk",
+    "kxxIIxxxIIxxk",
+    "kxIxxIxIxxIxk",
+    "kxIxxxIxxxIxk",
+    "kxxIxxxxxIxxk",
+    "kxxxIxxxIxxxk",
+    "kxxxxIxIxxxxk",
+    "kxxxxxIxxxxxk",
+    "kkkkkkkkkkkkk",
+    "......k......",
+    "......k......",
+  ],
+  // 즉석사진 줄. 집게로 매단 사진 넷, 하늘·고양이·꽃·바다.
+  polaroids: [
+    "kkk..............kkk",
+    "...kkkkkkkkkkkkkk...",
+    "..kgk.kgk..kgk.kgk..",
+    ".kkkkkkkkkkkkkkkkkk.",
+    ".kwwwkwwwkkwwwkwwwk.",
+    ".kwXwkw7wkkwIwkw5wk.",
+    ".kwXwkw7wkkwFwkw6wk.",
+    ".kwwwkwwwkkwwwkwwwk.",
+    ".kwwwkwwwkkwwwkwwwk.",
+    ".kkkkkkkkkkkkkkkkkk.",
+  ],
+  // 브라운관 TV와 받침장. 볼록한 화면, 안테나, 아래 서랍장.
+  tvStand: [
+    "....k.....k.....",
+    ".....k...k......",
+    "......k.k.......",
+    "..kkkkkkkkkkkk..",
+    "..kgkkkkkkkkgk..",
+    "..kgkRrrrrrkgk..",
+    "..kgkrrrrrrkgk..",
+    "..kgkrrrrrrkqk..",
+    "..kgkkkkkkkkgk..",
+    "..kGGGGGGGGGGk..",
+    "kkkkkkkkkkkkkkkk",
+    "kdddddkddddkdddk",
+    "kddkddkdkkdkdkdk",
+    "kdddddkddddkdddk",
+    "kkkkkkkkkkkkkkkk",
+  ],
+  // 세탁기. 흰 몸통 위 단추판, 둥근 유리문 안에 거품.
+  washingMachine: [
+    "kkkkkkkkkkkkkk",
+    "kwwwwqwMwwwwgk",
+    "kkkkkkkkkkkkkk",
+    "kwwwkkkkkwwwgk",
+    "kwwkWWWWWkwwgk",
+    "kwkWhWWhWWkwgk",
+    "kwkWWWhWWWkwgk",
+    "kwkWWhWWWWkwgk",
+    "kwwkWWWWWkwwgk",
+    "kwwwkkkkkwwwgk",
+    "kggggggggggggk",
+    "kkkkkkkkkkkkkk",
+  ],
+  // 공기청정기. 길쭉한 흰 몸통, 위 통풍구와 초록 불빛.
+  airPurifier: [
+    ".kkkkkkk.",
+    "kqkqkqkqk",
+    "kkkkkkkkk",
+    "kwwwwwwgk",
+    "kww0wwwgk",
+    "kwwwwwwgk",
+    "kwqqqqwgk",
+    "kwqqqqwgk",
+    "kwqqqqwgk",
+    "kwwwwwwgk",
+    "kGGGGGGGk",
+    "kkkkkkkkk",
+  ],
+} satisfies Record<string, Grid>
