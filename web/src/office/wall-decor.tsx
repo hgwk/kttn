@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Prop, type DoorItem, type HangItem } from "@/office/lounge"
 import { clockAt } from "@/office/sprite-data"
 import { cn } from "@/lib/utils"
+import { Movable } from "@/office/props-drag"
 
 // 벽 장식 줄을 되풀이하는 횟수. 한 줄이 1,000px 남짓이라 아주 넓은 건물까지 덮는다.
 const DECOR_REPEAT = 5
@@ -62,18 +63,25 @@ export function WallDecor() {
     [time]
   )
   return (
-    <div aria-hidden="true" className="ml-10 flex items-center gap-24">
+    <div className="ml-10 flex items-center gap-24">
       {/* 건물이 통째로 스크롤되므로 넓은 건물의 오른쪽 벽도 비지 않게 몇 번
           되풀이해 건다(벽면이 넘치는 만큼은 잘린다). */}
       {Array.from({ length: DECOR_REPEAT }, () => WALL_DECOR)
         .flat()
         .map((name, index) => (
-          <Prop
+          // 벽 띠 안에서 좌우로만 옮길 수 있다(props-drag.tsx).
+          <Movable
             key={`${name}-${index}`}
-            name={name === "window" && night ? "windowNight" : name}
-            grid={name === "clock" ? clock : undefined}
-            wall
-          />
+            room="wall"
+            item={`decor:${index}:${name}`}
+            axis="x"
+          >
+            <Prop
+              name={name === "window" && night ? "windowNight" : name}
+              grid={name === "clock" ? clock : undefined}
+              wall
+            />
+          </Movable>
         ))}
     </div>
   )

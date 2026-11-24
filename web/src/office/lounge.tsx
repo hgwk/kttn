@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 
 import { OFFICE_SCALE } from "@/office/pixel"
 import { ITEMS, type Grid } from "@/office/sprite-data"
+import { Movable } from "@/office/props-drag"
 import { TowerCats } from "@/office/tower-cats"
 import type { SessionAgent } from "@/lib/agent-office"
 import { cn } from "@/lib/utils"
@@ -244,7 +245,7 @@ export function Lounge({
   const fits = placed !== undefined
   const { set, wallW } = placed ?? measure(SETS[first])
   return (
-    <div ref={boxRef} className="relative min-h-0 grow">
+    <div ref={boxRef} data-move-bounds="" className="relative min-h-0 grow">
       {fits ? (
         <div className="absolute top-2 left-1/2 flex -translate-x-1/2 flex-col items-center gap-3">
           {/* 낮은 벽과 거기에 붙여 세운 가구 */}
@@ -262,28 +263,32 @@ export function Lounge({
               />
               <div className="flex items-start justify-center gap-2">
                 {set.wall.map((name, index) => (
-                  <Prop key={`${name}-${index}`} name={name} />
+                  <Movable key={`${name}-${index}`} room={seed} item={`wall:${index}:${name}`}>
+                    <Prop name={name} />
+                  </Movable>
                 ))}
               </div>
             </div>
           ) : null}
           {/* 그 앞 바닥 */}
           <div className="flex items-end gap-2">
-            {set.floor.map((name, index) =>
-              name === "catTower" && agents ? (
-                // 책상의 쉬는 고양이가 찾아오는 캣타워(office-canvas.tsx가 찾는다).
-                <span
-                  key={`${name}-${index}`}
-                  data-cat-tower=""
-                  className="relative block"
-                >
+            {set.floor.map((name, index) => (
+              <Movable
+                key={`${name}-${index}`}
+                room={seed}
+                item={`floor:${index}:${name}`}
+              >
+                {name === "catTower" && agents ? (
+                  // 쉬는 고양이가 찾아오는 캣타워(office-canvas.tsx가 찾는다)
+                  <span data-cat-tower="" className="relative block">
+                    <Prop name={name} />
+                    <TowerCats agents={agents} now={now} />
+                  </span>
+                ) : (
                   <Prop name={name} />
-                  <TowerCats agents={agents} now={now} />
-                </span>
-              ) : (
-                <Prop key={`${name}-${index}`} name={name} />
-              )
-            )}
+                )}
+              </Movable>
+            ))}
           </div>
         </div>
       ) : null}

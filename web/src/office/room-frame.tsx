@@ -148,6 +148,7 @@ export function RoomFrame({
         {building ? (
           <div
             data-obstacle=""
+            data-move-bounds=""
             // 정문(left 18~50px) 바로 옆에 외투 걸이판과 우산꽂이를 두고 이름표는 그 오른쪽에 붙인다.
             // 벽 장식은 넓은 건물도 덮도록 길게 되풀이하므로, 그 길이가 건물 폭을
             // 늘리지 않게 이 줄의 가로 크기는 내용과 떼어 놓는다(contain).
