@@ -21,7 +21,8 @@ type peak struct {
 // countDay adds an event to the cat's day, starting a new day when the
 // date has moved on. newTools is how far the session's tool count rose.
 func (b *catBook) countDay(c *cat, date string, newTools int, event office.Event) {
-	failed := event.Event == "PostToolUseFailure" && event.Subagent == ""
+	// An interrupt is the person pressing Esc, not a tool failing.
+	failed := event.Event == "PostToolUseFailure" && event.Subagent == "" && event.Detail != "interrupt"
 	if newTools <= 0 && !failed {
 		return
 	}

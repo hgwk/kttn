@@ -103,6 +103,12 @@ the cat is); plus the most sessions the office has had at once, and when.
 Nothing else from the session is in it. It keeps the latest 1,000 cats seen within 90 days, and
 **Clear catalog** on the screen (pressed twice) empties it.
 
+**Daily paper.** The paper button draws the day's office paper, and Save
+downloads it as a PNG to your computer. It holds the date, the cat names
+(including ones you gave), the day's tool and failure counts, the longest nap,
+how many cats came in, the most at once, and a picture of the cats. No
+repository, folder or session names are in it.
+
 ## Install
 
 To install it yourself instead, pick one:
