@@ -269,7 +269,7 @@ function BuildingFrame({
       {dawn ? (
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-[35] bg-[#1e1b4b]/25 mix-blend-multiply"
+          className="pointer-events-none absolute inset-0 z-[35] bg-[#1e1b4b]/25"
         />
       ) : null}
       <span
