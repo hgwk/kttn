@@ -7,15 +7,33 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
 	"github.com/hgwk/kttn/internal/office"
 )
 
-type catClock struct{ at time.Time }
+// catClock is a settable clock. The catalog's save timer reads it from its
+// own goroutine, so it is locked.
+type catClock struct {
+	mu sync.Mutex
+	at time.Time
+}
 
-func (c *catClock) now() time.Time { return c.at }
+func (c *catClock) now() time.Time {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.at
+}
+
+func (c *catClock) set(at time.Time) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.at = at
+}
+
+func (c *catClock) add(d time.Duration) { c.set(c.now().Add(d)) }
 
 func catServer(t *testing.T) (*Handler, string, *catClock) {
 	t.Helper()
@@ -54,7 +72,7 @@ func hookEvent(h *Handler, session, event string, extra string) {
 func TestTheCatalogKeepsEverySessionItSawInTheOrderItMetThem(t *testing.T) {
 	h, path, clock := catServer(t)
 	hookEvent(h, "b", "UserPromptSubmit", `,"name":"work-eb","model":"opus"`)
-	clock.at = clock.at.Add(time.Minute)
+	clock.add(time.Minute)
 	hookEvent(h, "a", "PreToolUse", `,"tool":"Read"`)
 	hookEvent(h, "b", "PreToolUse", `,"tool":"Read"`)
 	hookEvent(h, "b", "PreToolUse", `,"tool":"Edit"`)
@@ -130,14 +148,14 @@ func TestAnEmojiSequenceIsAName(t *testing.T) {
 func TestTheCatalogForgetsAfter90DaysBeyond1000AndOnClear(t *testing.T) {
 	h, path, clock := catServer(t)
 	hookEvent(h, "old", "Stop", "")
-	clock.at = clock.at.Add(catKeep - time.Hour)
+	clock.add(catKeep - time.Hour)
 	hookEvent(h, "new", "Stop", "")
-	clock.at = clock.at.Add(2 * time.Hour)
+	clock.add(2 * time.Hour)
 	if cats := catList(t, h); len(cats) != 1 || cats[0].Key != "claude|new" {
 		t.Fatalf("after 90 days %+v", cats)
 	}
 	for i := 0; i < maxCats+5; i++ {
-		clock.at = clock.at.Add(time.Second)
+		clock.add(time.Second)
 		hookEvent(h, fmt.Sprintf("s%04d", i), "Stop", "")
 	}
 	cats := catList(t, h)
