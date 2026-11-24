@@ -45,11 +45,15 @@ import {
   recentMoment,
   visitingName,
 } from "@/lib/agent-office-acts"
+import { useTowerNearby } from "@/office/use-tower"
 
 /**
  * 폴더 방 하나의 책상 구역. 넘겨받은 순서대로 앉는다. 책상 앞 이름표는
  * 캔버스 위에 둥근모꼴 글자로 얹는다(캔버스에 작은 한글을 그리면 번진다).
  */
+// 책상 구역 둘레로 더 그리는 폭(캔버스 px). 걷는 고양이 몸 하나(16)보다 넉넉히.
+const EDGE = 24
+
 export function OfficeCanvas({
   label,
   agents,
@@ -77,8 +81,6 @@ export function OfficeCanvas({
     return () => observer.disconnect()
   }, [])
   const layout = officeLayout(agents.length, fitCols)
-  // 같은 책상 구역의 휴게 공간에 캣타워가 놓였는지. 휴게 공간은 들어갈
-  // 자리가 있을 때만 그려지므로 화면에서 확인한다.
   // 대사 상자와 같은 시계(마지막으로 받은 현황 시각)로 쉬는 활동·순간을
   // 고른다. 화면 시계를 따로 쓰면 1분이 바뀔 때 대사와 걸음이 잠깐 어긋난다.
   const nowRef = useRef(now)
@@ -90,25 +92,17 @@ export function OfficeCanvas({
   const speechRefs = useRef(new Map<string, HTMLDivElement>())
   const [strollers, setStrollers] = useState("")
   const strollersRef = useRef("")
-  const [hasTower, setHasTower] = useState(false)
-  const towerRef = useRef(false)
-  useEffect(() => {
-    const check = () => {
-      const found = Boolean(
-        boxRef.current?.parentElement?.querySelector("[data-cat-tower]")
-      )
-      towerRef.current = found
-      setHasTower(found)
-    }
-    check()
-    const timer = window.setInterval(check, 2000)
-    return () => window.clearInterval(timer)
-  }, [])
+  const [hasTower, towerRef] = useTowerNearby(boxRef)
 
   const canvasRef = usePixelLoop(agents, (ctx, current, dt, t, still) => {
     const seated = current.slice(0, MAX_DESKS)
     const room = officeLayout(seated.length, fitCols)
     const walkers = walkersRef.current
+    // 그림판은 사방으로 EDGE만큼 넓다. 책상 구역 가장자리를 지나는 고양이가
+    // 잘리지 않게 그 둘레까지 그리고, 좌표는 책상 구역 기준 그대로 쓴다.
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
+    ctx.translate(EDGE, EDGE)
     // 퇴근길을 다 걸어 문밖으로 나간 고양이만 방 밖으로 친다. 높이로 가리면
     // 배치가 바뀌어 방이 낮아질 때 아랫줄 고양이가 밖으로 몰려 사라진다.
     const inside = (walker: Walker) => !walker.out
@@ -271,15 +265,24 @@ export function OfficeCanvas({
     <div ref={boxRef} className="w-full min-w-0">
       <div
         className="relative max-w-full"
-        style={{ width: layout.w * OFFICE_SCALE }}
+        style={{
+          width: layout.w * OFFICE_SCALE,
+          height: layout.h * OFFICE_SCALE,
+        }}
       >
         <canvas
           ref={canvasRef}
-          width={layout.w}
-          height={layout.h}
+          width={layout.w + EDGE * 2}
+          height={layout.h + EDGE * 2}
           role="img"
           aria-label={t("room.deskDrawing", { name: label, n: agents.length })}
-          className="block h-auto w-full [image-rendering:pixelated]"
+          className="pointer-events-none absolute max-w-none [image-rendering:pixelated]"
+          style={{
+            left: -EDGE * OFFICE_SCALE,
+            top: -EDGE * OFFICE_SCALE,
+            width: (layout.w + EDGE * 2) * OFFICE_SCALE,
+            height: (layout.h + EDGE * 2) * OFFICE_SCALE,
+          }}
         />
         <DeskOverlays
           agents={agents.slice(0, MAX_DESKS)}
