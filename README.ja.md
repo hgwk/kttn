@@ -102,6 +102,10 @@ kttn は macOS と Linux(arm64、x86-64)で動きます。**Windows には対応
   npm i -g @hgwk/kttn
   ```
 
+  新しい npm は `@hgwk/kttn` のインストールスクリプトを実行しなかったと警告する
+  ことがあります。問題ありません。kttn は最初の実行時にバイナリーを取得します。
+  インストール時に取得したい場合は `--allow-scripts=@hgwk/kttn` を付けてください。
+
 - **GitHub Releases**: https://github.com/hgwk/kttn/releases から
   `kttn_<version>_<os>_<arch>.tar.gz` を取得し、`SHA256SUMS` で確認して、`kttn` を
   PATH 上のフォルダーに置きます。

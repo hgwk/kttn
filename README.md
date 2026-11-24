@@ -104,6 +104,10 @@ To install it yourself instead, pick one:
   npm i -g @hgwk/kttn
   ```
 
+  Newer npm may warn that `@hgwk/kttn` has an install script it did not run.
+  That is fine: kttn downloads its binary the first time it runs. To fetch it
+  during the install instead, add `--allow-scripts=@hgwk/kttn`.
+
 - **GitHub Releases**: download `kttn_<version>_<os>_<arch>.tar.gz` from
   https://github.com/hgwk/kttn/releases, check it against `SHA256SUMS`, and put
   `kttn` in a folder on your PATH.

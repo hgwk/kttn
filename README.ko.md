@@ -99,6 +99,10 @@ kttn은 macOS와 Linux(arm64, x86-64)에서 돕니다. **Windows는 지원하지
   npm i -g @hgwk/kttn
   ```
 
+  새 npm은 `@hgwk/kttn`의 설치 스크립트를 실행하지 않았다고 경고할 수 있습니다.
+  괜찮습니다. kttn은 처음 실행할 때 바이너리를 받습니다. 설치할 때 바로 받으려면
+  `--allow-scripts=@hgwk/kttn`을 붙이세요.
+
 - **GitHub Releases**: https://github.com/hgwk/kttn/releases 에서
   `kttn_<version>_<os>_<arch>.tar.gz`를 받아 `SHA256SUMS`로 확인하고, `kttn`을
   PATH에 있는 폴더에 둡니다.

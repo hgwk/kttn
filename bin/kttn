@@ -11,6 +11,12 @@ while [ -L "$SCRIPT" ]; do
 done
 DIR=$(CDPATH= cd -- "$(dirname -- "$SCRIPT")" && pwd)
 NATIVE="$DIR/native/kttn"
+# npm may skip the postinstall that downloads the binary (newer npm asks
+# before running install scripts), so fetch it on the first run instead.
+if [ ! -x "$NATIVE" ] && command -v node >/dev/null 2>&1; then
+  echo "kttn: downloading the kttn binary for this computer (first run)..." >&2
+  node "$DIR/install.js" >&2 || true
+fi
 if [ -x "$NATIVE" ]; then
   exec "$NATIVE" "$@"
 fi
