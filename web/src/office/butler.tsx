@@ -21,7 +21,9 @@ import {
   canStand,
   doorSpot,
   findPath,
+  OBSTACLE_PAD_BELOW,
   readWalkMap,
+  stepRoute,
 } from "@/office/butler-walk"
 
 /**
@@ -141,12 +143,15 @@ export function Butler({
       findNear()
     }
     spawn(true)
+    const born = performance.now()
 
     // 바닥 크기가 바뀌었을 때 아직 정문에서 걷지 않았거나, 배치가 바뀌어 설
-    // 수 없는 곳(바닥 밖·책상 위)에 남았으면 정문 안쪽으로 옮긴다. 사용자가
-    // 스크롤해 둔 자리는 건드리지 않는다.
+    // 수 없는 곳(바닥 밖·책상 위)에 남았으면 정문 안쪽으로 옮긴다. 화면은 처음
+    // 자리 잡는 동안(2초)만 집사 쪽으로 옮긴다. 그 뒤에 크기가 바뀔 때마다
+    // 옮기면 사용자가 스크롤해 둔 곳이 자꾸 원점(정문)으로 돌아간다.
     const resized = new ResizeObserver(() => {
-      if (atDoor || !canStand(map(), pos.x, pos.y)) spawn(atDoor)
+      if (atDoor || !canStand(map(), pos.x, pos.y))
+        spawn(atDoor && performance.now() - born < 2000)
     })
     resized.observe(floor)
     if (floor.firstElementChild) resized.observe(floor.firstElementChild)
@@ -161,19 +166,11 @@ export function Butler({
         dx += MOVE_KEYS[key][0]
         dy += MOVE_KEYS[key][1]
       }
-      // 고양이에게 가는 길이 있으면 다음 점 쪽으로 걷는다(벽 검사 없이 길을 따른다).
+      // 고양이에게 가는 길이 있으면 다음 점 쪽으로 걷는다. 그사이 길이 막히면
+      // 다시 찾는다(butler-walk.ts의 stepRoute).
       if (route.length && !dx && !dy) {
         const next = route[0]
-        const gap = Math.hypot(next.x - pos.x, next.y - pos.y)
-        const step = WALK_SPEED * dt
-        if (gap <= step) {
-          pos.x = next.x
-          pos.y = next.y
-          route.shift()
-        } else {
-          pos.x += ((next.x - pos.x) / gap) * step
-          pos.y += ((next.y - pos.y) / gap) * step
-        }
+        stepRoute(map(), pos, route, WALK_SPEED * dt)
         dir = facing(pos, next)
         walking = true
         walkedMs += dt * 1000
@@ -204,11 +201,13 @@ export function Butler({
         const len = Math.hypot(dx, dy)
         const step = WALK_SPEED * dt
         const walk = map()
-        // 축마다 따로 움직여 벽을 따라 미끄러지게 한다.
+        // 축마다 따로 움직여 벽을 따라 미끄러지게 한다. 옮긴 소품에 깔려 이미
+        // 설 수 없는 자리에 있으면 막지 않아 걸어 나올 수 있게 한다.
+        const stuck = !canStand(walk, pos.x, pos.y)
         const nx = pos.x + (dx / len) * step
-        if (canStand(walk, nx, pos.y)) pos.x = nx
+        if (stuck || canStand(walk, nx, pos.y)) pos.x = nx
         const ny = pos.y + (dy / len) * step
-        if (canStand(walk, pos.x, ny)) pos.y = ny
+        if (stuck || canStand(walk, pos.x, ny)) pos.y = ny
         walkedMs += dt * 1000
         atDoor = false
         follow(false)
@@ -256,8 +255,8 @@ export function Butler({
         pos,
         {
           x: (box.l + box.r) / 2,
-          // 책상 아래 여유(butler-walk.ts의 OBSTACLE_PAD_BELOW)를 지나 바로 앞.
-          y: box.b + 18,
+          // 책상 아래 여유(OBSTACLE_PAD_BELOW)를 지나 바로 앞.
+          y: box.b + OBSTACLE_PAD_BELOW + 8,
         },
         10
       )

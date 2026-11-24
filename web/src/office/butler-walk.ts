@@ -72,7 +72,7 @@ function walkBox(floor: HTMLElement, scale: number): Box {
 
 // 장애물 둘레 여유(px). 칸막이 문(32px)은 발(12px)+양옆 여유(12px)가 지나간다.
 const OBSTACLE_PAD_X = 6
-const OBSTACLE_PAD_BELOW = 10
+export const OBSTACLE_PAD_BELOW = 10
 
 const feet = (x: number, y: number): Box => ({
   l: x - FOOT_W / 2,
@@ -156,4 +156,31 @@ export function findPath(
     }
   }
   return null
+}
+
+/**
+ * 길(route)을 따라 pos를 한 걸음(step) 옮긴다. 가는 사이 소품을 옮기거나 책상이
+ * 늘어 다음 자리에 설 수 없게 되면 지금 자리에서 끝 점까지 길을 다시 찾는다.
+ * 다시 찾은 길도 없으면 route를 비운다(그 자리에서 도착한 것으로 친다).
+ */
+export function stepRoute(
+  map: WalkMap,
+  pos: { x: number; y: number },
+  route: { x: number; y: number }[],
+  step: number
+) {
+  const next = route[0]
+  const gap = Math.hypot(next.x - pos.x, next.y - pos.y)
+  const k = gap <= step ? 1 : step / gap
+  const x = pos.x + (next.x - pos.x) * k
+  const y = pos.y + (next.y - pos.y) * k
+  // 이미 장애물 안에 갇혔으면(소품이 집사 위에 놓임) 길대로 걸어 나온다.
+  if (!canStand(map, x, y) && canStand(map, pos.x, pos.y)) {
+    const again = findPath(map, pos, route[route.length - 1], CELL)
+    route.splice(0, route.length, ...(again ?? []))
+    return
+  }
+  pos.x = x
+  pos.y = y
+  if (k === 1) route.shift()
 }
