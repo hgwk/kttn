@@ -8,6 +8,7 @@ import {
 } from "@/lib/agent-office"
 import {
   idleActivity,
+  mingle,
   recentMoment,
   troubleText,
   visitingName,
@@ -148,6 +149,7 @@ export function CatSpeech({
   tower = false,
   mates,
   strolling = false,
+  nameOf,
 }: {
   agent: SessionAgent
   now: number
@@ -158,11 +160,20 @@ export function CatSpeech({
   mates?: readonly SessionAgent[]
   /** 그림에서 이 고양이가 지금 산책하는 중인지 */
   strolling?: boolean
+  /** 세션 key로 고양이 이름(쉬는 고양이끼리 만날 때 상대 이름) */
+  nameOf?: (key: string) => string
 }) {
   const waiting = agent.state === "needs_you"
   // 평소 대사보다 앞서는 한 줄. 확인 요청이 가장 급하고, 그다음은 오류로
   // 멈춤 → 방금 도구 실패 → 맥락 정리 → 다른 세션에게 얘기하는 중 순이다.
-  const special = waiting ? "" : specialLine(agent, now)
+  // 쉬는 고양이끼리 만나는 중이면 상대 이름을 넣어 말한다(그림과 같은 계산).
+  const meet = mingle(agent, now, mates)
+  const meetLine = meet
+    ? t(meet.nap ? "speech.mingle.nap" : "speech.mingle.talk", {
+        name: nameOf?.(meet.other) ?? "",
+      })
+    : ""
+  const special = waiting ? "" : specialLine(agent, now) || meetLine
   // 산책 차례라도 실제로 걷고 있지 않으면(늦게 열린 화면 등) 다른 쉬는 일을 말한다.
   const activity = idleActivity(agent, now, tower, mates, !strolling)
   // 소품을 찾아갔으면 어느 소품에서 무얼 하는지(그림과 같은 계산)

@@ -107,6 +107,8 @@ export const ja: Record<MessageKey, string> = {
   "speech.stroll": "のびをしてひと回りしてくるにゃ。",
   "speech.groom": "やることがないので毛づくろい中にゃ。",
   "speech.window": "窓の外を眺めて休憩中にゃ。",
+  "speech.mingle.talk": "{name} とおしゃべり中にゃ。",
+  "speech.mingle.nap": "{name} の隣で一緒にお昼寝中にゃ。",
   "speech.tower": "キャットタワーのてっぺんで休憩中にゃ。",
   "speech.prop.eat": "ごはん中だにゃ。",
   "speech.prop.nap": "ふかふかの所で昼寝中だにゃ。",

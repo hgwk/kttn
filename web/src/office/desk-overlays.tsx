@@ -6,6 +6,7 @@ import { CatSpeech } from "@/office/cat-speech"
 import { DeskTag } from "@/office/desk-tag"
 import { CAT_DX, officeLayout, seatFor } from "@/office/office-draw"
 import type { SessionAgent } from "@/lib/agent-office"
+import { mingle } from "@/lib/agent-office-acts"
 import type { Spots } from "@/office/use-tower"
 import { VisitCats } from "@/office/visit-cats"
 
@@ -52,6 +53,9 @@ export function DeskOverlays({
           // 바닥 끝 밖으로 나가지 않고 위로만 길어진다.
           data-cat-speech=""
           data-speech-for={agent.key}
+          // 쉬는 동료가 곁에 찾아와 있는 동안은 찾아온 고양이 대사만 보인다
+          // (두 상자가 겹친다. 찾아온 쪽이 둘 다를 말한다).
+          hidden={mingle(agent, now, agents)?.role === "host"}
           // 확인이 필요한 고양이. 화면 밖이면 그쪽 화살표가 깜빡인다(scroll-hint.tsx).
           data-alert={agent.state === "needs_you" ? "" : undefined}
           className="group/speech absolute z-40 w-max max-w-[180px] -translate-x-1/2 -translate-y-full has-[form]:z-[60] data-near:z-50"
@@ -71,6 +75,11 @@ export function DeskOverlays({
               tower={tower}
               mates={agents}
               strolling={strollers.split("\n").includes(agent.key)}
+              nameOf={(key) =>
+                names.get(key) ??
+                agents.find((other) => other.key === key)?.sessionShort ??
+                ""
+              }
             />
           </CatMessage>
         </div>

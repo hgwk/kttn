@@ -107,6 +107,8 @@ export const en: Record<MessageKey, string> = {
   "speech.stroll": "Stretching and taking a lap, meow.",
   "speech.groom": "Nothing to do, so grooming, meow.",
   "speech.window": "Resting by the window, meow.",
+  "speech.mingle.talk": "Chatting with {name}, meow.",
+  "speech.mingle.nap": "Napping next to {name}, meow.",
   "speech.tower": "Resting on top of the cat tower, meow.",
   "speech.prop.eat": "Having a snack, nya.",
   "speech.prop.nap": "Napping somewhere cozy, nya.",

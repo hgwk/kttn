@@ -20,11 +20,16 @@ import {
 import { type SessionAgent } from "@/lib/agent-office"
 import {
   IDLE_SLOT_MS,
+  MINGLE_STAY_MS,
   STROLL_START_MS,
   idleActivity,
+  mingle,
   visitingName,
   type Nearby,
 } from "@/lib/agent-office-acts"
+
+// 쉬는 고양이끼리 만나러 나서는 때. 1분의 처음 이만큼(ms) 안에만 나선다.
+const MINGLE_START_MS = 8_000
 
 export type MoveFrame = {
   room: OfficeLayout
@@ -86,10 +91,27 @@ function setOff(
     if (target >= 0) startVisit(walker, room, index, target, seated[target].key)
     return
   }
-  // 대사(cat-speech)와 같은 판단: 산책을 다녀왔거나 나설 때를 놓쳤으면
-  // 산책 대신 남은 시간에 하는 일을 고른다.
   const slot = Math.floor(t / IDLE_SLOT_MS)
   const late = t - slot * IDLE_SLOT_MS > STROLL_START_MS
+  // 쉬는 고양이끼리 만나는 차례면(대사와 같은 계산) 찾아가는 쪽은 1분
+  // 첫머리에 상대 책상 옆으로 가고, 맞는 쪽은 자리를 지킨다.
+  // 다녀온 뒤나 나설 때(8초)를 놓쳤으면 그 시간이 끝날 때까지 자리에 있는다.
+  const meet = mingle(agent, t, seated)
+  if (meet) {
+    const host = seated.findIndex((other) => other.key === meet.other)
+    const fresh = t - slot * IDLE_SLOT_MS < MINGLE_START_MS
+    if (meet.role === "visitor" && host >= 0 && fresh) {
+      if (walker.strolled === slot) return
+      walker.strolled = slot
+      startVisit(walker, room, index, host, meet.other, {
+        stayMs: MINGLE_STAY_MS,
+        nap: meet.nap,
+      })
+    }
+    return
+  }
+  // 대사(cat-speech)와 같은 판단: 산책을 다녀왔거나 나설 때를 놓쳤으면
+  // 산책 대신 남은 시간에 하는 일을 고른다.
   const walkedOff = walker.strolled === slot || late
   startIdleWalk(
     walker,

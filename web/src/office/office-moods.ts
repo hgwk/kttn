@@ -36,7 +36,8 @@ export function perkedUp(
 ) {
   return new Set([
     ...[...walkers.values()]
-      .filter((walker) => walker.visit?.stage === "stay")
+      // 곁에서 같이 자러 온 고양이에게는 고개를 들지 않는다.
+      .filter((walker) => walker.visit?.stage === "stay" && !walker.visit.nap)
       .map((walker) => walker.visit?.to),
     ...seated.flatMap((agent) => {
       const idle = recentMoment(agent, "TeammateIdle", now)

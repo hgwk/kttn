@@ -4,11 +4,13 @@ import test from "node:test"
 import { toSessionAgents } from "./agent-office.ts"
 import {
   IDLE_SLOT_MS,
+  MINGLE_MS,
   MOMENT_MS,
   STROLL_MS,
   VISIT_MS,
   modelLabel,
   idleActivity,
+  mingle,
   propPick,
   recentMoment,
   troubleText,
@@ -164,4 +166,40 @@ test("쉬는 고양이는 찾아갈 소품이 있으면 졸 차례에 가끔 소
     assert.ok(pick >= 0 && pick < 4)
   }
   assert.equal(propPick("claude|x", 0, 0), 0)
+})
+
+test("쉬는 고양이끼리는 가끔 한 쌍이 만나고, 둘이 서로를 상대로 안다", () => {
+  const cats = ["a", "b", "c", "d"].map((key) => ({ key, state: "sleeping" }))
+  let met = 0
+  for (let slot = 0; slot < 60; slot++) {
+    const at = slot * IDLE_SLOT_MS + 1_000
+    const meets = cats.map((cat) => mingle(cat, at, cats))
+    const visitors = meets.filter((m) => m?.role === "visitor")
+    const hosts = meets.filter((m) => m?.role === "host")
+    assert.equal(visitors.length, hosts.length)
+    assert.ok(visitors.length <= 1)
+    if (!visitors.length) continue
+    met++
+    const v = cats[meets.findIndex((m) => m?.role === "visitor")]
+    const h = cats[meets.findIndex((m) => m?.role === "host")]
+    assert.notEqual(v.key, h.key)
+    assert.equal(meets[cats.indexOf(v)].other, h.key)
+    assert.equal(meets[cats.indexOf(h)].other, v.key)
+    // 만남 시간이 지나면 끝난다.
+    assert.equal(mingle(v, slot * IDLE_SLOT_MS + MINGLE_MS, cats), null)
+  }
+  // 세 번에 한 번쯤(60칸에 0이나 60은 아니다)
+  assert.ok(met > 5 && met < 40, `met ${met}`)
+})
+
+test("쉬는 고양이가 하나뿐이거나 쉬는 중이 아니면 만나지 않는다", () => {
+  const one = [
+    { key: "a", state: "sleeping" },
+    { key: "b", state: "editing" },
+  ]
+  for (let slot = 0; slot < 30; slot++) {
+    const at = slot * IDLE_SLOT_MS
+    assert.equal(mingle(one[0], at, one), null)
+    assert.equal(mingle(one[1], at, one), null)
+  }
 })

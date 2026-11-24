@@ -108,6 +108,45 @@ export function propPick(key: string, now: number, count: number) {
     : 0
 }
 
+/** 쉬는 고양이 둘이 만나 함께 지내는 시간(ms). 걸어가고 오는 시간은 뺀다. */
+export const MINGLE_STAY_MS = 15_000
+/** 만남은 1분의 처음 이만큼(ms) 안에 끝난다(오가는 걸음 포함). 대사도 그동안만. */
+export const MINGLE_MS = 28_000
+
+/** 쉬는 고양이끼리의 만남. 찾아가는 쪽(visitor)과 맞는 쪽(host), 상대, 같이 자는지. */
+export type Mingle = { role: "visitor" | "host"; other: string; nap: boolean }
+
+/**
+ * 같은 책상 구역에서 쉬는(sleeping) 고양이가 둘 이상이면, 1분 세 번에 한 번쯤
+ * 한 쌍이 만난다. 찾아가는 고양이가 상대 책상 옆으로 걸어가 수다를 떨거나 곁에
+ * 엎드려 같이 잔다. 그림(cat-move.ts)과 대사가 같은 계산을 쓴다. 해당 없으면 null.
+ */
+export function mingle(
+  agent: Pick<SessionAgent, "key" | "state">,
+  now: number,
+  mates?: readonly Pick<SessionAgent, "key" | "state">[]
+): Mingle | null {
+  if (agent.state !== "sleeping" || !mates) return null
+  if (now % IDLE_SLOT_MS >= MINGLE_MS) return null
+  const sleepers = mates
+    .filter((mate) => mate.state === "sleeping")
+    .map((mate) => mate.key)
+    .sort()
+  if (sleepers.length < 2) return null
+  const slot = Math.floor(now / IDLE_SLOT_MS)
+  const hash = fnv(`${sleepers.join(",")}:${slot}:mingle`)
+  if (hash % 3 !== 0) return null
+  const n = sleepers.length
+  const visitor = (hash >>> 2) % n
+  const host = (visitor + 1 + ((hash >>> 8) % (n - 1))) % n
+  const nap = ((hash >>> 16) & 1) === 1
+  if (agent.key === sleepers[visitor])
+    return { role: "visitor", other: sleepers[host], nap }
+  if (agent.key === sleepers[host])
+    return { role: "host", other: sleepers[visitor], nap }
+  return null
+}
+
 /** 도구 실패 같은 순간을 이만큼(ms) 보인다. */
 export const MOMENT_MS = 4_000
 

@@ -134,16 +134,20 @@ export function OfficeCanvas({
           tie,
           walking
             ? "walk"
-            : visited.has(agent.key)
-              ? "alert"
-              : // 오류로 멈추면 X자 눈으로 고개를 숙인다(조는 고양이와 구분).
-                agent.trouble
-                ? "dizzy"
-                : idlePose(agent, nowRef.current, towerRef.current, seated),
+            : // 쉬는 동료 곁에 같이 엎드려 잔다(쉬는 고양이끼리 만남).
+              walker.visit?.nap
+              ? "sleep"
+              : visited.has(agent.key)
+                ? "alert"
+                : // 오류로 멈추면 X자 눈으로 고개를 숙인다(조는 고양이와 구분).
+                  agent.trouble
+                  ? "dizzy"
+                  : idlePose(agent, nowRef.current, towerRef.current, seated),
           walking ? walker.dir : "front",
           t
         )
-        if (walker.visit?.stage === "stay" && walker.visit.to)
+        const visit = walker.visit
+        if (visit?.stage === "stay" && visit.to && !visit.nap)
           drawTalk(ctx, walker.x, walker.y, t)
         if (recentMoment(agent, "PostToolUseFailure", nowRef.current))
           drawSmoke(ctx, walker.x, walker.y, t)

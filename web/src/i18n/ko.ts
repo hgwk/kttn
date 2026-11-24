@@ -108,6 +108,8 @@ export const ko = {
   "speech.stroll": "기지개 켜고 한 바퀴 돌고 오겠다냥.",
   "speech.groom": "심심해서 털 고르는 중이다냥.",
   "speech.window": "창밖 구경하며 쉬는 중이다냥.",
+  "speech.mingle.talk": "{name} 곁에서 수다 떠는 중이다냥.",
+  "speech.mingle.nap": "{name} 곁에서 같이 자는 중이다냥.",
   "speech.tower": "캣타워 꼭대기에서 쉬는 중이다냥.",
   "speech.prop.eat": "밥 먹는 중이다냥.",
   "speech.prop.nap": "포근한 데서 낮잠 자는 중이다냥.",

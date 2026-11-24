@@ -29,6 +29,10 @@ export type Visit = {
   back: Point[]
   /** 돌아오는 길 첫 점(줄 아래 통로). 나들이 중에 퇴근하면 여기서 문으로 간다. */
   lane: Point
+  /** 찾아가서 머무는 시간(ms). 없으면 VISIT_STAY_MS. */
+  stayMs?: number
+  /** 찾아간 고양이 곁에 엎드려 같이 잔다(얘기 말풍선 없이) */
+  nap?: boolean
 }
 export type Walker = Point & {
   path: Point[]
@@ -169,7 +173,7 @@ export function advanceVisit(
   }
   if (visit.stage === "go" && walker.path.length === 0) {
     visit.stage = "stay"
-    if (!visit.kind) visit.until = t + VISIT_STAY_MS
+    if (!visit.kind) visit.until = t + (visit.stayMs ?? VISIT_STAY_MS)
     walker.dir = "left"
   } else if (visit.stage === "stay" && t >= visit.until) {
     visit.stage = "back"
@@ -184,13 +188,17 @@ export function advanceVisit(
   }
 }
 
-/** 같은 방의 다른 자리(to)로 찾아가 얘기하러 출발한다. */
+/**
+ * 같은 방의 다른 자리(to)로 찾아가 얘기하러(nap이면 곁에서 같이 자러) 출발한다.
+ * stayMs만큼 머문다.
+ */
 export function startVisit(
   walker: Walker,
   layout: OfficeLayout,
   from: number,
   to: number,
-  toKey: string
+  toKey: string,
+  extra: { stayMs?: number; nap?: boolean } = {}
 ) {
   const paths = pathsToVisit(layout, from, to)
   walker.path = paths.go
@@ -200,6 +208,7 @@ export function startVisit(
     until: 0,
     back: paths.back,
     lane: { ...paths.back[0] },
+    ...extra,
   }
 }
 
