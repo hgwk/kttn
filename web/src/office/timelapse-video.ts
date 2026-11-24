@@ -28,9 +28,15 @@ export async function toVideo(frames: Frame[], mime: string) {
   const canvas = document.createElement("canvas")
   canvas.width = first.width
   canvas.height = first.height
-  first.close()
   const ctx = canvas.getContext("2d")
-  if (!ctx) throw new Error("no canvas")
+  if (!ctx) {
+    first.close()
+    throw new Error("no canvas")
+  }
+  // 첫 장면을 먼저 그려 둔다(시간으로 담는 대체 경로가 시작하자마자 빈 화면을
+  // 담지 않게).
+  ctx.drawImage(first, 0, 0)
+  first.close()
   // 프레임을 직접 넘길 수 있으면(requestFrame) 그렇게 하고, 못 하는
   // 브라우저에서는 초당 FPS로 저절로 담는다(그대로 두면 빈 영상이 된다).
   let stream = canvas.captureStream(0)
@@ -47,14 +53,19 @@ export async function toVideo(frames: Frame[], mime: string) {
   recorder.ondataavailable = (event) => chunks.push(event.data)
   const stopped = new Promise((resolve) => (recorder.onstop = resolve))
   recorder.start()
-  for (const frame of frames) {
-    const image = await createImageBitmap(frame.blob)
-    ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
-    image.close()
-    track.requestFrame?.()
-    await new Promise((resolve) => setTimeout(resolve, 1000 / FPS))
+  try {
+    for (const frame of frames) {
+      const image = await createImageBitmap(frame.blob)
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height)
+      image.close()
+      track.requestFrame?.()
+      await new Promise((resolve) => setTimeout(resolve, 1000 / FPS))
+    }
+  } finally {
+    // 중간에 장면을 못 풀어도 녹화와 스트림은 꼭 멈춘다.
+    if (recorder.state === "recording") recorder.stop()
+    for (const used of stream.getTracks()) used.stop()
   }
-  recorder.stop()
   await stopped
   return new Blob(chunks, { type: mime })
 }
