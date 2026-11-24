@@ -150,3 +150,28 @@ func TestAnAbsoluteKttnPathReplacesThePlainCommandAndBack(t *testing.T) {
 		}
 	}
 }
+
+func TestASymlinkedSettingsFileStaysALinkAndTheFirstBackupIsKept(t *testing.T) {
+	dir := t.TempDir()
+	real := filepath.Join(dir, "dotfiles", "claude-settings.json")
+	os.MkdirAll(filepath.Dir(real), 0o700)
+	original := "{\n\t\"model\": \"opus\"\n}\n"
+	os.WriteFile(real, []byte(original), 0o600)
+	link := filepath.Join(dir, "claude", "settings.json")
+	os.MkdirAll(filepath.Dir(link), 0o700)
+	if err := os.Symlink(real, link); err != nil {
+		t.Fatal(err)
+	}
+	Install(link)
+	Install(link)
+	if info, err := os.Lstat(link); err != nil || info.Mode()&os.ModeSymlink == 0 {
+		t.Fatal("settings.json is no longer a symlink")
+	}
+	written, _ := os.ReadFile(real)
+	if !strings.Contains(string(written), "\n\t\"model\"") || !strings.Contains(string(written), Command) {
+		t.Fatalf("target not updated with its tab indentation:\n%s", written)
+	}
+	if bak, _ := os.ReadFile(real + ".bak"); string(bak) != original {
+		t.Fatalf("the second run replaced the original backup:\n%s", bak)
+	}
+}

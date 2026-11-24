@@ -164,19 +164,28 @@ func withoutOurs(entries []json.RawMessage) []json.RawMessage {
 	return kept
 }
 
-// write replaces the file atomically and keeps the previous one as .bak.
+// write replaces the settings atomically. A symlinked settings.json (say,
+// from a dotfiles repo) is written through to its target, so the link stays.
+// The first rewrite keeps the user's original as .bak and later ones leave
+// it alone. The original's indentation is kept.
 func write(path string, compact []byte) error {
+	if target, err := filepath.EvalSymlinks(path); err == nil {
+		path = target
+	}
+	old, readErr := os.ReadFile(path)
 	var pretty bytes.Buffer
-	if err := json.Indent(&pretty, compact, "", "  "); err != nil {
+	if err := json.Indent(&pretty, compact, "", indentOf(old)); err != nil {
 		return err
 	}
 	pretty.WriteByte('\n')
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
-	if old, err := os.ReadFile(path); err == nil {
-		if err := os.WriteFile(path+".bak", old, 0o600); err != nil {
-			return err
+	if readErr == nil {
+		if _, err := os.Stat(path + ".bak"); errors.Is(err, fs.ErrNotExist) {
+			if err := os.WriteFile(path+".bak", old, 0o600); err != nil {
+				return err
+			}
 		}
 	}
 	temp := path + ".kttn.tmp"
@@ -184,4 +193,17 @@ func write(path string, compact []byte) error {
 		return err
 	}
 	return os.Rename(temp, path)
+}
+
+// indentOf finds the indentation of the first indented line: a tab, or a
+// run of spaces. Two spaces when the file is new or on one line.
+func indentOf(raw []byte) string {
+	for _, line := range strings.Split(string(raw), "\n") {
+		trimmed := strings.TrimLeft(line, " \t")
+		if trimmed == "" || len(trimmed) == len(line) {
+			continue
+		}
+		return line[:len(line)-len(trimmed)]
+	}
+	return "  "
 }
