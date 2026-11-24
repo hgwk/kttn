@@ -43,6 +43,7 @@ export const ko = {
   "status.resting": "쉬는 중 {n}",
   "status.ended": "퇴근 {n}",
   "status.toolsToday": "오늘 도구 {n}회",
+  "status.petsToday": "오늘 쓰담 {n}회",
   "building.heading": "{name} 건물, 사무실 {offices}곳, 냥이 {cats}마리",
   "building.headingNeedsYou": ", 확인 필요 {n}",
   "building.headingOutside": ", 자리 밖 {n}",
@@ -156,7 +157,7 @@ export const ko = {
   "capture.stop": "녹화 중지",
   "capture.record": "녹화",
 
-  "stage.help": "{scale}% | 고양이 클릭: 탭 이동 | 말풍선 클릭: 메시지 | 휠: 화면 이동 | 방향키/WASD: 집사 이동 | +/-: 확대/축소 | 1: 원래 크기",
+  "stage.help": "{scale}% | 고양이 클릭: 탭 이동 | 말풍선 클릭: 메시지 | 휠: 화면 이동 | 방향키/WASD: 집사 이동 | 스페이스: 쓰담 하트 | +/-: 확대/축소 | 1: 원래 크기",
 
   "scroll.left": "왼쪽 방으로",
   "scroll.right": "오른쪽 방으로",

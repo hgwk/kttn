@@ -42,6 +42,7 @@ export const en: Record<MessageKey, string> = {
   "status.resting": "Resting {n}",
   "status.ended": "Gone home {n}",
   "status.toolsToday": "Today {n} tool calls",
+  "status.petsToday": "Pets today {n}",
   "building.heading": "{name} building, offices: {offices}, cats: {cats}",
   "building.headingNeedsYou": ", needs you: {n}",
   "building.headingOutside": ", away: {n}",
@@ -155,7 +156,7 @@ export const en: Record<MessageKey, string> = {
   "capture.stop": "Stop recording",
   "capture.record": "Record",
 
-  "stage.help": "{scale}% | click a cat: open its tab | click a bubble: message | wheel: pan | arrows/WASD: butler | +/-: zoom | 1: actual size",
+  "stage.help": "{scale}% | click a cat: open its tab | click a bubble: message | wheel: pan | arrows/WASD: butler | space: pet | +/-: zoom | 1: actual size",
 
   "scroll.left": "Show rooms to the left",
   "scroll.right": "Show rooms to the right",

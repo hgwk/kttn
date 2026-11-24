@@ -42,6 +42,7 @@ export const ja: Record<MessageKey, string> = {
   "status.resting": "休憩中 {n}",
   "status.ended": "退勤 {n}",
   "status.toolsToday": "今日 ツール {n}回",
+  "status.petsToday": "今日のなでなで {n}回",
   "building.heading": "{name} ビル、オフィス {offices}か所、ねこ {cats}匹",
   "building.headingNeedsYou": "、確認が必要 {n}",
   "building.headingOutside": "、席外し {n}",
@@ -155,7 +156,7 @@ export const ja: Record<MessageKey, string> = {
   "capture.stop": "録画停止",
   "capture.record": "録画",
 
-  "stage.help": "{scale}% | 猫を押してタブを開く | 吹き出しを押してメッセージ | ホイールで移動 | 矢印/WASD で執事 | +/- 拡大 | 1 で元の大きさ",
+  "stage.help": "{scale}% | 猫を押してタブを開く | 吹き出しを押してメッセージ | ホイールで移動 | 矢印/WASD で執事 | スペースでなでなで | +/- 拡大 | 1 で元の大きさ",
 
   "scroll.left": "左の部屋を見る",
   "scroll.right": "右の部屋を見る",

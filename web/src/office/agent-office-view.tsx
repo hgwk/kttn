@@ -22,6 +22,7 @@ import { fetchSnapshot, type ServerSnapshot } from "@/lib/snapshot"
 import { lang, t } from "@/i18n"
 import { OfficeSettingsContext, useOfficeSettings } from "@/office/office-settings"
 import { PropPalette } from "@/office/props-palette"
+import { usePetting } from "@/office/petting"
 
 const POLL_MS = 2000
 const MAX_LEVEL_UPS = 40
@@ -65,6 +66,8 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
   const shown = useRef(initial)
   const areaRef = useRef<HTMLDivElement>(null)
   const [full, setFull] = useState(false)
+  // 집사가 곁에 선 고양이를 스페이스로 쓰다듬은 오늘 횟수(petting.ts)
+  const pets = usePetting()
 
   useEffect(() => {
     const sync = () => setFull(document.fullscreenElement === areaRef.current)
@@ -194,6 +197,9 @@ function OfficeView({ initial }: { initial: ServerSnapshot }) {
                 <StatusChip text={t("status.ended", { n: counts.ended })} />
               ) : null}
               <StatusChip text={t("status.toolsToday", { n: totalTools })} />
+              {pets ? (
+                <StatusChip text={t("status.petsToday", { n: pets })} />
+              ) : null}
             </div>
           }
           tools={
