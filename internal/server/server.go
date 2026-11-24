@@ -37,6 +37,8 @@ type Options struct {
 	Focus func(pid int) error
 	// Send types a message into a session's input.
 	Send func(pid int, state, text string) error
+	// EmbedOrigins may show the office in an iframe; every other site may not.
+	EmbedOrigins []string
 }
 
 // Snapshot is what the screen polls.
@@ -85,7 +87,7 @@ func New(opts Options) http.Handler {
 	mux.HandleFunc("POST /api/focus", focusHandler(opts))
 	mux.HandleFunc("POST /api/message", messageHandler(opts))
 	mux.Handle("GET /", staticHandler())
-	return withLoopback(mux)
+	return withLoopback(withFrameAncestors(opts.EmbedOrigins, mux))
 }
 
 // reportBody admits a report from a local program (the hook)

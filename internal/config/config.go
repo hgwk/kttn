@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 )
 
@@ -27,7 +28,32 @@ type Config struct {
 	Token string `json:"token"`
 	// Preview lets Stop carry the opening of the answer to the screen.
 	Preview bool `json:"preview"`
+	// EmbedOrigins are the pages allowed to show the office in an iframe,
+	// besides the office itself. Absent means DefaultEmbedOrigins; an empty
+	// list allows none.
+	EmbedOrigins *[]string `json:"embed_origins,omitempty"`
 }
+
+// DefaultEmbedOrigins lets a local dashboard on port 3000 embed the office.
+var DefaultEmbedOrigins = []string{"http://127.0.0.1:3000", "http://localhost:3000"}
+
+// Embedders returns the origins allowed to embed the office, keeping only
+// well-formed http(s) origins so nothing odd reaches the CSP header.
+func (c Config) Embedders() []string {
+	list := DefaultEmbedOrigins
+	if c.EmbedOrigins != nil {
+		list = *c.EmbedOrigins
+	}
+	out := []string{}
+	for _, origin := range list {
+		if originPattern.MatchString(origin) {
+			out = append(out, origin)
+		}
+	}
+	return out
+}
+
+var originPattern = regexp.MustCompile(`^https?://[A-Za-z0-9.-]+(:[0-9]{1,5})?$`)
 
 // Path is $XDG_CONFIG_HOME/kttn/config.json, else ~/.config/kttn/config.json.
 // KTTN_CONFIG overrides it.

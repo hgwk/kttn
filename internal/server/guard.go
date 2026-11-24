@@ -37,3 +37,14 @@ func withLoopback(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+// withFrameAncestors lets only the office itself and the listed origins put
+// the office in an iframe. Screen actions inside such a frame still come from
+// the office's own page, so the same-origin check on them is unchanged.
+func withFrameAncestors(origins []string, next http.Handler) http.Handler {
+	policy := "frame-ancestors " + strings.Join(append([]string{"'self'"}, origins...), " ")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", policy)
+		next.ServeHTTP(w, r)
+	})
+}

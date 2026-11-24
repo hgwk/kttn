@@ -64,3 +64,18 @@ func TestTokensAreRandom(t *testing.T) {
 		t.Fatalf("tokens %q %q", a, b)
 	}
 }
+
+func TestEmbedOriginsDefaultToTheLocalDashboardAndDropOddValues(t *testing.T) {
+	if got := (Config{}).Embedders(); len(got) != 2 || got[0] != "http://127.0.0.1:3000" {
+		t.Fatalf("default %v", got)
+	}
+	none := []string{}
+	if got := (Config{EmbedOrigins: &none}).Embedders(); len(got) != 0 {
+		t.Fatalf("empty list %v", got)
+	}
+	odd := []string{"https://dash.local:8443", "http://x; script-src *", "*", "javascript:alert(1)", "http://ok.test"}
+	got := (Config{EmbedOrigins: &odd}).Embedders()
+	if len(got) != 2 || got[0] != "https://dash.local:8443" || got[1] != "http://ok.test" {
+		t.Fatalf("filtered %v", got)
+	}
+}
