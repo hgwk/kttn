@@ -9,6 +9,7 @@ import {
   VISIT_MS,
   modelLabel,
   idleActivity,
+  propPick,
   recentMoment,
   troubleText,
   visitingName,
@@ -143,4 +144,24 @@ test("모델 이름은 짧게 보인다", () => {
   assert.equal(modelLabel("claude-haiku-5"), "haiku 5")
   assert.equal(modelLabel("gpt-6-luna"), "gpt 6 luna")
   assert.equal(modelLabel(""), "")
+})
+
+test("쉬는 고양이는 찾아갈 소품이 있으면 졸 차례에 가끔 소품에 간다", () => {
+  const agent = { key: "claude|visit", state: "sleeping" }
+  const seen = new Set()
+  for (let slot = 0; slot < 200; slot++) {
+    const now = slot * IDLE_SLOT_MS + STROLL_MS + 1
+    const none = idleActivity(agent, now, { tower: false, props: 0 })
+    const some = idleActivity(agent, now, { tower: false, props: 3 })
+    assert.notEqual(none, "prop")
+    // 소품이 있어도 졸 차례가 아닌 일은 그대로다.
+    if (none !== "doze") assert.equal(some, none)
+    seen.add(some)
+  }
+  assert.ok(seen.has("prop") && seen.has("doze"))
+  for (let i = 0; i < 50; i++) {
+    const pick = propPick(`claude|${i}`, i * IDLE_SLOT_MS, 4)
+    assert.ok(pick >= 0 && pick < 4)
+  }
+  assert.equal(propPick("claude|x", 0, 0), 0)
 })

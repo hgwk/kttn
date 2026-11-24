@@ -17,7 +17,16 @@ function fnv(text: string) {
 /** 쉬는 고양이가 할 일을 바꾸는 간격(ms) */
 export const IDLE_SLOT_MS = 60_000
 
-export type IdleActivity = "doze" | "stroll" | "groom" | "window" | "tower"
+export type IdleActivity =
+  | "doze"
+  | "stroll"
+  | "groom"
+  | "window"
+  | "tower"
+  | "prop"
+
+/** 쉬는 고양이 둘레에 있는 것: 캣타워가 있는지, 찾아갈 소품이 몇 개인지. */
+export type Nearby = { tower: boolean; props: number }
 const IDLE_ACTIVITIES: IdleActivity[] = ["doze", "stroll", "groom", "window"]
 /** 산책은 1분 가운데 처음 이만큼(ms)만 한다. 돌아와 앉은 뒤에는 존다. */
 export const STROLL_MS = 14_000
@@ -36,8 +45,11 @@ export const TOWER_WALK_MS = 4_000
 export function idleActivity(
   agent: Pick<SessionAgent, "key" | "state">,
   now: number,
-  /** 같은 책상 구역 휴게 공간에 캣타워가 있으면 캣타워에도 올라간다. */
-  tower = false,
+  /**
+   * 같은 책상 구역 휴게 공간에 캣타워가 있으면 캣타워에도 올라간다. 찾아갈
+   * 소품(밥그릇, 해먹 등)이 있으면 졸 차례에 가끔 그 소품에 간다("prop").
+   */
+  tower: boolean | Nearby = false,
   /**
    * 같은 책상 구역 고양이들. 주면 쉬는 고양이끼리 차례로 다른 일을 나눠
    * 가진다(활동 수보다 많으면 그때부터 겹친다). 안 주면 고양이마다 따로 고른다.
@@ -51,7 +63,15 @@ export function idleActivity(
 ): IdleActivity | "" {
   if (agent.state !== "sleeping") return ""
   const slot = Math.floor(now / IDLE_SLOT_MS)
-  const choices: IdleActivity[] = tower
+  const hasTower = typeof tower === "boolean" ? tower : tower.tower
+  const props = typeof tower === "boolean" ? 0 : tower.props
+  // 졸 차례 셋 가운데 둘은 찾아갈 소품이 있으면 그 소품에 간다. 캣타워 차례와
+  // 다른 고양이 몫은 그대로라 캣타워 그림(tower-cats.tsx)과 어긋나지 않는다.
+  const visit = (act: IdleActivity): IdleActivity =>
+    act === "doze" && props > 0 && fnv(`${agent.key}:${slot}:visit`) % 3 !== 0
+      ? "prop"
+      : act
+  const choices: IdleActivity[] = hasTower
     ? [...IDLE_ACTIVITIES, "tower"]
     : IDLE_ACTIVITIES
   const sleepers = (mates ?? [])
@@ -65,7 +85,7 @@ export function idleActivity(
       : fnv(`${agent.key}:${slot}`)
   const picked = choices[base % choices.length]
   if (picked !== "stroll" || (now % IDLE_SLOT_MS < STROLL_MS && !walkedOff))
-    return picked
+    return visit(picked)
   // 산책은 잠깐이라, 다녀온 뒤에도(또는 나서지 못했으면) "돌고 오겠다냥"라고
   // 하지 않게 남은 시간은 다른 일을 한다. 같은 구역에 아무도 안 고른 일이 남았으면 그것을 하고
   // (옆 고양이와 똑같이 졸지 않게), 고양이가 많아 다 찼으면 졸기가 몰리지
@@ -78,7 +98,14 @@ export function idleActivity(
         : seat % 2
           ? "groom"
           : "window"
-  return spare === "groom" || spare === "window" ? spare : "doze"
+  return spare === "groom" || spare === "window" ? spare : visit("doze")
+}
+
+/** 소품을 찾아가는 고양이가 이번 1분에 고르는 소품 차례(count개 가운데). */
+export function propPick(key: string, now: number, count: number) {
+  return count > 0
+    ? fnv(`${key}:${Math.floor(now / IDLE_SLOT_MS)}:spot`) % count
+    : 0
 }
 
 /** 도구 실패 같은 순간을 이만큼(ms) 보인다. */

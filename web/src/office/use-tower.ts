@@ -1,24 +1,41 @@
 import { useEffect, useRef, useState, type RefObject } from "react"
 
+import type { Nearby } from "@/lib/agent-office-acts"
+
+/** 둘레 정보에 찾아갈 소품 요소([data-visit])까지 더한 것 */
+export type Spots = Nearby & { spots: HTMLElement[] }
+
+const NONE: Spots = { tower: false, props: 0, spots: [] }
+
 /**
- * 같은 책상 구역의 휴게 공간에 캣타워가 놓였는지. 휴게 공간은 들어갈 자리가
- * 있을 때만 그려지므로 화면에서 2초마다 확인한다. 그리는 고리에서 읽을 ref도
- * 함께 돌려준다.
+ * 같은 책상 구역의 휴게 공간에 캣타워와 찾아갈 소품(data-visit)이 있는지.
+ * 휴게 공간은 들어갈 자리가 있을 때만 그려지고 소품은 옮기거나 들일 수
+ * 있으므로 화면에서 2초마다 확인한다. 그리는 고리에서 읽을 ref도 돌려준다.
  */
 export function useTowerNearby(boxRef: RefObject<HTMLElement | null>) {
-  const [hasTower, setHasTower] = useState(false)
-  const towerRef = useRef(false)
+  const [nearby, setNearby] = useState<Spots>(NONE)
+  const nearbyRef = useRef<Spots>(NONE)
   useEffect(() => {
     const check = () => {
-      const found = Boolean(
-        boxRef.current?.parentElement?.querySelector("[data-cat-tower]")
+      const scope = boxRef.current?.parentElement
+      const spots = [
+        ...(scope?.querySelectorAll<HTMLElement>("[data-visit]") ?? []),
+      ]
+      const tower = Boolean(scope?.querySelector("[data-cat-tower]"))
+      const old = nearbyRef.current
+      if (
+        old.tower === tower &&
+        old.spots.length === spots.length &&
+        old.spots.every((el, i) => el === spots[i])
       )
-      towerRef.current = found
-      setHasTower(found)
+        return
+      const next = { tower, props: spots.length, spots }
+      nearbyRef.current = next
+      setNearby(next)
     }
     check()
     const timer = window.setInterval(check, 2000)
     return () => window.clearInterval(timer)
   }, [boxRef])
-  return [hasTower, towerRef] as const
+  return [nearby, nearbyRef] as const
 }

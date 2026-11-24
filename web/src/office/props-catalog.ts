@@ -143,3 +143,30 @@ export const FLOOR_GROUPS = {
     "trash",
   ],
 } satisfies Record<string, ItemName[]>
+
+/** 쉬는 고양이가 찾아가 하는 일 */
+export type VisitAction = "eat" | "nap" | "groove" | "play"
+
+/** 쉬는 고양이가 찾아가는 바닥 소품과 거기서 하는 일(visit-cats.tsx) */
+export const VISIT: Partial<Record<ItemName, VisitAction>> = {
+  catFoodBag: "eat",
+  foodBowl: "eat",
+  catFountain: "eat",
+  catBed: "nap",
+  catHouse: "nap",
+  catHammock: "nap",
+  floorCushion: "nap",
+  beanBag: "nap",
+  kotatsu: "nap",
+  armchair: "nap",
+  recordPlayer: "groove",
+  piano: "groove",
+  drumKit: "groove",
+  scratcher: "play",
+  yarn: "play",
+  toyMouse: "play",
+  fishToy: "play",
+  featherWand: "play",
+  catTunnel: "play",
+  boxStack: "play",
+}

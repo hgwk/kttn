@@ -1,4 +1,5 @@
-import { t } from "@/i18n"
+import { t, type MessageKey } from "@/i18n"
+import type { Spots } from "@/office/use-tower"
 import {
   stateDuration,
   stateSince,
@@ -6,6 +7,7 @@ import {
 } from "@/lib/agent-office"
 import {
   idleActivity,
+  propPick,
   recentMoment,
   troubleText,
   visitingName,
@@ -17,7 +19,9 @@ import { cn } from "@/lib/utils"
 export function speechFor(
   agent: SessionAgent,
   lasted = "",
-  activity: IdleActivity | "" = ""
+  activity: IdleActivity | "" = "",
+  /** 소품을 찾아간 고양이가 거기서 하는 일(visit-cats.tsx) */
+  visit = ""
 ) {
   const what = agent.detail
   // "3분째"처럼 시간이 흐른 경우만 덧붙인다. "방금부터"는 이 두 대사에서 어색하다.
@@ -59,6 +63,8 @@ export function speechFor(
       if (activity === "groom") return t("speech.groom")
       if (activity === "window") return t("speech.window")
       if (activity === "tower") return t("speech.tower")
+      if (activity === "prop" && visit)
+        return t(`speech.prop.${visit}` as MessageKey)
       return waited
         ? t("speech.dozingFor", { time: waited })
         : t("speech.dozing")
@@ -146,8 +152,8 @@ export function CatSpeech({
   agent: SessionAgent
   now: number
   levelUp: boolean
-  /** 같은 책상 구역에 캣타워가 있는지(쉬는 고양이가 올라간다) */
-  tower?: boolean
+  /** 같은 책상 구역의 캣타워와 찾아갈 소품(쉬는 고양이가 간다) */
+  tower?: boolean | Spots
   /** 같은 책상 구역 고양이들(쉬는 고양이끼리 다른 일을 나눠 가진다) */
   mates?: readonly SessionAgent[]
   /** 그림에서 이 고양이가 지금 산책하는 중인지 */
@@ -159,6 +165,12 @@ export function CatSpeech({
   const special = waiting ? "" : specialLine(agent, now)
   // 산책 차례라도 실제로 걷고 있지 않으면(늦게 열린 화면 등) 다른 쉬는 일을 말한다.
   const activity = idleActivity(agent, now, tower, mates, !strolling)
+  // 소품을 찾아갔으면 어느 소품에서 무얼 하는지(그림과 같은 계산)
+  const spots = typeof tower === "boolean" ? [] : tower.spots
+  const visit =
+    activity === "prop"
+      ? (spots[propPick(agent.key, now, spots.length)]?.dataset.visit ?? "")
+      : ""
   const lasted = stateDuration(stateSince(agent), now)
   // 시간을 앞에 붙이는 대사. 끝냈거나 퇴근한 뒤에는 "방금부터 다 했다냥"처럼
   // 어색하고, 확인 요청·졸기는 대사 안에서 시간을 말한다.
@@ -202,9 +214,9 @@ export function CatSpeech({
             {timed && lasted
               ? t("speech.timed", {
                   time: lasted,
-                  line: speechFor(agent, lasted, activity) ?? "",
+                  line: speechFor(agent, lasted, activity, visit) ?? "",
                 })
-              : speechFor(agent, lasted, activity)}
+              : speechFor(agent, lasted, activity, visit)}
           </>
         )}
       </p>

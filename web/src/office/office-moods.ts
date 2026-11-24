@@ -3,14 +3,18 @@
 import { poseFor } from "@/office/office-draw"
 import type { Walker } from "@/office/office-walk"
 import type { CatPose } from "@/office/sprites"
-import { idleActivity, recentMoment } from "@/lib/agent-office-acts"
+import {
+  idleActivity,
+  recentMoment,
+  type Nearby,
+} from "@/lib/agent-office-acts"
 import type { SessionAgent } from "@/lib/agent-office"
 
 /** 쉬는 고양이는 졸 때만 엎드리고, 털 고르기는 앞발을 핥고, 창밖 구경은 창 쪽으로 돌아선다. */
 export function idlePose(
   agent: SessionAgent,
   now: number,
-  tower: boolean,
+  tower: boolean | Nearby,
   mates: readonly SessionAgent[]
 ): CatPose {
   // 걷는 고양이는 걷는 자세로 그리므로, 여기 오는 산책 차례 고양이는 나서지 못한 것이다.

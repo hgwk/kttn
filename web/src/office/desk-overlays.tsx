@@ -6,6 +6,8 @@ import { CatSpeech } from "@/office/cat-speech"
 import { DeskTag } from "@/office/desk-tag"
 import { CAT_DX, officeLayout, seatFor } from "@/office/office-draw"
 import type { SessionAgent } from "@/lib/agent-office"
+import type { Spots } from "@/office/use-tower"
+import { VisitCats } from "@/office/visit-cats"
 
 /**
  * 책상 구역 캔버스 위에 얹는 것들: 고양이 대사 상자, 누를 수 있는 책상 자리,
@@ -25,7 +27,7 @@ export function DeskOverlays({
   layout: ReturnType<typeof officeLayout>
   now: number
   levelUps: Set<string>
-  tower: boolean
+  tower: Spots
   /** 산책 중인 세션 키를 줄바꿈으로 이은 것 */
   strollers: string
   /** 세션 키별 대사 상자. 걷는 고양이를 따라 옮길 때 쓴다. */
@@ -34,6 +36,7 @@ export function DeskOverlays({
   const names = useCatNames()
   return (
     <>
+    <VisitCats agents={agents} now={now} nearby={tower} />
     {agents.map((agent, index) => {
       const seat = seatFor(layout, index)
       return (

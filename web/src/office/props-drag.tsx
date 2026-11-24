@@ -5,6 +5,8 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react"
+import { VISIT } from "@/office/props-catalog"
+import type { ItemName } from "@/office/sprites"
 
 // 사무실 소품(휴게 공간 가구, 위쪽 벽 장식)을 마우스로 옮긴다. 옮긴 자리는
 // 기본 자리에서 얼마나 떨어졌는지(px)로 kttn 설정 파일에 남는다(/api/props).
@@ -248,9 +250,13 @@ export function Movable({
     <span
       className={className}
       data-movable=""
+      // 쉬는 고양이가 찾아가는 소품이면 거기서 하는 일(visit-cats.tsx)
+      data-visit={VISIT[item.split(":").at(-1) as ItemName]}
       title={title ?? t("props.moveHint")}
       style={{
         display: "block",
+        // 찾아온 고양이 그림이 이 소품을 기준으로 놓인다.
+        position: className?.includes("absolute") ? undefined : "relative",
         cursor: "grab",
         touchAction: "none",
         transform: offset

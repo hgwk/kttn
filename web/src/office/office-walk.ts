@@ -146,7 +146,8 @@ export function pathsToTower(layout: OfficeLayout, index: number) {
     go: [
       { x: aisle, y: seat.y },
       { x: aisle, y: lane },
-      { x: aisle, y: layout.h + 16 },
+      // 그림판 둘레(EDGE 24)보다 더 아래로 나가 안 보이게 한다.
+      { x: aisle, y: layout.h + 48 },
     ],
     back: [{ x: aisle, y: lane }, { x: aisle, y: seat.y }, seat],
   }
@@ -205,7 +206,7 @@ export function step(walker: Walker, dt: number) {
 }
 
 /**
- * 쉬는 고양이가 산책(stroll)이나 캣타워(tower) 차례면 길을 정해 준다. 같은
+ * 쉬는 고양이가 산책(stroll)이나 캣타워(tower)·소품(prop) 차례면 길을 정해 준다. 같은
  * 칸(slot, slotMs 단위)에는 한 번만 간다. 캣타워에는 그 칸이 끝날 때까지 있다.
  */
 export function startIdleWalk(
@@ -218,12 +219,14 @@ export function startIdleWalk(
   strollStartMs = 3_000,
   now = Date.now()
 ) {
-  if (activity !== "stroll" && activity !== "tower") return
+  if (activity !== "stroll" && activity !== "tower" && activity !== "prop")
+    return
   if (walker.strolled === slot) return
   // 산책은 1분 첫머리에만 나선다(늦게 나서면 대사가 졸기로 먼저 바뀐다).
   if (activity === "stroll" && now - slot * slotMs > strollStartMs) return
   walker.strolled = slot
-  const tower = activity === "tower"
+  // 캣타워와 소품은 휴게 공간으로 걸어 나가 그 칸이 끝날 때까지 있다.
+  const tower = activity === "tower" || activity === "prop"
   const paths = tower
     ? pathsToTower(layout, index)
     : pathsToStroll(layout, index)
