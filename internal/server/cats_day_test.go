@@ -15,31 +15,51 @@ func dayBook(t *testing.T, path string) (*catBook, *catClock) {
 	return newCatBook(path, clock.now), clock
 }
 
-// A session the store forgot (idle, ended, restarted without state) comes
-// back counting from 0; its new tools still count, today and in all.
-func TestAResumedSessionKeepsCountingAfterItsCountStartsOver(t *testing.T) {
+func (b *catBook) recordPre(a office.Agent, e office.Event) { b.record(a, e, 1) }
+
+func pre(n int) (office.Agent, office.Event) {
+	return office.Agent{Key: "claude|a", Source: "claude", State: "thinking", ToolCount: n}, office.Event{Event: "PreToolUse"}
+}
+
+// Events can be recorded in another order than the store applied them
+// (parallel tools), and a session the store forgot counts from 0 again. The
+// catalog counts each started tool once either way.
+func TestEveryStartedToolCountsOnceWhateverTheOrderOrAResume(t *testing.T) {
 	b, _ := dayBook(t, filepath.Join(t.TempDir(), "cats.json"))
-	cat := office.Agent{Key: "claude|a", Source: "claude", State: "thinking"}
-	for _, n := range []int{1, 2, 3, 1, 2} {
-		cat.ToolCount = n
-		b.record(cat, office.Event{Event: "PreToolUse"}, 1)
+	for _, n := range []int{1, 2, 3, 4, 6, 5, 7} {
+		b.recordPre(pre(n))
 	}
-	got := b.list()[0]
-	if got.Tools != 5 || got.Day == nil || got.Day.Tools != 5 || got.LastCount != 2 {
-		t.Fatalf("tools %d, day %+v, last %d", got.Tools, got.Day, got.LastCount)
+	late, _ := pre(3)
+	b.record(late, office.Event{Event: "PostToolUse"}, 1)
+	for _, n := range []int{1, 2} {
+		b.recordPre(pre(n))
+	}
+	if got := b.list()[0]; got.Tools != 9 || got.Day == nil || got.Day.Tools != 9 {
+		t.Fatalf("tools %d, day %+v", got.Tools, got.Day)
+	}
+	sub, event := pre(9)
+	event.Subagent = "ag1"
+	b.record(sub, event, 1)
+	if got := b.list()[0]; got.Tools != 9 {
+		t.Fatalf("a subagent's tool counted: %d", got.Tools)
 	}
 }
 
-// A catalog saved before last_count takes its tools as the last count, so
-// the first event after the upgrade does not count them all again.
-func TestACatalogFromBeforeLastCountDoesNotCountItsToolsTwice(t *testing.T) {
+// A cat first met mid-session starts from the session's count; a file from
+// 0.7.0 with last_count still loads and keeps counting by events.
+func TestACatMetMidSessionAndA070FileStartWhereTheyAre(t *testing.T) {
+	b, _ := dayBook(t, filepath.Join(t.TempDir(), "cats.json"))
+	b.record(office.Agent{Key: "claude|m", Source: "claude", State: "thinking", ToolCount: 40}, office.Event{Event: "PostToolUse"}, 1)
+	if got := b.list()[0]; got.Tools != 40 || got.Day != nil {
+		t.Fatalf("mid-session %d %+v", got.Tools, got.Day)
+	}
 	path := filepath.Join(t.TempDir(), "cats.json")
-	old := `{"cats":[{"key":"claude|a","source":"claude","first_seen":"2026-11-26T09:00:00.000Z","last_seen":"2026-11-26T09:00:00.000Z","tools":5}]}`
+	old := `{"cats":[{"key":"claude|a","source":"claude","first_seen":"2026-11-26T09:00:00.000Z","last_seen":"2026-11-26T09:00:00.000Z","tools":5,"last_count":5}]}`
 	if err := os.WriteFile(path, []byte(old), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	b, _ := dayBook(t, path)
-	b.record(office.Agent{Key: "claude|a", Source: "claude", State: "thinking", ToolCount: 6}, office.Event{Event: "PreToolUse"}, 1)
+	b, _ = dayBook(t, path)
+	b.recordPre(pre(6))
 	if got := b.list()[0]; got.Tools != 6 || got.Day == nil || got.Day.Tools != 1 {
 		t.Fatalf("tools %d, day %+v", got.Tools, got.Day)
 	}

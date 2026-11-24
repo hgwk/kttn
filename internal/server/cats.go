@@ -40,11 +40,6 @@ type cat struct {
 	// Day is today's work, by this computer's date; omitted until the cat
 	// has worked on some day.
 	Day *catDay `json:"day,omitempty"`
-	// LastCount is the session's tool count at its last event. The store
-	// counts from 0 again when a session comes back after it dropped one
-	// (idle, ended, a restart without state), so a lower count is a fresh
-	// start, not a loss.
-	LastCount int `json:"last_count"`
 }
 
 // catalog is the catalog file and the GET /api/cats answer.
@@ -77,10 +72,6 @@ func newCatBook(path string, now func() time.Time) *catBook {
 	if raw, err := os.ReadFile(path); err == nil && json.Unmarshal(raw, &saved) == nil {
 		for i := range saved.Cats {
 			if c := saved.Cats[i]; c.Key != "" {
-				if c.LastCount == 0 {
-					// Written before last_count: tools was the highest count.
-					c.LastCount = c.Tools
-				}
 				b.cats[c.Key] = &c
 			}
 		}
@@ -114,13 +105,20 @@ func (b *catBook) record(a office.Agent, event office.Event, live int) {
 	if a.Name != "" {
 		c.SessionName = a.Name
 	}
-	newTools := a.ToolCount - c.LastCount
-	if a.ToolCount < c.LastCount {
-		newTools = a.ToolCount
+	// Count the event itself, as the store does, never a difference of
+	// counts: two events can be recorded in the other order than applied,
+	// and a session the store forgot counts from 0 again.
+	newTools := 0
+	if event.Event == "PreToolUse" && event.Subagent == "" {
+		newTools = 1
 	}
-	c.LastCount = a.ToolCount
+	if !ok {
+		// A cat first met mid-session (a new or cleared catalog) starts
+		// from the session's count, this event included.
+		c.Tools = a.ToolCount - newTools
+	}
 	b.countDay(c, clock.Format("2006-01-02"), newTools, event)
-	c.Tools += max(newTools, 0)
+	c.Tools += newTools
 	if clock.Hour() < 5 && !resting[a.State] {
 		c.NightOwl = true
 	}
