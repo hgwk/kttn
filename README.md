@@ -100,7 +100,10 @@ when it was first and last seen, how many tools it used in all and on its latest
 working day (and how many of those failed), and whether it was ever
 seen working between midnight and 5 a.m. on this computer's clock (kept while
 the cat is); plus the most sessions the office has had at once, and when.
-Nothing else from the session is in it. It keeps the latest 1,000 cats seen within 90 days, and
+The all-time tool count is everything the session has used since it started,
+including tools from before the catalog first saw it (even right after a clear);
+the day's count holds only the tools seen that day. Nothing else from the
+session is in it. It keeps the latest 1,000 cats seen within 90 days, and
 **Clear catalog** on the screen (pressed twice) empties it.
 
 **Daily paper.** The paper button draws the day's office paper, and Save
