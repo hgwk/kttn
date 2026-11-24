@@ -3,20 +3,15 @@ import type { Grid } from "./palette"
 // 가구와 기기 14. 소품 팔레트로 놓는 취미·식물·고양이·잡화 소품. sprite-data.ts가
 // 합쳐 ITEMS로 낸다.
 export const ITEMS_14 = {
-  // 스케이트보드. 비스듬히 기댄 빨간 판과 바퀴 넷.
+  // 스케이트보드. 옆에서 본 빨간 판, 양끝이 들렸고 아래 바퀴 넷 중 둘이 보인다.
   skateboard: [
-    "..........kk",
-    ".........kMk",
-    "........kMMk",
-    ".......kMMk.",
-    "......kMMkk.",
-    ".....kMMkgk.",
-    "....kMMk.k..",
-    "...kMMk.....",
-    "..kMMkk.....",
-    ".kMMkgk.....",
-    "kMMk.k......",
-    "kkk.........",
+    "k..............k",
+    "kMk..........kMk",
+    ".kMMMMMMMMMMMMk.",
+    "..kkkkkkkkkkkk..",
+    "...kGk....kGk...",
+    "..kxxk....kxxk..",
+    "..kkkk....kkkk..",
   ],
   // 게임기. 낮은 받침 위 회색 본체, 줄로 이은 조이패드 둘.
   gameConsole: [
