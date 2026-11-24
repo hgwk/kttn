@@ -5,53 +5,58 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
-
-	"github.com/hgwk/kttn/internal/config"
 )
 
-func usage() {
-	fmt.Fprintf(os.Stderr, `usage:
-  kttn init  [--yes] [--office-name NAME] [--lang ko|en|ja] [--port %d] [--preview]
-  kttn serve [--port PORT]
-  kttn hook  [--url URL] [--source claude] [--timeout 300ms]
-  kttn install | uninstall   add or remove the hook in ~/.claude/settings.json (instead of the plugin)
-  kttn version
-
-config: %s (KTTN_CONFIG overrides)
-env:    KTTN_URL, KTTN_TOKEN override the config for the hook; KTTN_STATE moves the session file
-`, config.DefaultPort, config.Path())
-}
-
 func main() {
-	if len(os.Args) < 2 {
-		usage()
-		os.Exit(2)
-	}
-	switch os.Args[1] {
-	case "hook":
-		runHook(os.Args[2:])
-	case "serve":
-		exitOn("serve", runServe(os.Args[2:]))
-	case "init":
-		exitOn("init", runInit(os.Args[2:], os.Stdin, os.Stdout))
-	case "install":
-		exitOn("install", runInstall(os.Stdout))
-	case "uninstall":
-		exitOn("uninstall", runUninstall(os.Stdout))
-	case "version", "--version":
-		fmt.Println("kttn", version)
-	case "-h", "--help", "help":
-		usage()
-	default:
-		usage()
-		os.Exit(2)
-	}
+	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }
 
-func exitOn(command string, err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "kttn %s: %v\n", command, err)
-		os.Exit(1)
+// run dispatches a command and returns the exit code. `--help` on any command
+// prints that command's help and does nothing else.
+func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) == 0 {
+		usage(stderr)
+		return 2
 	}
+	name, rest := args[0], args[1:]
+	if wantsHelp([]string{name}) {
+		usage(stdout)
+		return 0
+	}
+	if help, ok := helps[name]; ok && wantsHelp(rest) {
+		fmt.Fprintln(stdout, help)
+		return 0
+	}
+	switch name {
+	case "hook":
+		runHook(rest, stdin)
+		return 0
+	case "serve":
+		return report(stderr, name, runServe(rest, stderr))
+	case "init":
+		return report(stderr, name, runInit(rest, stdin, stdout))
+	case "install", "uninstall":
+		if len(rest) > 0 {
+			return report(stderr, name, fmt.Errorf("unexpected argument %q", rest[0]))
+		}
+		if name == "install" {
+			return report(stderr, name, runInstall(stdout))
+		}
+		return report(stderr, name, runUninstall(stdout))
+	case "version", "--version":
+		fmt.Fprintln(stdout, "kttn", version)
+		return 0
+	}
+	usage(stderr)
+	return 2
+}
+
+func report(stderr io.Writer, command string, err error) int {
+	if err != nil {
+		fmt.Fprintf(stderr, "kttn %s: %v\n", command, err)
+		return 1
+	}
+	return 0
 }
