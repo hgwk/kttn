@@ -30,12 +30,23 @@ func openPrivately(url string) error {
 	return exec.Command("xdg-open", page).Start()
 }
 
-// writePrivate writes a 0600 file, fixing the mode of one already there.
+// writePrivate replaces path with a 0600 file. The content goes into a new
+// temp file (created 0600) that is renamed over path, so the key is never in
+// a file with wider permissions, not even one left from before.
 func writePrivate(path string, content []byte) error {
-	if err := os.WriteFile(path, content, 0o600); err != nil {
+	temp, err := os.CreateTemp(filepath.Dir(path), ".open-*.html")
+	if err != nil {
 		return err
 	}
-	return os.Chmod(path, 0o600)
+	defer os.Remove(temp.Name())
+	if _, err := temp.Write(content); err != nil {
+		temp.Close()
+		return err
+	}
+	if err := temp.Close(); err != nil {
+		return err
+	}
+	return os.Rename(temp.Name(), path)
 }
 
 func appleScriptText(text string) string {
