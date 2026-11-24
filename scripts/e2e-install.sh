@@ -27,8 +27,10 @@ SERVE_PID=""
 cleanup() {
   [ -n "$SERVE_PID" ] && kill "$SERVE_PID" 2>/dev/null
   rm -rf "$T"
+  release_lock 2>/dev/null
 }
 trap cleanup EXIT INT TERM
+. "$REPO/scripts/e2e-lock.sh"
 
 pass() { STEPS=$((STEPS + 1)); echo "PASS  $1"; }
 fail() { STEPS=$((STEPS + 1)); FAILS=$((FAILS + 1)); echo "FAIL  $1${2:+  ($2)}"; }
@@ -162,6 +164,7 @@ if [ "$PORT_FREE" = 1 ]; then
 SERVE_PID=$!
 KH="X-Kttn-Key: $SKEY"
 for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf -H "$KH" "http://127.0.0.1:$PORT/api/snapshot" >/dev/null && break; sleep 0.3; done
+owns "$PORT"
 check "serve: answers on the test port $PORT" "curl -sf -H '$KH' http://127.0.0.1:$PORT/api/snapshot"
 check "screen key: snapshot without the key is refused" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT/api/snapshot)\" = 401 ]"
 # Rerunning while the office runs must not move it: the hooks would follow
@@ -243,6 +246,7 @@ kill "$SERVE_PID" 2>/dev/null; SERVE_PID=""
 "$KTTN" serve > "$T/serve2.log" 2>&1 &
 SERVE_PID=$!
 for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf -H "$KH" "http://127.0.0.1:$PORT/api/snapshot" >/dev/null && break; sleep 0.3; done
+owns "$PORT"
 check "messages: after kttn init --messages the gate opens (unknown session gets 404, not 403)" "[ \"\$(msg)\" = 404 ]"
 kill "$SERVE_PID" 2>/dev/null; SERVE_PID=""
 else

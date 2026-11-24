@@ -16,6 +16,7 @@ if ! lsof -nP -iTCP:"$XPORT" -sTCP:LISTEN >/dev/null 2>&1; then
   SERVE_PID=$!
   XKEY="X-Kttn-Key: $(json "$XC/kttn/config.json" 'd.screen_key' | tr -d '"')"
   for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf -H "$XKEY" "http://127.0.0.1:$XPORT/api/snapshot" >/dev/null && break; sleep 0.3; done
+  owns "$XPORT"
   HOOK_CMD=$(json "$T/claude-xdg/settings.json" 'd.hooks.Stop.find(e=>/kttn/.test(e.hooks[0].command)).hooks[0].command' | node -e 'process.stdin.on("data",d=>process.stdout.write(JSON.parse(d)))')
   printf '{"session_id":"xdg-%s","cwd":"%s","hook_event_name":"Stop"}' "$$" "$T/work" \
     | (cd / && env -u XDG_CONFIG_HOME -u XDG_STATE_HOME -u KTTN_CONFIG -u KTTN_STATE sh -c "$HOOK_CMD")
