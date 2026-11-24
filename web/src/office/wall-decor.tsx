@@ -5,6 +5,8 @@ import { Prop, type DoorItem, type HangItem } from "@/office/lounge"
 import { clockAt } from "@/office/sprite-data"
 import { cn } from "@/lib/utils"
 import { Movable } from "@/office/props-drag"
+import { useSeason } from "@/office/season"
+import { Snow } from "@/office/snow"
 
 // 벽 장식 줄을 되풀이하는 횟수. 한 줄이 1,000px 남짓이라 아주 넓은 건물까지 덮는다.
 const DECOR_REPEAT = 5
@@ -56,6 +58,7 @@ export function WallDecor() {
     const timer = window.setInterval(check, 60_000)
     return () => window.clearInterval(timer)
   }, [])
+  const { december } = useSeason()
   const night =
     time !== undefined && (time.hours >= NIGHT_FROM || time.hours < NIGHT_UNTIL)
   const clock = useMemo(
@@ -64,6 +67,8 @@ export function WallDecor() {
   )
   return (
     <div className="ml-10 flex items-center gap-24">
+      {/* 12월에는 벽 장식 줄 맨 앞에 크리스마스트리를 세운다(season.ts). */}
+      {december ? <Prop name="christmasTree" wall /> : null}
       {/* 건물이 통째로 스크롤되므로 넓은 건물의 오른쪽 벽도 비지 않게 몇 번
           되풀이해 건다(벽면이 넘치는 만큼은 잘린다). */}
       {Array.from({ length: DECOR_REPEAT }, () => WALL_DECOR)
@@ -76,11 +81,15 @@ export function WallDecor() {
             item={`decor:${index}:${name}`}
             axis="x"
           >
-            <Prop
-              name={name === "window" && night ? "windowNight" : name}
-              grid={name === "clock" ? clock : undefined}
-              wall
-            />
+            <span className="relative block">
+              <Prop
+                name={name === "window" && night ? "windowNight" : name}
+                grid={name === "clock" ? clock : undefined}
+                wall
+              />
+              {/* 12월에는 창밖에 눈이 내린다(season.ts) */}
+              {name === "window" && december ? <Snow /> : null}
+            </span>
           </Movable>
         ))}
     </div>

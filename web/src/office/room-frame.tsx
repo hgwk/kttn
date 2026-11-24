@@ -1,6 +1,7 @@
 import type { CSSProperties, ReactNode } from "react"
 
 import { DoorProp, WallDecor } from "@/office/wall-decor"
+import { useSeason } from "@/office/season"
 import { type Floor, TILE } from "@/office/sprites"
 import { cn } from "@/lib/utils"
 import { AddedProps } from "@/office/props-palette"
@@ -240,6 +241,18 @@ export function RoomFrame({
     </section>
   )
   if (!building) return frame
+  return <BuildingFrame label={label}>{frame}</BuildingFrame>
+}
+
+/** 건물 바깥 카메라 틀. 새벽 조명도 여기서 덮는다. */
+function BuildingFrame({
+  label,
+  children: frame,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  const { dawn } = useSeason()
   // 건물은 바깥 카메라 틀(data-floor) 안에서 벽·이름표·문째로 스크롤된다.
   // 방 안에서 방이 움직여 보이지 않게, 움직이는 것은 늘 건물 전체다. 집사도
   // 이 틀 안을 걷는다(butler-walk.ts).
@@ -252,6 +265,13 @@ export function RoomFrame({
       >
         {frame}
       </div>
+      {/* 새벽(0~5시)에는 조명을 낮춘다(season.ts). 고양이와 소품 위, 대사 상자 아래. */}
+      {dawn ? (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-[35] bg-[#1e1b4b]/25 mix-blend-multiply"
+        />
+      ) : null}
       <span
         aria-hidden="true"
         className="pointer-events-none absolute right-3 -bottom-[7px] h-[4px] w-[6px] bg-[#4caf5f]"

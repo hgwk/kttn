@@ -116,6 +116,16 @@
   }
 }
 
+/* 창밖 눈(office/snow.tsx): 창 위에서 아래로 떨어진다. */
+@keyframes kttn-snow {
+  from {
+    transform: translateY(-4px);
+  }
+  to {
+    transform: translateY(40px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
