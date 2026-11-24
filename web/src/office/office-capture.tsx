@@ -1,10 +1,11 @@
 import { t } from "@/i18n"
 import { useEffect, useRef, useState, type RefObject } from "react"
+import { cn } from "@/lib/utils"
 
 // 사무실 건물 바닥([data-floor])만 이미지로 저장하거나 화면 녹화한다.
 // 크롬 개발자 도구의 "Capture node screenshot"처럼 그 요소만 담는 게 목표다.
 
-// 파일 이름에 붙이는 이 컴퓨터 시각(office-20261123-0930).
+// 파일 이름에 붙이는 이 컴퓨터 시각(kttn-20261123-0930).
 function stamp(date = new Date()) {
   const pad = (value: number) => String(value).padStart(2, "0")
   return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}`
@@ -94,7 +95,7 @@ export function OfficeCapture({
         scale: window.devicePixelRatio || 1,
         style: { overflow: "visible", imageRendering: "pixelated" },
       })
-      download(url, `office-${stamp()}.png`)
+      download(url, `kttn-${stamp()}.png`)
     } catch {
       setNote(t("capture.failed"))
     } finally {
@@ -154,7 +155,7 @@ export function OfficeCapture({
       const url = URL.createObjectURL(
         new Blob(chunks, { type: type || "video/webm" })
       )
-      download(url, `office-${stamp()}.webm`)
+      download(url, `kttn-${stamp()}.webm`)
       window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
     }
     // 크롬 공유 바의 "공유 중지"로 끝내도 저장한다.
@@ -179,7 +180,11 @@ export function OfficeCapture({
       </button>
       <button
         type="button"
-        className={TOOL_BUTTON}
+        // 녹화하는 동안 빨갛게 깜빡여 녹화 중임을 알린다.
+        className={cn(
+          TOOL_BUTTON,
+          recording && "animate-pulse motion-reduce:animate-none"
+        )}
         onClick={record}
         aria-pressed={recording}
         title={t("capture.recordTitle")}
