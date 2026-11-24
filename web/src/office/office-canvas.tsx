@@ -203,7 +203,14 @@ export function OfficeCanvas({
       // 대사 상자는 고양이를 따라다닌다(산책·찾아가기·캣타워). 퇴근한 고양이는 자리에 둔다.
       const speech = speechRefs.current.get(agent.key)
       if (speech) {
-        const at = gone ? seatFor(room, index) : walker
+        // 문으로 들고 나는 고양이는 그림 밖에 있어 안 보이므로, 그동안은 대사를
+        // 자리 위에 둔다(빈 바닥에 상자만 떠 있지 않게).
+        const outside =
+          walker.x < 0 ||
+          walker.x > room.w ||
+          walker.y < 14 ||
+          walker.y > room.h
+        const at = gone || outside ? seatFor(room, index) : walker
         const left = `${((at.x + CAT_DX) / room.w) * 100}%`
         const top = `${((at.y - 14) / room.h) * 100}%`
         if (speech.style.left !== left) speech.style.left = left

@@ -256,9 +256,10 @@ export function Butler({
         pos,
         {
           x: (box.l + box.r) / 2,
-          y: box.b + 8,
+          // 책상 아래 여유(butler-walk.ts의 OBSTACLE_PAD_BELOW)를 지나 바로 앞.
+          y: box.b + 18,
         },
-        8
+        10
       )
       if (!path) {
         void openTab(key)

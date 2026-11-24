@@ -35,9 +35,18 @@ export function readWalkMap(floor: HTMLElement, scale: number): WalkMap {
     // 집사 머리가 벽 위로 잘리지 않게 둔다(위쪽 벽면은 장애물이라 어차피 못 간다).
     floor: walkBox(floor, scale),
     door: door ? boxIn(door, floor, scale) : null,
-    obstacles: [...floor.querySelectorAll("[data-obstacle]")].map((el) =>
-      boxIn(el, floor, scale)
-    ),
+    // 장애물은 조금 부풀려 잰다. 발만 재면 몸통(32px)과 머리가 벽·칸막이 위로
+    // 올라가 보인다. 아래쪽을 가장 많이 늘리는 것은 집사 머리가 발 위로 솟아
+    // 있어서다(위 벽에 붙으면 머리가 벽을 덮는다).
+    obstacles: [...floor.querySelectorAll("[data-obstacle]")].map((el) => {
+      const box = boxIn(el, floor, scale)
+      return {
+        l: box.l - OBSTACLE_PAD_X,
+        t: box.t - 2,
+        r: box.r + OBSTACLE_PAD_X,
+        b: box.b + OBSTACLE_PAD_BELOW,
+      }
+    }),
   }
 }
 
@@ -60,6 +69,10 @@ function walkBox(floor: HTMLElement, scale: number): Box {
     b: first?.offsetHeight ?? floor.clientHeight,
   }
 }
+
+// 장애물 둘레 여유(px). 칸막이 문(32px)은 발(12px)+양옆 여유(12px)가 지나간다.
+const OBSTACLE_PAD_X = 6
+const OBSTACLE_PAD_BELOW = 10
 
 const feet = (x: number, y: number): Box => ({
   l: x - FOOT_W / 2,
@@ -86,7 +99,10 @@ export function canStand(map: WalkMap, x: number, y: number) {
 export function doorSpot(map: WalkMap) {
   // 정문은 위쪽 벽면을 뚫고 내려오므로 그 아래 끝 바로 밑에 선다.
   if (map.door)
-    return { x: (map.door.l + map.door.r) / 2, y: map.door.b + FOOT_H + 2 }
+    return {
+      x: (map.door.l + map.door.r) / 2,
+      y: map.door.b + FOOT_H + OBSTACLE_PAD_BELOW + 2,
+    }
   return { x: map.floor.l + FOOT_W * 2, y: map.floor.t + FOOT_H + 2 }
 }
 
