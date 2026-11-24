@@ -22,6 +22,8 @@ import {
   pathToDoor,
   pathToSeat,
   advanceVisit,
+  awayOnVisit,
+  offDesk,
   startIdleWalk,
   startVisit,
   seatPoint,
@@ -162,8 +164,11 @@ export function OfficeCanvas({
           )
         }
       }
-      advanceVisit(walker, t, (key) =>
-        seated.some((other) => other.key === key)
+      advanceVisit(
+        walker,
+        t,
+        (key) => seated.some((other) => other.key === key),
+        agent.state === "sleeping"
       )
       // 자리가 바뀌면(세션이 늘거나 줄어 배치가 바뀐 경우) 앉은 고양이는 새 자리로 옮긴다.
       if (!walker.visit && walker.path.length === 0 && inside(walker)) {
@@ -199,12 +204,8 @@ export function OfficeCanvas({
       if (speech) {
         // 문으로 들고 나는 고양이는 그림 밖에 있어 안 보이므로, 그동안은 대사를
         // 자리 위에 둔다(빈 바닥에 상자만 떠 있지 않게).
-        const outside =
-          walker.x < 0 ||
-          walker.x > room.w ||
-          walker.y < 14 ||
-          walker.y > room.h
-        const at = gone || outside ? seatFor(room, index) : walker
+        const at =
+          gone || offDesk(walker, room) ? seatFor(room, index) : walker
         const left = `${((at.x + CAT_DX) / room.w) * 100}%`
         const top = `${((at.y - 14) / room.h) * 100}%`
         if (speech.style.left !== left) speech.style.left = left
@@ -216,7 +217,7 @@ export function OfficeCanvas({
       }
       const tie = familyColor(agent.family)
       const coat = coatFor(agent.key)
-      if (!gone) {
+      if (!gone && !awayOnVisit(walker)) {
         const hop =
           agent.state === "needs_you" && !walking
             ? Math.abs(Math.round(Math.sin(t / 160) * 2))

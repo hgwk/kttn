@@ -146,8 +146,9 @@ export function pathsToTower(layout: OfficeLayout, index: number) {
     go: [
       { x: aisle, y: seat.y },
       { x: aisle, y: lane },
-      // 그림판 둘레(EDGE 24)보다 더 아래로 나가 안 보이게 한다.
-      { x: aisle, y: layout.h + 48 },
+      // 책상 구역 아래 끝에서 휴게 공간으로 사라진다(awayOnVisit). 그림판
+      // 밖으로 걸어 나가면 아래에 놓인 다른 방 밑을 지나가는 것처럼 보인다.
+      { x: aisle, y: layout.h - 2 },
     ],
     back: [{ x: aisle, y: lane }, { x: aisle, y: seat.y }, seat],
   }
@@ -247,10 +248,17 @@ export function startIdleWalk(
 export function advanceVisit(
   walker: Walker,
   t: number,
-  present: (key: string) => boolean
+  present: (key: string) => boolean,
+  /** 캣타워나 소품 곁에 계속 있어도 되는지. 일을 받아 깨면 걸어서 돌아온다. */
+  resting = true
 ) {
   const visit = walker.visit
   if (!visit) return
+  if (visit.long && visit.stage !== "back" && !resting) {
+    visit.stage = "back"
+    walker.path = visit.back
+    return
+  }
   if (visit.stage === "go" && walker.path.length === 0) {
     visit.stage = "stay"
     if (!visit.long) visit.until = t + VISIT_STAY_MS
@@ -280,3 +288,11 @@ export function startVisit(
   walker.path = paths.go
   walker.visit = { stage: "go", to: toKey, until: 0, back: paths.back }
 }
+
+/** 캣타워나 소품에 가 있는 동안. 책상 구역에는 그리지 않는다(휴게 공간에 그린다). */
+export const awayOnVisit = (walker: Walker) =>
+  Boolean(walker.visit?.long && walker.visit.stage === "stay")
+
+/** 그림에 안 보이는 고양이(문밖, 휴게 공간)는 대사를 자리 위에 둔다. */
+export const offDesk = (w: Walker, room: OfficeLayout) =>
+  awayOnVisit(w) || w.x < 0 || w.x > room.w || w.y < 14 || w.y > room.h
