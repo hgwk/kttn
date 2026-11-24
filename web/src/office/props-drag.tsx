@@ -9,14 +9,14 @@ import {
 // 사무실 소품(휴게 공간 가구, 위쪽 벽 장식)을 마우스로 옮긴다. 옮긴 자리는
 // 기본 자리에서 얼마나 떨어졌는지(px)로 kttn 설정 파일에 남는다(/api/props).
 // 서버에 그 주소가 없으면 이 화면을 연 동안만 기억한다.
-//   소품은 가장 가까운 [data-move-bounds] 칸을 벗어나지 않고, 도트 두 칸(4px)
+//   소품은 가장 가까운 [data-move-bounds] 칸을 벗어나지 않고, 도트 네 칸(8px)
 //   격자에 맞춰 놓인다. 두 번 누르면 기본 자리로 돌아간다. 집사 길(data-obstacle)은
 //   화면에서 다시 읽으므로 옮긴 자리를 알아서 피한다.
 
 type Offset = { x: number; y: number }
 type Rooms = Record<string, Record<string, Offset>>
 
-const GRID = 4
+const GRID = 8
 const SAVE_DELAY_MS = 300
 
 let rooms: Rooms = {}
@@ -72,7 +72,7 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener)
 }
 
-// 끄는 동안 소품이 움직일 수 있는 칸을 보인다. 반투명 바탕에 도트 네 칸(8px)
+// 끄는 동안 소품이 움직일 수 있는 칸을 보인다. 반투명 바탕에 도트 여덟 칸(16px)
 // 격자를 깔고 테두리를 점선으로 두른다. 소품 아래에 깔리도록 맨 앞에 넣는다.
 function showGuide(bounds: Element) {
   const guide = document.createElement("div")
@@ -84,7 +84,7 @@ function showGuide(bounds: Element) {
     backgroundColor: "rgba(43, 42, 54, 0.22)",
     backgroundImage:
       "linear-gradient(rgba(247, 242, 232, 0.25) 1px, transparent 1px), linear-gradient(90deg, rgba(247, 242, 232, 0.25) 1px, transparent 1px)",
-    backgroundSize: "8px 8px",
+    backgroundSize: "16px 16px",
     outline: "2px dashed #fbbf24",
     outlineOffset: "-2px",
   })
