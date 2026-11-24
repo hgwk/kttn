@@ -8,7 +8,10 @@ import (
 	"time"
 )
 
-const maxHookInput = 1 << 20
+// maxHookInput bounds the payload read. A big Write or Edit carries the whole
+// file in its tool input, so the bound is generous; a cut payload would not
+// parse and the event would be lost.
+const maxHookInput = 32 << 20
 
 // Options says where and how the hook forwards its event.
 type Options struct {

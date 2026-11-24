@@ -148,3 +148,15 @@ func TestAQuietSessionWhoseProcessRunsStaysPastTheIdleLimit(t *testing.T) {
 		t.Fatalf("got %d", n)
 	}
 }
+
+func TestQuestionAndPlanDialogsCountAsWaitingForYou(t *testing.T) {
+	store, _ := clockedStore(nil)
+	for _, tool := range []string{"AskUserQuestion", "ExitPlanMode"} {
+		if got := store.Apply(ev(t, "PreToolUse", m{"tool": tool})).State; got != "needs_you" {
+			t.Errorf("%s: %s", tool, got)
+		}
+		if got := store.Apply(ev(t, "PostToolUse", m{"tool": tool})).State; got != "thinking" {
+			t.Errorf("after %s: %s", tool, got)
+		}
+	}
+}

@@ -186,9 +186,9 @@ kttn はセッションのプロセスからタブを見つけます: プロセ�
 
 | ターミナル | 前に出す | メッセージ |
 | --- | --- | --- |
-| tmux | ウィンドウとペインを選ぶ(外側のアプリはそのまま) | `send-keys` |
+| tmux | ウィンドウとペインを選ぶ(外側のアプリはそのまま) | `paste-buffer -p`(ブラケットペースト) |
 | Kaku、WezTerm | `cli activate-pane` のあとアプリを前に | `cli send-text` |
-| iTerm2 | AppleScript、セッションの `tty` で | AppleScript `write text` |
+| iTerm2 | AppleScript、セッションの `tty` で | AppleScript `write text`(改行はスペースに) |
 | Terminal.app | AppleScript、タブの `tty` で | 非対応(アクセシビリティの権限が必要) |
 
 インストールされていない、または動いていないターミナルは飛ばし、動いていない

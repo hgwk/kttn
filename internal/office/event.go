@@ -142,6 +142,10 @@ func ToolState(tool string) string {
 		return "browsing"
 	case "Agent", "Task":
 		return "delegating"
+	case "AskUserQuestion", "ExitPlanMode":
+		// Both open a dialog that waits for the person; a message typed in
+		// now would land in its choices, so the office treats it as a wait.
+		return "needs_you"
 	}
 	return "working"
 }

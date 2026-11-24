@@ -52,14 +52,26 @@ func TestSendPastesThenPressesEnterInKaku(t *testing.T) {
 func TestSendTypesLiterallyIntoTmux(t *testing.T) {
 	submitDelay = 0
 	f := &fake{answers: map[string]string{
-		"/bin/ps":         "ttys009 claude",
-		"tmux list-panes": "/dev/ttys009 %4",
-		"tmux send-keys":  "",
+		"/bin/ps":           "ttys009 claude",
+		"tmux list-panes":   "/dev/ttys009 %4",
+		"tmux send-keys":    "",
+		"tmux set-buffer":   "",
+		"tmux paste-buffer": "",
 	}}
 	if err := Send(f.run, 4242, "idle", "run it; then Enter"); err != nil {
 		t.Fatal(err)
 	}
-	if !f.ran("tmux send-keys -t %4 -l -- run it; then Enter") || !f.ran("tmux send-keys -t %4 Enter") {
+	if !f.ran("tmux set-buffer -b kttn -- run it; then Enter") || !f.ran("tmux paste-buffer -p -d -b kttn -t %4") || !f.ran("tmux send-keys -t %4 Enter") {
+		t.Fatalf("calls %q", f.calls)
+	}
+}
+
+func TestITermGetsTheMessageOnOneLine(t *testing.T) {
+	f := &fake{answers: map[string]string{"/bin/ps": "ttys005 claude", "/usr/bin/osascript": "ok"}}
+	if err := Send(f.run, 4242, "idle", "first line\nsecond\tline"); err != nil {
+		t.Fatal(err)
+	}
+	if !f.ran("/usr/bin/osascript") || !strings.HasSuffix(f.calls[len(f.calls)-1], "/dev/ttys005 first line second line") {
 		t.Fatalf("calls %q", f.calls)
 	}
 }

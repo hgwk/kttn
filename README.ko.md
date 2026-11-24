@@ -184,9 +184,9 @@ kttn은 세션의 프로세스로 탭을 찾습니다: 프로세스 → tty → 
 
 | 터미널 | 앞으로 띄우기 | 메시지 |
 | --- | --- | --- |
-| tmux | 창과 패널을 고름(바깥 앱은 그대로) | `send-keys` |
+| tmux | 창과 패널을 고름(바깥 앱은 그대로) | `paste-buffer -p`(붙여넣기 구간) |
 | Kaku, WezTerm | `cli activate-pane` 뒤 앱을 앞으로 | `cli send-text` |
-| iTerm2 | AppleScript, 세션의 `tty`로 | AppleScript `write text` |
+| iTerm2 | AppleScript, 세션의 `tty`로 | AppleScript `write text`(줄바꿈은 공백으로) |
 | Terminal.app | AppleScript, 탭의 `tty`로 | 지원 안 함(손쉬운 사용 권한 필요) |
 
 설치되지 않았거나 꺼진 터미널은 건너뛰고, 꺼진 터미널을 새로 띄우지 않습니다.

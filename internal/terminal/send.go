@@ -69,7 +69,12 @@ func tmuxSend(run Run, tty, text string) (bool, error) {
 	if !ok {
 		return false, nil
 	}
-	if _, err := run("tmux", "send-keys", "-t", pane, "-l", "--", text); err != nil {
+	// Paste through a buffer with -p (bracketed paste), so a newline or a
+	// tab in the message stays text instead of acting as Enter or Tab.
+	if _, err := run("tmux", "set-buffer", "-b", "kttn", "--", text); err != nil {
+		return true, err
+	}
+	if _, err := run("tmux", "paste-buffer", "-p", "-d", "-b", "kttn", "-t", pane); err != nil {
 		return true, err
 	}
 	time.Sleep(submitDelay)
@@ -122,7 +127,9 @@ const itermWriteScript = `on run argv
 	return "none"
 end run`
 
-// itermSend uses `write text`, which types the text and a newline.
+// itermSend uses `write text`, which types the text and a newline. It has no
+// bracketed paste, so each line break would submit a line on its own; line
+// breaks become spaces and the message goes in as one line.
 func itermSend(run Run, tty, text string) (bool, error) {
-	return osascriptFocus(run, itermWriteScript, tty, text)
+	return osascriptFocus(run, itermWriteScript, tty, strings.Join(strings.Fields(text), " "))
 }

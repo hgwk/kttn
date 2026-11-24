@@ -190,9 +190,9 @@ pane on that tty. It tries, in order:
 
 | Terminal | Bring forward | Message |
 | --- | --- | --- |
-| tmux | selects the window and pane (not the app around it) | `send-keys` |
+| tmux | selects the window and pane (not the app around it) | `paste-buffer -p` (bracketed paste) |
 | Kaku, WezTerm | `cli activate-pane`, then raises the app | `cli send-text` |
-| iTerm2 | AppleScript, by the session's `tty` | AppleScript `write text` |
+| iTerm2 | AppleScript, by the session's `tty` | AppleScript `write text` (line breaks become spaces) |
 | Terminal.app | AppleScript, by the tab's `tty` | not supported (needs accessibility permission) |
 
 A terminal that is not installed or not running is skipped; one that is not
@@ -201,8 +201,8 @@ time. The login service runs with `/opt/homebrew/bin` and `/usr/local/bin` on it
 `PATH`, so a Homebrew `tmux` is found.
 
 Messages are limited to 2,000 characters, control characters are removed, and
-nothing is sent to a session that is waiting on a permission prompt (the text
-would answer it) or has ended. A busy session takes the message as its next
+nothing is sent to a session that is waiting on a permission prompt, a question
+or a plan approval (the text would answer it) or has ended. A busy session takes the message as its next
 turn. Message text is never logged.
 
 ## Safety
