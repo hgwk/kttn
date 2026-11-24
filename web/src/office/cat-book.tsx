@@ -8,6 +8,7 @@ import { coatFor, drawCat } from "@/office/sprites"
 import type { SessionAgent } from "@/lib/agent-office"
 import { baseCatName, levelFor } from "@/lib/agent-office-names"
 import { apiFetch } from "@/lib/screen-key"
+import { cn } from "@/lib/utils"
 import { titlesFor, type TitleId } from "@/lib/agent-office-titles"
 import {
   setCatalog,
@@ -184,8 +185,11 @@ export function CatBook({ agents }: { agents: SessionAgent[] }) {
             </h3>
             <button
               type="button"
-              className="ml-auto px-1 text-[10px] opacity-80 hover:opacity-100 aria-pressed:bg-[#c0392b] aria-pressed:opacity-100"
-              aria-pressed={armed}
+              // 켜고 끄는 버튼이 아니라 확인 단계라 aria-pressed 없이 글자만 바뀐다.
+              className={cn(
+                "ml-auto px-1 text-[10px] opacity-80 hover:opacity-100",
+                armed && "bg-[#c0392b] opacity-100"
+              )}
               onClick={() => void clear()}
             >
               {armed ? t("book.clearConfirm") : t("book.clear")}
