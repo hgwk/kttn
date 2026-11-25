@@ -136,9 +136,11 @@ export function seat(
   poses: Poses,
   front: Layer[],
   empty: Layer[],
+  legs: Layer[] = [],
 ): SeatArt {
+  // legs(무릎처럼 가구 앞에 나오는 고양이 조각)는 빈자리에 그리지 않는다.
   const draw = ({ body, kit }: Pose) =>
-    scene(w, h, ...behind, ...body, ...front, ...kit)
+    scene(w, h, ...behind, ...body, ...front, ...legs, ...kit)
   return {
     anchor,
     head,

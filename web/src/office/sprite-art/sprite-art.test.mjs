@@ -114,11 +114,16 @@ test("자유 자리 그림은 팔레트·고양이 키·화면(!)만 쓰고 칸 
         })
       })
     }
-    // 고양이가 있는 칸에는 넥타이(t)가 두 칸 넘게 보이고, 빈자리에는 고양이가 없다.
+    // 고양이가 있는 칸에는 넥타이(t)가 두 칸 넘게 보이고, 빈자리에는 고양이
+    // 조각(털·그늘·눈·넥타이 f·s·e·t)이 하나도 없다(무릎이 남던 일).
     for (const frame of frames) {
-      const ties = seat.frames[frame].join("").split("t").length - 1
-      if (frame === "empty" ? ties > 0 : ties < 2)
+      const cells = seat.frames[frame].join("")
+      const ties = cells.split("t").length - 1
+      if (frame !== "empty" && ties < 2)
         bad.push(`${name}.${frame} 넥타이 ${ties}칸`)
+      const cat = [...cells].filter((c) => "fset".includes(c)).length
+      if (frame === "empty" && cat > 0)
+        bad.push(`${name}.empty 고양이 칸 ${cat}개`)
     }
   }
   assert.deepEqual(bad, [])
