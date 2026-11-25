@@ -1,5 +1,5 @@
 # Sourced by e2e-install.sh before anything else runs. Every run's isolated
-# setup picks the same first free port above the real office, so two runs at
+# setup picks the same first free port above the real kttn, so two runs at
 # once would take each other's port. Runs of this user wait their turn; the
 # lock sits in /tmp, not $TMPDIR, because each session may have its own.
 LOCK="/tmp/kttn-e2e-$(id -u).lock"

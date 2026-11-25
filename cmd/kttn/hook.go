@@ -18,7 +18,7 @@ func runHook(args []string, stdin io.Reader) {
 	fs.SetOutput(os.Stderr)
 	configPath := fs.String("config", "", "config file (setup pins it; default: the usual place)")
 	url := fs.String("url", "", "event endpoint of kttn serve (default: from the config)")
-	source := fs.String("source", "claude", "agent family shown in the office")
+	source := fs.String("source", "claude", "agent family shown in kttn")
 	timeout := fs.Duration("timeout", 300*time.Millisecond, "give up after this long")
 	if err := fs.Parse(args); err != nil {
 		return

@@ -45,7 +45,7 @@ func runServe(args []string, stderr io.Writer) error {
 		if err := config.Save(config.Path(), cfg); err != nil {
 			return err
 		}
-		fmt.Fprintln(stderr, "kttn: added a screen key to the config; open the office with `kttn open`")
+		fmt.Fprintln(stderr, "kttn: added a screen key to the config; open it with `kttn open`")
 	}
 	handler := server.New(server.Options{
 		Store:        office.NewStore(time.Now, office.NewClaudeCheck(nil)),
@@ -67,9 +67,9 @@ func runServe(args []string, stderr io.Writer) error {
 		},
 	})
 	addr := net.JoinHostPort("127.0.0.1", strconv.Itoa(*port))
-	fmt.Fprintf(stderr, "kttn: office at http://%s\n", addr)
+	fmt.Fprintf(stderr, "kttn: open at http://%s\n", addr)
 	srv := &http.Server{Addr: addr, Handler: handler, ReadHeaderTimeout: 5 * time.Second}
-	// launchd, systemd and Ctrl-C stop the office with a signal; the last
+	// launchd, systemd and Ctrl-C stop kttn with a signal; the last
 	// second of events is still waiting on the save timer then.
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, syscall.SIGTERM, os.Interrupt)

@@ -4,7 +4,7 @@
 
 <h1 align="center">kttn</h1>
 
-<p align="center">Your Claude Code sessions as pixel cats in an office on your computer.</p>
+<p align="center">Your Claude Code sessions as pixel cats on your computer.</p>
 
 <p align="center">
   <a href="https://github.com/hgwk/kttn/releases"><img src="https://img.shields.io/github/v/release/hgwk/kttn" alt="GitHub release"></a>
@@ -16,7 +16,7 @@
 <p align="center"><b>English</b> · <a href="README.ko.md">한국어</a> · <a href="README.ja.md">日本語</a></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-en.png" width="880" alt="The kttn office: two repositories as offices, folders as rooms, cats at desks reading, editing, running commands, waiting for a permission answer, showing a finished result, napping, and a cat with two subagent kittens">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-en.png" width="880" alt="kttn: two repositories as areas, folders as rooms, cats at desks reading, editing, running commands, waiting for a permission answer, showing a finished result, napping, and a cat with two subagent kittens">
   <br><sub><a href="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/full-en.png">Full view</a></sub>
 </p>
 
@@ -24,10 +24,10 @@
 npx @hgwk/kttn
 ```
 
-One command: name your office, hook Claude Code, start at login, open it in the browser.
+One command: name your kttn, hook Claude Code, start at login, open it in the browser.
 
-kttn shows the Claude Code sessions running on your computer as pixel cats in an
-office. Each repository gets an office, each folder a room, each session a cat at
+kttn shows the Claude Code sessions running on your computer as pixel cats.
+Each repository gets an area, each folder a room, each session a cat at
 a desk. A cat reads, edits, runs commands, waits for you, naps and goes home as
 its session does. Everything stays on your computer: a Claude Code hook sends
 short labels to a small server on `127.0.0.1`, and the screen is a page that
@@ -38,10 +38,10 @@ server serves. The screen speaks English, Korean and Japanese.
 | | |
 | --- | --- |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="190" alt="A cat at its desk with a speech bubble"> | **One cat per session.** It reads, edits, runs commands, thinks, naps after a quiet spell and goes home when the session ends. With answer preview on, a finished cat says what it did. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="The world map listing repositories and folders"> | **Offices are repositories, rooms are folders.** The world map lists them with how many cats are in each; click a spot to jump to that room. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="The world map listing repositories and folders"> | **Areas are repositories, rooms are folders.** The world map lists them with how many cats are in each; click a spot to jump to that room. |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="190" alt="A cat with two kittens beside its desk"> | **Kittens are subagents.** They stand by the desk until they finish, background ones included. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="A blinking speech bubble asking for a look"> | **Needs you.** A cat waiting on a permission prompt blinks, and its room and office light up so you see it from anywhere. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="The butler at the office door"> | **The butler.** Click a cat and the butler walks over and brings its terminal tab to the front; click a speech bubble to type a message into that session. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="A blinking speech bubble asking for a look"> | **Needs you.** A cat waiting on a permission prompt blinks, and its room and area light up so you see it from anywhere. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="The butler at the door"> | **The butler.** Click a cat and the butler walks over and brings its terminal tab to the front; click a speech bubble to type a message into that session. |
 | 🔒 | **Short labels only.** Prompts, file contents, command arguments and error texts never leave the session. See [what leaves a session](#what-leaves-a-session). |
 
 ## How it looks
@@ -51,8 +51,8 @@ server serves. The screen speaks English, Korean and Japanese.
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ko.png" width="440" alt="The office in Korean">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="440" alt="The office in Japanese">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ko.png" width="440" alt="kttn in Korean">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="440" alt="kttn in Japanese">
 </p>
 
 ## Quick start
@@ -61,8 +61,8 @@ server serves. The screen speaks English, Korean and Japanese.
 npx @hgwk/kttn
 ```
 
-That one command asks for an office name and a language, hooks Claude Code,
-starts the office at login (a LaunchAgent on macOS, a systemd user service on
+That one command asks for a kttn name and a language, hooks Claude Code,
+starts kttn at login (a LaunchAgent on macOS, a systemd user service on
 Linux) and opens it in your browser. Run it again any time: it keeps your
 settings and refreshes the hooks and the login service. `kttn uninstall`
 takes the hooks and the login service out again.
@@ -99,22 +99,22 @@ repository, folder, model and session names, the name the screen gave the cat,
 when it was first and last seen, how many tools it used in all and on its latest
 working day (and how many of those failed), and whether it was ever
 seen working between midnight and 5 a.m. on this computer's clock (kept while
-the cat is); plus the most sessions the office has had at once, and when.
+the cat is); plus the most sessions kttn has had at once, and when.
 The all-time tool count is everything the session has used since it started,
 including tools from before the catalog first saw it (even right after a clear);
 the day's count holds only the tools seen that day. Nothing else from the
 session is in it. It keeps the latest 1,000 cats seen within 90 days, and
 **Clear catalog** on the screen (pressed twice within 5 seconds) empties it.
 
-**Daily paper.** The paper button draws the day's office paper, and Save
+**Daily paper.** The paper button draws the day's kttn paper, and Save
 downloads it as a PNG to your computer. It holds the date, the cat names
 (including ones you gave), the day's tool and failure counts, the longest nap,
 how many cats came in, the most at once, and a picture of the cats. No
 repository, folder or session names are in it.
 
 **Daily timelapse (off by default).** Automatic recording takes a picture of
-the office every 10 minutes while its tab is visible. It captures the office as
-it is on screen, including repository, folder and session names and, if answer
+kttn every 10 minutes while its tab is visible. It captures the screen as
+it is, including repository, folder and session names and, if answer
 preview is on, the last answer's text in the speech bubbles. Pictures stay only
 in this browser, for up to two days (160 a day), and nothing goes to the server;
 they also go into any video you save, so check before sharing. **Clear recorded
@@ -154,7 +154,7 @@ To install it yourself instead, pick one:
 Then run `kttn` (the same setup as the quick start), or do it by hand:
 
 ```sh
-kttn init    # office name, language, port, answer preview; writes ~/.config/kttn/config.json
+kttn init    # kttn name, language, port, answer preview; writes ~/.config/kttn/config.json
 kttn serve   # http://127.0.0.1:5886
 ```
 
@@ -192,13 +192,13 @@ worktree creation.
 
 | Command | What it does |
 | --- | --- |
-| `kttn` or `kttn setup` | One-command setup: office name and language on the first run, Claude Code hooks, start at login, open the office. |
+| `kttn` or `kttn setup` | One-command setup: kttn name and language on the first run, Claude Code hooks, start at login, open kttn. |
 | `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
-| `kttn serve [--port N]` | Runs the office on `127.0.0.1`. |
+| `kttn serve [--port N]` | Runs kttn on `127.0.0.1`. |
 | `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. Setup pins `--config` to the config it wrote. |
 | `kttn install` | Adds the hook to Claude Code's user settings, for use without the plugin. |
-| `kttn uninstall` | Removes the hook and stops starting the office at login. The config and session state stay. |
-| `kttn open` | Opens the office in the browser with your screen key. |
+| `kttn uninstall` | Removes the hook and stops starting kttn at login. The config and session state stay. |
+| `kttn open` | Opens kttn in the browser with your screen key. |
 | `kttn version` | Prints the version. |
 
 Config lives in `~/.config/kttn/config.json` (mode 600; `KTTN_CONFIG` moves
@@ -216,8 +216,8 @@ browser, and falls back to English.
 Click a cat and the butler walks over and brings that session's terminal tab to
 the front. Click its speech bubble to type a message into the session's input;
 Enter is pressed for you. **Messages are off by default:** setup asks once, and
-`kttn init` (or `kttn init --yes --messages`) turns them on and restarts the
-office so it applies at once; while they are off the server refuses them with
+`kttn init` (or `kttn init --yes --messages`) turns them on and restarts
+kttn so it applies at once; while they are off the server refuses them with
 403 and the bubble only says how to turn them on.
 
 kttn finds the tab from the session's process: process → tty → the terminal
@@ -253,16 +253,16 @@ on the same address, so another site cannot type into your terminal.
 The sessions and the terminal actions also need a **screen key**, a random
 value kept in your config (mode 600). Origin and Host checks stop other web
 sites, but not other programs or other users on the same computer; the key
-does. `kttn` and `kttn open` open the office at `/#k=<key>`; the page keeps the
+does. `kttn` and `kttn open` open kttn at `/#k=<key>`; the page keeps the
 key in the browser and drops it from the address. A page without it gets 401
 and asks you to run `kttn open`.
 
-Only the office itself and the pages listed in `embed_origins` in the config
-may show the office in an iframe (`frame-ancestors`). The list is empty by default. A page that embeds the office passes the key the
+Only kttn itself and the pages listed in `embed_origins` in the config
+may show kttn in an iframe (`frame-ancestors`). The list is empty by default. A page that embeds kttn passes the key the
 same way, in the iframe address: `http://127.0.0.1:5886/#k=<screen_key>`.
 
 **Shared computers:** on a computer other people log in to, another user can
-take the port before your office starts, and your hook token and screen key
+take the port before your kttn starts, and your hook token and screen key
 would then go to their server. kttn does not protect against other local users.
 
 ## Development
@@ -294,7 +294,7 @@ Before pushing a `v*` tag, check a clean `git archive` of the commit:
 - Protection from other users on a shared computer: the server proving itself
   (a challenge signed with the token) or a Unix socket instead of a port.
 - Codex sessions. A Codex hook that posts the same event shape would show up in
-  the office with `--source codex`.
+  kttn with `--source codex`.
 
 ## Licenses
 

@@ -121,8 +121,8 @@ func kttnEnv() map[string]string {
 	return env
 }
 
-// runSetup is `kttn` with no arguments: set up the office, hook Claude Code,
-// start the office at login and open it. Running it again keeps the saved
+// runSetup is `kttn` with no arguments: set up kttn, hook Claude Code,
+// start kttn at login and open it. Running it again keeps the saved
 // settings and replaces the hooks and the login service with fresh ones.
 func runSetup(in io.Reader, out io.Writer, m machine) error {
 	path := config.Path()
@@ -132,7 +132,7 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 	}
 	if !found {
 		ask := prompter{in: bufio.NewReader(in), out: out}
-		cfg.OfficeName = ask.text("Office name (사무실 이름 / オフィス名)", cfg.OfficeName)
+		cfg.OfficeName = ask.text("kttn name (kttn 이름 / kttn の名前)", cfg.OfficeName)
 		cfg.Lang = strings.ToLower(ask.text("Screen language ko/en/ja (blank: follow the browser)", ""))
 		if cfg.Lang != "" && cfg.Lang != "ko" && cfg.Lang != "en" && cfg.Lang != "ja" {
 			return fmt.Errorf("language %q is not ko, en or ja", cfg.Lang)
@@ -185,13 +185,13 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 		time.Sleep(200 * time.Millisecond)
 	}
 	m.open(cfg.OfficeURL())
-	fmt.Fprintf(out, "The office is at %s (`kttn open` opens it again). Sessions show up from their next prompt.\n", url)
+	fmt.Fprintf(out, "kttn is open at %s (`kttn open` opens it again). Sessions show up from their next prompt.\n", url)
 	return nil
 }
 
 // refreshConfig brings a saved config up to date on a rerun: it adds a
-// missing key, and moves off a port something else took meanwhile (the
-// office's own server still running there is fine).
+// missing key, and moves off a port something else took meanwhile
+// (kttn's own server still running there is fine).
 func refreshConfig(path string, cfg *config.Config, out io.Writer) error {
 	changed, err := cfg.EnsureKeys()
 	if err != nil {

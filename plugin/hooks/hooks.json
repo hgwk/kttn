@@ -1,5 +1,5 @@
 {
-  "description": "Report each Claude Code session to the kttn office (short labels only; needs `kttn` on PATH and `kttn serve` running).",
+  "description": "Report each Claude Code session to kttn (short labels only; needs `kttn` on PATH and `kttn serve` running).",
   "hooks": {
     "SessionStart": [
       {

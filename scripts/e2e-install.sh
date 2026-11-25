@@ -98,8 +98,8 @@ if [ "$WANT" = local ]; then
 else
   run_setup() { (cd "$T/work" && npx -y "@hgwk/kttn@$WANT"); }
 fi
-printf 'E2E Office\nen\nn\n' | run_setup > "$T/setup1.log" 2>&1
-check "setup: first run finishes and names the office address" "grep -q 'The office is at' '$T/setup1.log'" "see setup output"
+printf 'E2E kttn\nen\nn\n' | run_setup > "$T/setup1.log" 2>&1
+check "setup: first run finishes and names the kttn address" "grep -q 'kttn is open at' '$T/setup1.log'" "see setup output"
 [ "$WANT" = local ] || KTTN="$T/home/.local/bin/kttn"
 check "setup: npx binary copied to a stable path" "[ -x '$KTTN' ]"
 # The plist may name the path as setup saw it or resolved (macOS /var is
@@ -111,7 +111,7 @@ echo "      under test: $VERSION"
 
 CFG=$KTTN_CONFIG
 check "config: written with mode 600" "[ \"\$(stat -f %Lp '$CFG' 2>/dev/null || stat -c %a '$CFG')\" = 600 ]"
-check "config: office name and language from stdin" "[ \"\$(json '$CFG' 'd.office_name+\"/\"+d.lang')\" = '\"E2E Office/en\"' ]"
+check "config: kttn name and language from stdin" "[ \"\$(json '$CFG' 'd.office_name+\"/\"+d.lang')\" = '\"E2E kttn/en\"' ]"
 check "config: token and screen key present, answer preview and messages off" "json '$CFG' 'd.token.length>=32 && d.screen_key.length>=32 && d.preview===false && d.messages===false' | grep -q true"
 PORT=$(json "$CFG" 'd.port')
 TOKEN=$(json "$CFG" 'd.token' | tr -d '"')
@@ -145,14 +145,14 @@ else
 fi
 # The key never goes on a command line, where other users could read it.
 if [ "$(uname)" = Darwin ]; then
-  check "setup: opened the office with the screen key through osascript's stdin" "[ -n '$SKEY' ] && grep -q '^osascript - | open location \"http://127.0.0.1:$PORT/#k=$SKEY\"' '$T/stub.log'"
+  check "setup: opened kttn with the screen key through osascript's stdin" "[ -n '$SKEY' ] && grep -q '^osascript - | open location \"http://127.0.0.1:$PORT/#k=$SKEY\"' '$T/stub.log'"
 else
-  check "setup: opened the office through a private redirect page" "[ -n '$SKEY' ] && grep -q 'xdg-open .*open.html' '$T/stub.log' && grep -q '#k=$SKEY' \"\$(dirname '$KTTN_STATE')/open.html\" && [ \"\$(stat -c %a \"\$(dirname '$KTTN_STATE')/open.html\")\" = 600 ]"
+  check "setup: opened kttn through a private redirect page" "[ -n '$SKEY' ] && grep -q 'xdg-open .*open.html' '$T/stub.log' && grep -q '#k=$SKEY' \"\$(dirname '$KTTN_STATE')/open.html\" && [ \"\$(stat -c %a \"\$(dirname '$KTTN_STATE')/open.html\")\" = 600 ]"
 fi
 check "setup: no command line carried the screen key" "! grep -v '^osascript - |' '$T/stub.log' | grep -q '$SKEY'"
 
 printf '' | run_setup > "$T/setup2.log" 2>&1
-check "rerun: asks nothing and keeps the token" "! grep -q 'Office name' '$T/setup2.log' && [ \"\$(json '$CFG' 'd.token' | tr -d '\"')\" = '$TOKEN' ]"
+check "rerun: asks nothing and keeps the token" "! grep -q 'kttn name' '$T/setup2.log' && [ \"\$(json '$CFG' 'd.token' | tr -d '\"')\" = '$TOKEN' ]"
 check "rerun: the original .bak is not replaced" "cmp -s '$T/original-settings.json' '$S.bak'"
 check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l.filter(e=>/kttn.* hook( |\$)/.test(e.hooks[0].command)).length===1)' | grep -q true"
 
@@ -167,24 +167,24 @@ for _ in 1 2 3 4 5 6 7 8 9 10; do curl -sf -H "$KH" "http://127.0.0.1:$PORT/api/
 owns "$PORT"
 check "serve: answers on the test port $PORT" "curl -sf -H '$KH' http://127.0.0.1:$PORT/api/snapshot"
 check "screen key: snapshot without the key is refused" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT/api/snapshot)\" = 401 ]"
-# Rerunning while the office runs must not move it: the hooks would follow
-# the new port and the running office would hear nothing.
+# Rerunning while kttn runs must not move it: the hooks would follow
+# the new port and the running kttn would hear nothing.
 printf '' | run_setup > "$T/setup3.log" 2>&1
 "$KTTN" init --yes > "$T/init-live.log" 2>&1
-check "rerun: setup and init with the office running keep port $PORT" "[ \"\$(json '$CFG' 'd.port')\" = '$PORT' ] && ! grep -q 'taken' '$T/setup3.log' '$T/init-live.log'"
+check "rerun: setup and init with kttn running keep port $PORT" "[ \"\$(json '$CFG' 'd.port')\" = '$PORT' ] && ! grep -q 'taken' '$T/setup3.log' '$T/init-live.log'"
 check "screen key: a message forged with the right Origin but no key is refused" \
   "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://127.0.0.1:$PORT' -H 'Content-Type: application/json' -d '{\"key\":\"x\",\"text\":\"!id\"}' http://127.0.0.1:$PORT/api/message)\" = 401 ]"
 
 SECRET="e2e-secret-prompt-$$"
 SIGNAL=payload
 if [ "${KTTN_E2E_CLAUDE:-1}" = 1 ] && command -v claude >/dev/null 2>&1; then
-  # Headless sessions leave the office at SessionEnd, so this run hooks only
+  # Headless sessions leave kttn at SessionEnd, so this run hooks only
   # the events it checks, from a settings file of its own.
   node -e '
 const s=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8"));
 const keep=["SessionStart","UserPromptSubmit","Stop"];
 s.hooks=Object.fromEntries(keep.map(k=>[k,s.hooks[k].filter(e=>/kttn.* hook( |$)/.test(e.hooks[0].command))]));
-// A headless session leaves the office once its process exits, so Stop holds
+// A headless session leaves kttn once its process exits, so Stop holds
 // the process for a moment while the snapshot is read.
 s.hooks.Stop.push({hooks:[{type:"command",command:"sleep 3",timeout:5}]});
 require("fs").writeFileSync(process.argv[2],JSON.stringify(s));' "$S" "$T/run-settings.json"
@@ -234,7 +234,7 @@ check "privacy: no prompt or answer text reached the server" "! grep -q '$SECRET
 for p in / /manifest.webmanifest /icons/office-icon-192.png /icons/office-icon-512.png /icons/office-icon-maskable-512.png; do
   check "screen: GET $p is 200" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT$p)\" = 200 ]"
 done
-check "screen: frame-ancestors is the office itself only by default" "curl -sI http://127.0.0.1:$PORT/ | tr -d '\r' | grep -qix \"content-security-policy: frame-ancestors 'self'\""
+check "screen: frame-ancestors is kttn itself only by default" "curl -sI http://127.0.0.1:$PORT/ | tr -d '\r' | grep -qix \"content-security-policy: frame-ancestors 'self'\""
 check "screen: a foreign Host is refused" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Host: evil.example' http://127.0.0.1:$PORT/)\" = 403 ]"
 check "screen: an event without the token is refused" \
   "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:$PORT/api/events)\" = 401 ]"

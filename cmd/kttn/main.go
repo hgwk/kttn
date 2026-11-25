@@ -1,5 +1,5 @@
-// kttn shows the Claude Code sessions running on this computer as pixel cats
-// in an office. `kttn init` sets it up, `kttn serve` runs the office and
+// kttn shows the Claude Code sessions running on this computer as pixel cats.
+// `kttn init` sets it up, `kttn serve` runs the screen and
 // `kttn hook` is the Claude Code hook that reports each session to it.
 package main
 

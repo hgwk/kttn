@@ -1,7 +1,7 @@
 {
   "name": "kttn",
   "version": "0.11.0",
-  "description": "Shows your Claude Code sessions as pixel cats in an office on this computer.",
+  "description": "Shows your Claude Code sessions as pixel cats on this computer.",
   "homepage": "https://github.com/hgwk/kttn",
   "author": {
     "name": "hgwk"

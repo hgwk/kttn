@@ -25,7 +25,7 @@ func runInit(args []string, in io.Reader, out io.Writer, service autostart.Servi
 	}
 	fs := flag.NewFlagSet("init", flag.ContinueOnError)
 	yes := fs.Bool("yes", false, "do not ask; use flags and saved values")
-	name := fs.String("office-name", cfg.OfficeName, "building and home office name")
+	name := fs.String("office-name", cfg.OfficeName, "the name shown on the kttn screen")
 	lang := fs.String("lang", cfg.Lang, "screen language: ko, en or ja (empty follows the browser)")
 	port := fs.Int("port", cfg.Port, "port for kttn serve")
 	preview := fs.Bool("preview", cfg.Preview, "show the opening of each finished answer")
@@ -37,11 +37,11 @@ func runInit(args []string, in io.Reader, out io.Writer, service autostart.Servi
 
 	if !*yes {
 		ask := prompter{in: bufio.NewReader(in), out: out}
-		cfg.OfficeName = ask.text("Office name (사무실 이름)", cfg.OfficeName)
+		cfg.OfficeName = ask.text("kttn name (kttn 이름 / kttn の名前)", cfg.OfficeName)
 		cfg.Lang = ask.text("Screen language ko/en/ja (blank: follow the browser)", cfg.Lang)
 		cfg.Port = ask.number("Port", cfg.Port)
 		fmt.Fprintln(out, "Answer preview sends the first 300 characters of each finished answer to the")
-		fmt.Fprintln(out, "office screen on this computer. Prompts and file contents are never sent.")
+		fmt.Fprintln(out, "kttn screen on this computer. Prompts and file contents are never sent.")
 		cfg.Preview = ask.yesNo("Show answer previews?", cfg.Preview)
 		askMessages(&ask, &cfg)
 	}
@@ -63,17 +63,17 @@ func runInit(args []string, in io.Reader, out io.Writer, service autostart.Servi
 		return err
 	}
 	fmt.Fprintf(out, "Saved %s\n", path)
-	// The running office read the old config at start; restart it so the
+	// The running kttn read the old config at start; restart it so the
 	// new port, token and message setting apply now.
 	restarted, err := service.Restart()
 	if err != nil {
-		fmt.Fprintf(out, "Could not restart the office (%v); run `kttn` to apply the changes.\n", err)
+		fmt.Fprintf(out, "Could not restart kttn (%v); run `kttn` to apply the changes.\n", err)
 	} else if restarted {
-		fmt.Fprintln(out, "Restarted the office with the new settings.")
+		fmt.Fprintln(out, "Restarted kttn with the new settings.")
 		// The service is pinned to the config setup wrote; one written
 		// elsewhere (another XDG_CONFIG_HOME or KTTN_CONFIG) is not read.
 		if !service.Mentions(absPath(path)) {
-			fmt.Fprintf(out, "The office at login reads another config than %s; run `kttn` to move it and the hooks here.\n", path)
+			fmt.Fprintf(out, "kttn at login reads another config than %s; run `kttn` to move it and the hooks here.\n", path)
 		}
 	} else if found {
 		fmt.Fprintln(out, "Restart `kttn serve` to apply the changes.")

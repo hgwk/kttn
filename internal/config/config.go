@@ -26,7 +26,7 @@ type Config struct {
 	Port int    `json:"port"`
 	// Token is shared by the hook and the server; init generates it.
 	Token string `json:"token"`
-	// ScreenKey opens the office's sessions and terminal actions to a
+	// ScreenKey opens the sessions and terminal actions to a
 	// browser; only a page opened with it (kttn open) can use them.
 	ScreenKey string `json:"screen_key,omitempty"`
 	// Preview lets Stop carry the opening of the answer to the screen.
@@ -34,12 +34,12 @@ type Config struct {
 	// Messages lets the screen type into a session's input from its speech
 	// bubble. Off unless the user turns it on.
 	Messages bool `json:"messages"`
-	// EmbedOrigins are the pages allowed to show the office in an iframe,
-	// besides the office itself. None by default.
+	// EmbedOrigins are the pages allowed to show kttn in an iframe,
+	// besides kttn itself. None by default.
 	EmbedOrigins *[]string `json:"embed_origins,omitempty"`
 }
 
-// Embedders returns the origins allowed to embed the office, keeping only
+// Embedders returns the origins allowed to embed kttn, keeping only
 // well-formed http(s) origins so nothing odd reaches the CSP header.
 func (c Config) Embedders() []string {
 	var list []string

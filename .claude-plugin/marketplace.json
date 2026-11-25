@@ -8,10 +8,10 @@
       "name": "kttn",
       "version": "0.11.0",
       "source": "./plugin",
-      "description": "Shows your Claude Code sessions as pixel cats in an office on this computer."
+      "description": "Shows your Claude Code sessions as pixel cats on this computer."
     }
   ],
   "metadata": {
-    "description": "kttn: an office of pixel cats for your Claude Code sessions."
+    "description": "kttn: your Claude Code sessions as pixel cats."
   }
 }

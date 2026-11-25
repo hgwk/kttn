@@ -12,7 +12,7 @@ import (
 )
 
 // A session started outside the shell has none of its XDG_* or KTTN_*
-// variables; the pinned --config still finds the office and its token.
+// variables; the pinned --config still finds kttn and its token.
 func TestThePinnedConfigFindsTheOfficeWithoutTheShellsVariables(t *testing.T) {
 	var auth string
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

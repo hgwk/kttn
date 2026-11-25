@@ -11,14 +11,14 @@ import (
 // the command.
 var helps = map[string]string{
 	"setup": `kttn setup   (or just: kttn)
-  Set up everything in one go: ask for the office name and language (first run
-  only), hook Claude Code, start kttn serve at login and open the office.
+  Set up everything in one go: ask for the kttn name and language (first run
+  only), hook Claude Code, start kttn serve at login and open kttn.
   Running it again keeps the settings and refreshes the hooks and the service.`,
 	"init": `kttn init [--yes] [--office-name NAME] [--lang ko|en|ja] [--port N] [--preview] [--messages]
-  Ask for the office settings and save them with a fresh token.
+  Ask for the kttn settings and save them with a fresh token.
   --yes takes the flags and saved values without asking.`,
 	"serve": `kttn serve [--port N]
-  Run the office on 127.0.0.1 (default port from the config).`,
+  Run kttn on 127.0.0.1 (default port from the config).`,
 	"hook": `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]
   The Claude Code hook. Reads one hook payload on stdin and reports it.
   Setup pins --config to the config it wrote.`,
@@ -30,7 +30,7 @@ var helps = map[string]string{
   Remove the kttn hook from Claude Code's user settings, leaving the rest, and
   stop starting kttn serve at login. The config and session state stay.`,
 	"open": `kttn open
-  Open the office in the browser with your screen key. The key is what lets a
+  Open kttn in the browser with your screen key. The key is what lets a
   browser see your sessions and act on them; it lives only in your config.`,
 	"version": `kttn version
   Print the version.`,

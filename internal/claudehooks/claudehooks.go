@@ -61,7 +61,7 @@ func ours(command string) bool {
 	return filepath.Base(exe) == "kttn"
 }
 
-// Events are the hook events the office understands, the same list the plugin
+// Events are the hook events kttn understands, the same list the plugin
 // registers. WorktreeCreate is never hooked: a hook there replaces Claude
 // Code's own worktree creation.
 var Events = []string{

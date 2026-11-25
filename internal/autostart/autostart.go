@@ -246,7 +246,7 @@ func (s Service) unitEnv() string {
 
 func (s Service) unit(exe string) []byte {
 	return []byte(`[Unit]
-Description=kttn office for Claude Code sessions
+Description=kttn, Claude Code sessions as pixel cats
 
 [Service]
 ` + s.unitEnv() + `ExecStart=` + systemdQuote(exe) + ` serve

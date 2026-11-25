@@ -4,7 +4,7 @@
 
 <h1 align="center">kttn</h1>
 
-<p align="center">あなたのコンピューターの Claude Code セッションを、オフィスのピクセル猫として見せます。</p>
+<p align="center">あなたのコンピューターの Claude Code セッションを、ピクセル猫として見せます。</p>
 
 <p align="center">
   <a href="https://github.com/hgwk/kttn/releases"><img src="https://img.shields.io/github/v/release/hgwk/kttn" alt="GitHub リリース"></a>
@@ -16,7 +16,7 @@
 <p align="center"><a href="README.md">English</a> · <a href="README.ko.md">한국어</a> · <b>日本語</b></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="880" alt="kttn のオフィス: 2つのリポジトリがオフィス、フォルダーが部屋で、机の猫たちが読む・直す・コマンド実行・確認待ち・回答済み・居眠りをしていて、ある猫のそばにサブエージェントの子猫が2匹いる">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="880" alt="kttn: 2つのリポジトリがエリア、フォルダーが部屋で、机の猫たちが読む・直す・コマンド実行・確認待ち・回答済み・居眠りをしていて、ある猫のそばにサブエージェントの子猫が2匹いる">
   <br><sub><a href="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/full-ja.png">画面全体を見る</a></sub>
 </p>
 
@@ -24,10 +24,10 @@
 npx @hgwk/kttn
 ```
 
-コマンドひとつで、オフィス名を決め、Claude Code にフックをかけ、ログイン時に自動で起動し、ブラウザーで開きます。
+コマンドひとつで、kttn の名前を決め、Claude Code にフックをかけ、ログイン時に自動で起動し、ブラウザーで開きます。
 
-kttn は、あなたのコンピューターで動いている Claude Code セッションを、オフィスの
-ピクセル猫として見せます。リポジトリごとにオフィス、フォルダーごとに部屋、
+kttn は、あなたのコンピューターで動いている Claude Code セッションを、
+ピクセル猫として見せます。リポジトリごとにエリア、フォルダーごとに部屋、
 セッションごとに机の猫がひとつずつできます。猫はセッションに合わせて読み、直し、
 コマンドを動かし、あなたを待ち、居眠りし、退勤します。すべてはあなたの
 コンピューターの中にとどまります。Claude Code のフックが短いラベルだけを
@@ -39,10 +39,10 @@ kttn は、あなたのコンピューターで動いている Claude Code セ�
 | | |
 | --- | --- |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="190" alt="吹き出しを出して机にいる猫"> | **セッションひとつに猫一匹。** 読む、直す、コマンドを動かす、考える、しばらく静かなら居眠り、セッションが終われば退勤。回答プレビューをオンにすると、仕事を終えた猫が何をしたか話します。 |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="リポジトリとフォルダーが並ぶワールドマップ"> | **オフィスはリポジトリ、部屋はフォルダー。** ワールドマップに猫の数と一緒に並び、地点を押すとその部屋へ移動します。 |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="リポジトリとフォルダーが並ぶワールドマップ"> | **エリアはリポジトリ、部屋はフォルダー。** ワールドマップに猫の数と一緒に並び、地点を押すとその部屋へ移動します。 |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="190" alt="机のそばに子猫が2匹いる猫"> | **子猫はサブエージェント。** 仕事が終わるまで机のそばにいます。バックグラウンドで動くものも同じです。 |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="確認をお願いして点滅する吹き出し"> | **確認が必要。** 権限の確認を待つ猫は点滅し、その部屋とオフィスにも印が付くので、どこからでも分かります。 |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="オフィスの入り口にいる執事"> | **執事。** 猫を押すと執事が歩いていき、そのセッションのターミナルのタブを前に出します。吹き出しを押すと、そのセッションにメッセージを送れます。 |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="確認をお願いして点滅する吹き出し"> | **確認が必要。** 権限の確認を待つ猫は点滅し、その部屋とエリアにも印が付くので、どこからでも分かります。 |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="入り口にいる執事"> | **執事。** 猫を押すと執事が歩いていき、そのセッションのターミナルのタブを前に出します。吹き出しを押すと、そのセッションにメッセージを送れます。 |
 | 🔒 | **短いラベルだけ。** プロンプト、ファイルの内容、コマンドの引数、エラーの文言はセッションの外に出ません。[セッションから出ていくもの](#セッションから出ていくもの)を見てください。 |
 
 ## 動いている様子
@@ -62,8 +62,8 @@ kttn は、あなたのコンピューターで動いている Claude Code セ�
 npx @hgwk/kttn
 ```
 
-このコマンドひとつで、オフィス名と言語を聞き、Claude Code にフックをかけ、
-ログイン時にオフィスが起動するよう登録し(macOS は LaunchAgent、Linux は systemd
+このコマンドひとつで、kttn の名前と言語を聞き、Claude Code にフックをかけ、
+ログイン時に kttn が起動するよう登録し(macOS は LaunchAgent、Linux は systemd
 ユーザーサービス)、ブラウザーで開きます。何度実行しても大丈夫です。設定はそのままに、
 フックと自動起動だけを新しくします。`kttn uninstall` でフックと自動起動を外せます。
 
@@ -95,19 +95,19 @@ kttn は macOS と Linux(arm64、x86-64)で動きます。**Windows には対応
 `~/.local/state/kttn/cats.json`(権限 600、セッションの状態の隣)に残します。
 リポジトリ、フォルダー、モデル、セッション名、画面が付けた猫の名前、最初と最後に
 見た時刻、使ったツールの数(全体と最後に働いた日、その日に失敗した数)、このコンピューターの時刻で深夜 0 時から 5 時のあいだに
-働いたことがあるか(記録が残っているあいだ保持)、そしてオフィスに同時にいた
+働いたことがあるか(記録が残っているあいだ保持)、そして kttn に同時にいた
 セッション数の最高記録とその時刻だけで、全体のツール数はそのセッションが始まってから使ったすべてで、図鑑が最初に見る前の分
 (初期化の直後も)も含み、その日のツール数はその日に見た分だけを数えます。
 ほかのセッションの内容は入りません。90 日以内に
 見た最近の 1,000 匹までを残し、画面の **図鑑リセット**(5 秒以内に 2 回押す)ですべて消せます。
 
-**一日のオフィス新聞。** 新聞ボタンでその日の新聞を描き、保存を押すと PNG として
+**一日の kttn 新聞。** 新聞ボタンでその日の新聞を描き、保存を押すと PNG として
 このコンピューターにダウンロードします。日付、猫の名前(自分で付けた名前を含む)、
 その日のツールの数と失敗の数、いちばん長い昼寝、出勤した猫の数、最高同時勤務、
 猫の絵が入り、リポジトリ、フォルダー、セッションの名前は入りません。
 
 **一日のタイムラプス(初期設定はオフ)。** 自動記録をオンにすると、タブが見えている
-あいだ 10 分ごとにオフィスを撮ります。画面に見えているとおりに撮るので、リポジトリ名、
+あいだ 10 分ごとに kttn を撮ります。画面に見えているとおりに撮るので、リポジトリ名、
 フォルダー名、セッション名と、回答プレビューがオンなら吹き出しの最後の回答の文も
 入ります。写真はこのブラウザーにだけ最大 2 日(1 日 160 枚)残り、サーバーには
 送りません。保存した動画にも入るので、共有する前に確かめてください。タイムラプスの
@@ -147,7 +147,7 @@ kttn は macOS と Linux(arm64、x86-64)で動きます。**Windows には対応
 そのあと `kttn` を実行するか(クイックスタートと同じ設定)、手作業で行います。
 
 ```sh
-kttn init    # オフィス名、言語、ポート、回答プレビュー。~/.config/kttn/config.json に保存
+kttn init    # kttn の名前、言語、ポート、回答プレビュー。~/.config/kttn/config.json に保存
 kttn serve   # http://127.0.0.1:5886
 ```
 
@@ -186,13 +186,13 @@ Chrome でアドレスを開いてください。アドレスバーの ⊕ か�
 
 | コマンド | すること |
 | --- | --- |
-| `kttn` または `kttn setup` | まとめて設定: 初回はオフィス名と言語を聞き、Claude Code のフック、自動起動、オフィスを開く。 |
+| `kttn` または `kttn setup` | まとめて設定: 初回は kttn の名前と言語を聞き、Claude Code のフック、自動起動、kttn を開く。 |
 | `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | 設定を聞き(または `--yes` でフラグを使い)、前の答えを既定値にし、使いたいポートがほかに使われていれば別のポートを選び、フックとサーバーが共有するトークンを作ります。 |
-| `kttn serve [--port N]` | `127.0.0.1` でオフィスを動かします。 |
+| `kttn serve [--port N]` | `127.0.0.1` で kttn を動かします。 |
 | `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | Claude Code のフック。標準入力からフックの内容を読みます。設定時に書いた設定ファイルを `--config` で固定します。 |
 | `kttn install` | プラグインを使わない場合に、Claude Code のユーザー設定へフックを入れます。 |
 | `kttn uninstall` | フックを外し、自動起動を止めます。設定とセッションの状態は残ります。 |
-| `kttn open` | 画面の鍵を付けてブラウザーでオフィスを開きます。 |
+| `kttn open` | 画面の鍵を付けてブラウザーで kttn を開きます。 |
 | `kttn version` | バージョンを表示します。 |
 
 設定は `~/.config/kttn/config.json`(権限 600、`KTTN_CONFIG` で移動)にあります。
@@ -209,7 +209,7 @@ Chrome でアドレスを開いてください。アドレスバーの ⊕ か�
 猫を押すと、執事が歩いていってそのセッションのターミナルのタブを前に出します。
 吹き出しを押すと、そのセッションの入力欄にメッセージを入れ、Enter まで押します。
 **メッセージ送信は初期設定ではオフです。** 設定時に一度聞かれ、`kttn init`
-(または `kttn init --yes --messages`)でオンにすると、オフィスを再起動してすぐに反映します。オフのあいだサーバーは
+(または `kttn init --yes --messages`)でオンにすると、kttn を再起動してすぐに反映します。オフのあいだサーバーは
 403 で拒否し、吹き出しはオンにする方法だけを案内します。
 
 kttn はセッションのプロセスからタブを見つけます: プロセス → tty → その tty の
@@ -245,15 +245,15 @@ Homebrew・MacPorts・nix の `tmux` も見つかります。
 セッションの情報とターミナルの操作には**画面の鍵**も必要です。設定ファイル
 (権限 600)にだけあるランダムな値です。Origin と Host の確認はほかの Web サイトを
 防ぎますが、同じコンピューターのほかのプログラムやほかのユーザーは防げません。
-鍵はそれを防ぎます。`kttn` と `kttn open` がオフィスを `/#k=<鍵>` で開くと、
+鍵はそれを防ぎます。`kttn` と `kttn open` が kttn を `/#k=<鍵>` で開くと、
 画面はブラウザーに鍵を保存し、アドレスからは消します。鍵のないページは 401 を受け、
 `kttn open` を実行するよう案内します。
 
-オフィス自身と、設定の `embed_origins` に書いたページだけが、オフィスを iframe で
-表示できます(`frame-ancestors`)。既定値は空のリストです。オフィスを埋め込むページも、iframe のアドレスで
+kttn 自身と、設定の `embed_origins` に書いたページだけが、kttn を iframe で
+表示できます(`frame-ancestors`)。既定値は空のリストです。kttn を埋め込むページも、iframe のアドレスで
 鍵を渡します: `http://127.0.0.1:5886/#k=<screen_key>`。
 
-**共用のコンピューター:** ほかの人もログインするコンピューターでは、オフィスが
+**共用のコンピューター:** ほかの人もログインするコンピューターでは、kttn が
 起動する前にほかのユーザーがそのポートを先に取ることができ、そうなるとフックの
 トークンと画面の鍵がその人のサーバーに送られます。kttn は同じコンピューターの
 ほかのユーザーからは守れません。
@@ -287,7 +287,7 @@ npm --prefix web run dev    # 画面をその場で直しながら開発、/api 
 - 共用のコンピューターでほかのユーザーから守ること: サーバーが自分を証明する
   (トークンで署名したチャレンジ)か、ポートの代わりに Unix ソケットを使う。
 - Codex のセッション。同じ形のイベントを送る Codex のフックがあれば、
-  `--source codex` でオフィスに一緒に表示されます。
+  `--source codex` で kttn に一緒に表示されます。
 
 ## ライセンス
 

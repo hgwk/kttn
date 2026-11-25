@@ -9,7 +9,7 @@ import (
 	"github.com/hgwk/kttn/internal/config"
 )
 
-// runOpen opens the office in the browser with this user's screen key, the
+// runOpen opens kttn in the browser with this user's screen key, the
 // only way a browser gets it.
 func runOpen(out io.Writer, m machine) error {
 	path := config.Path()
