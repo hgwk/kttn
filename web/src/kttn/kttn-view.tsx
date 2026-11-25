@@ -11,9 +11,8 @@ import {
 } from "@/kttn/kttn-capture"
 import { Building } from "@/kttn/building"
 import { WorldMap } from "@/kttn/world-map"
-import { CatNamesContext } from "@/kttn/cat-names"
+import { CatNamesContext, useStableCatNames } from "@/kttn/cat-names"
 import {
-  catNames,
   kttnCounts,
   levelUpKeys,
   stateSince,
@@ -123,7 +122,7 @@ function KttnScreen({ initial }: { initial: ServerSnapshot }) {
 
   const now = Date.parse(snapshot.generatedAt)
   const counts = kttnCounts(snapshot.agents)
-  const names = catNames(snapshot.agents)
+  const names = useStableCatNames(snapshot.agents)
   // 퇴근한 세션은 문까지 걸어 나갈 동안(LEAVE_MS)만 자리에 남고, 그 뒤로는
   // 자리도 방도 차지하지 않는다(상태바의 퇴근 수에만 남는다).
   const working = snapshot.agents.filter(

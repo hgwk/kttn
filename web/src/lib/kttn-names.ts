@@ -58,19 +58,50 @@ export function baseCatName(key: string) {
 }
 
 /**
- * 세션마다 고양이 이름을 붙인다. 이름은 세션 키에서 정해져 새로 고쳐도 같고,
- * 한 화면에서 겹치면 키 순서대로 다음 단어로 넘긴다.
+ * 세션마다 고양이 이름을 붙인다. 한 화면에서 겹치지 않게 고르고, 한 번 정한
+ * 이름은 그 세션이 화면에 있는 동안 바꾸지 않는다(다른 세션이 늘거나 줄어도).
+ * - keep: 앞서 정한 이름(세션 키 → 단어 번호). 이번에 정한 것으로 고쳐 둔다.
+ *   화면에서 사라진 세션은 지운다.
+ * - recorded: 서버 도감에 남은 처음 이름(세션 키 → 이름). 지금 언어의 단어로
+ *   읽히면 새로 정할 때 그 단어를 먼저 쓴다.
+ * 처음 보는 세션은 키에서 정한 단어를 쓰고, 이미 쓰인 단어면 다음 단어로 넘긴다.
+ * keep 없이 부르면 새로 고쳐도 같은 이름이다(키 순서로 정한다).
  */
-export function catNames(agents: SessionAgent[]) {
-  const names = new Map<string, string>()
-  const used = new Set<number>()
+export function catNames(
+  agents: SessionAgent[],
+  options: { keep?: Map<string, number>; recorded?: Map<string, string> } = {}
+) {
+  const keep = options.keep ?? new Map<string, number>()
   const words = catWords()
-  for (const key of agents.map((agent) => agent.key).sort()) {
-    let index = wordIndex(key)
+  const named = words.map((word) => t("cat.name", { word }))
+  const byName = new Map(named.map((name, index) => [name, index]))
+  const keys = agents.map((agent) => agent.key).sort()
+  const visible = new Set(keys)
+  for (const key of keep.keys()) if (!visible.has(key)) keep.delete(key)
+  const used = new Set<number>()
+  const chosen = new Map<string, number>()
+  // 앞서 정한 이름부터 지킨다.
+  for (const key of keys) {
+    const index = keep.get(key)
+    if (index === undefined || index >= words.length || used.has(index))
+      continue
+    used.add(index)
+    chosen.set(key, index)
+  }
+  // 새로 정할 세션은 도감 이름, 키에서 정한 단어 순서로 비어 있는 것을 고른다.
+  for (const key of keys) {
+    if (chosen.has(key)) continue
+    const saved = byName.get(options.recorded?.get(key) ?? "")
+    let index = saved !== undefined && !used.has(saved) ? saved : wordIndex(key)
     for (let tries = 0; used.has(index) && tries < words.length; tries++)
       index = (index + 1) % words.length
     used.add(index)
-    names.set(key, t("cat.name", { word: words[index] }))
+    chosen.set(key, index)
+  }
+  const names = new Map<string, string>()
+  for (const [key, index] of chosen) {
+    keep.set(key, index)
+    names.set(key, named[index])
   }
   return names
 }

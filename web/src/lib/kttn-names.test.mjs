@@ -2,6 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import {
+  baseCatName,
   catNames,
   levelFor,
   levelUpKeys,
@@ -65,6 +66,46 @@ test("gives each session a stable Korean cat name without repeats on one screen"
     catNames([many[3]]).get(many[3].key),
     catNames([many[3]]).get(many[3].key)
   )
+})
+
+test("keeps a cat's name while other sessions come and go", () => {
+  const cats = Array.from({ length: 6 }, (_, i) => ({ key: `claude:s-${i}` }))
+  const keep = new Map()
+  const first = catNames(cats, { keep })
+  // 이미 있는 고양이와 기본 이름이 같은 새 세션(키를 바꿔 가며 찾는다)
+  const target = baseCatName(cats[2].key)
+  let k = 0
+  while (baseCatName(`claude:new-${k}`) !== target) k++
+  const newcomer = { key: `claude:new-${k}` }
+  const grown = catNames([newcomer, ...cats], { keep })
+  for (const cat of cats) assert.equal(grown.get(cat.key), first.get(cat.key))
+  assert.equal(new Set(grown.values()).size, 7)
+  assert.notEqual(grown.get(newcomer.key), target)
+  // 한 세션이 떠나도 나머지는 그대로다.
+  const shrunk = catNames([newcomer, ...cats.slice(1)], { keep })
+  for (const cat of cats.slice(1)) assert.equal(shrunk.get(cat.key), first.get(cat.key))
+  assert.equal(shrunk.get(newcomer.key), grown.get(newcomer.key))
+  assert.equal(keep.has(cats[0].key), false)
+})
+
+test("uses the name the catalog recorded for a new session when it is free", () => {
+  const cats = [{ key: "claude:a" }, { key: "claude:b" }]
+  const base = catNames(cats)
+  // 키에서 정해지는 이름과 다른, 비어 있는 이름을 도감 이름으로 둔다.
+  const other = catNames(
+    Array.from({ length: 40 }, (_, i) => ({ key: `claude:x-${i}` }))
+  )
+  const free = [...other.values()].find(
+    (name) => ![...base.values()].includes(name)
+  )
+  const recorded = new Map([["claude:b", free]])
+  assert.equal(catNames(cats, { recorded }).get("claude:b"), free)
+  // 이미 다른 고양이가 쓰는 이름이면 따르지 않는다.
+  const taken = new Map([["claude:b", base.get("claude:a")]])
+  assert.notEqual(catNames(cats, { recorded: taken }).get("claude:b"), base.get("claude:a"))
+  // 지금 언어의 단어가 아니면(다른 언어로 남은 이름) 무시한다.
+  const foreign = new Map([["claude:b", "Nonexistent"]])
+  assert.equal(catNames(cats, { recorded: foreign }).get("claude:b"), base.get("claude:b"))
 })
 
 test("keeps only a one-line head of a finished session's last answer", () => {
