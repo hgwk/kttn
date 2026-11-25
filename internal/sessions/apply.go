@@ -148,6 +148,10 @@ func transition(agent *Agent, event Event, now string) string {
 // setWaiting marks the subagent id, if it stands beside the desk, as waiting
 // on a person or not.
 func setWaiting(agent *Agent, id string, waiting bool) {
+	// A minion started without an ID must not match an event without one.
+	if id == "" {
+		return
+	}
 	for i := range agent.Minions {
 		if agent.Minions[i].ID == id {
 			agent.Minions[i].Waiting = waiting

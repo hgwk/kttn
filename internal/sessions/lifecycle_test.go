@@ -87,6 +87,20 @@ func TestOnlyTheSubagentThatAskedIsMarkedWaiting(t *testing.T) {
 	}
 }
 
+// Starts without an ID keep no minion, but a restored state file might hold
+// one; an event without a subagent must still not mark it.
+func TestAKittenWithoutAnIDIsNeverMarkedWaiting(t *testing.T) {
+	agent := &Agent{Minions: []Minion{{ID: "", Label: "Explore"}, {ID: "ag1"}}}
+	setWaiting(agent, "", true)
+	if agent.Minions[0].Waiting || agent.Minions[1].Waiting {
+		t.Fatalf("marked: %+v", agent.Minions)
+	}
+	setWaiting(agent, "ag1", true)
+	if !agent.Minions[1].Waiting {
+		t.Fatalf("not marked: %+v", agent.Minions)
+	}
+}
+
 func TestAFinishedToolClearsAGrantedPermission(t *testing.T) {
 	store, _ := clockedStore(nil)
 	store.Apply(ev(t, "PreToolUse", m{"tool": "Bash"}))
