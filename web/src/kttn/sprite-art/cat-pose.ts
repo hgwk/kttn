@@ -92,7 +92,49 @@ const NAP: Grid = [
   "...kkkkkkkkkk...",
 ]
 
-/** 앉은 자세 일곱 칸: 대기, 눈 깜빡임, 들썩임, 졸기, 놀람, 자판 치기 두 칸. */
+// 밥 먹기: 고개를 깊이 숙여 그릇을 내려다본다. 귀와 정수리가 보이고 눈은
+// 아래로 내리깐다. 씹을 때마다 머리를 한 칸 더 숙인다(깃은 가려도 넥타이는 보인다).
+const EAT_HEAD: Grid = [
+  "...k........k...",
+  "..knfk....kfnk..",
+  "..kfffkkkkfffk..",
+  "..kffffffffffk..",
+  ".kffffffffffffk.",
+  ".kffkkffffkkffk.",
+  ".ksfcffffffcfsk.",
+  "..kssffnnffssk..",
+  "...kkkkkkkkkk...",
+]
+const eating = (chew: boolean): Grid =>
+  chew
+    ? [
+        "................",
+        "................",
+        "................",
+        "................",
+        ...EAT_HEAD,
+        ...BODY.slice(2),
+      ]
+    : [
+        "................",
+        "................",
+        "................",
+        ...EAT_HEAD,
+        ...BODY.slice(1),
+      ]
+
+// 흥얼거리기: 웃는 눈(^ ^)에 입을 조금 벌리고 머리를 좌우로 까딱인다.
+const HUM = face(
+  ["..kffffffffffk..", ".kfffkffffkfffk.", ".kffkfkffkfkffk."],
+  "..kssffkkffssk..",
+)
+const tilt = (dx: -1 | 1): Grid => [
+  ...HUM.map((row) => (dx < 0 ? row.slice(1) + "." : "." + row.slice(0, -1))),
+  ...BODY,
+]
+
+/** 앉은 자세: 대기, 눈 깜빡임, 들썩임, 졸기, 놀람, 자판 치기 두 칸, 멈춤, 털 고르기 두 칸,
+ * 밥 먹기 두 칸, 흥얼거리기 두 칸. */
 export const CAT_POSE: Grid[] = [
   [...HEAD, ...BODY],
   [...BLINK, ...BODY],
@@ -104,6 +146,10 @@ export const CAT_POSE: Grid[] = [
   bob(DIZZY),
   grooming(true),
   grooming(false),
+  eating(false),
+  eating(true),
+  tilt(-1),
+  tilt(1),
 ]
 
 export const POSE_FRAME = {
@@ -117,4 +163,8 @@ export const POSE_FRAME = {
   dizzy: 7,
   groomLick: 8,
   groomRest: 9,
+  eatLook: 10,
+  eatChew: 11,
+  humLeft: 12,
+  humRight: 13,
 } as const
