@@ -7,7 +7,7 @@ import { ledColor, type OfficeLayout } from "@/office/office-draw"
 import { seatPoint } from "@/office/walk-paths"
 import { rect } from "@/office/pixel"
 import { catPalette, sheetCanvas } from "@/office/sprites"
-import type { Grid } from "@/office/sprite-data"
+import { SEATS, type Grid } from "@/office/sprite-data"
 
 /** 자리 그림 하나. anchor는 고양이 발밑 아래 가운데, head는 머리 꼭대기 가운데다. */
 export type SeatArt = {
@@ -20,16 +20,32 @@ const SCREEN = "!"
 /** 꺼진 화면(상태가 없거나 고양이가 자리를 비움) */
 const SCREEN_OFF = "#1f2937"
 
-const cache = new Map<string, { canvas: HTMLCanvasElement; screen: [number, number][] }>()
+type SeatImage = { canvas: HTMLCanvasElement; screen: [number, number][] }
+const cache = new Map<string, SeatImage>()
 
-function seatImage(name: string, art: SeatArt, frame: SeatFrame, coat: number, tie: string) {
-  const key = `${name}|${frame}|${coat}|${tie}`
+// 칸 하나를 칠한 그림과 화면("!") 자리. lifted면 빈 자리(empty)와 같은 픽셀과
+// 화면을 비워 고양이만 남긴다(고양이만 폴짝 뛸 때 가구 위에 겹쳐 그린다).
+function seatImage(
+  name: string,
+  art: SeatArt,
+  frame: SeatFrame,
+  coat: number,
+  tie: string,
+  lifted = false
+) {
+  const key = `${name}|${frame}|${coat}|${tie}|${lifted}`
   let hit = cache.get(key)
   if (!hit) {
-    const grid = art.frames[frame]
+    const empty = art.frames.empty
     const screen: [number, number][] = []
-    grid.forEach((row, y) => {
-      for (let x = 0; x < row.length; x++) if (row[x] === SCREEN) screen.push([x, y])
+    const grid = art.frames[frame].map((row, y) => {
+      let out = ""
+      for (let x = 0; x < row.length; x++) {
+        if (row[x] === SCREEN) screen.push([x, y])
+        const furniture = row[x] === SCREEN || row[x] === empty[y]?.[x]
+        out += lifted && furniture ? "." : row[x]
+      }
+      return out
     })
     hit = { canvas: sheetCanvas([grid], catPalette(coat, tie)), screen }
     cache.set(key, hit)
@@ -39,7 +55,8 @@ function seatImage(name: string, art: SeatArt, frame: SeatFrame, coat: number, t
 
 /**
  * 자리 하나를 그린다. (x, y)는 고양이 발밑 가운데(책상 고양이와 같은 곳)다.
- * frame이 empty면 고양이 없이 가구와 꺼진 기기만 그린다.
+ * frame이 empty면 고양이 없이 가구와 꺼진 기기만 그린다. lift만큼 고양이만
+ * 들어 올린다(확인을 기다리는 폴짝). 가구와 화면은 제자리에 있다.
  */
 export function drawSeat(
   ctx: CanvasRenderingContext2D,
@@ -51,30 +68,35 @@ export function drawSeat(
   coat: number,
   tie: string,
   state: AgentState | null,
-  t: number
+  t: number,
+  lift = 0
 ) {
-  const { canvas, screen } = seatImage(name, art, frame, coat, tie)
   const left = Math.round(x - art.anchor.x)
   const top = Math.round(y - art.anchor.y)
   ctx.imageSmoothingEnabled = false
-  ctx.drawImage(canvas, left, top)
+  const { canvas, screen } = seatImage(name, art, frame, coat, tie)
+  if (lift > 0) {
+    ctx.drawImage(seatImage(name, art, "empty", coat, tie).canvas, left, top)
+    ctx.drawImage(
+      seatImage(name, art, frame, coat, tie, true).canvas,
+      left,
+      top - lift
+    )
+  } else ctx.drawImage(canvas, left, top)
   const led = (frame !== "empty" && ledColor(state, t)) || SCREEN_OFF
   for (const [sx, sy] of screen) rect(ctx, left + sx, top + sy, 1, 1, led)
 }
 
 /** 발밑에서 머리 꼭대기까지의 높이(대사 꼬리 자리) */
 export const seatHeadRise = (art: SeatArt) => art.anchor.y - art.head.y
+/** 발밑 가운데에서 머리 가운데까지 가로로 떨어진 거리(옆으로 엎드린 자리 등) */
+export const seatHeadShift = (art: SeatArt) => art.head.x - art.anchor.x
 
-/**
- * 자유 자리 그림들. 그림 정본은 sprite-art/seats.ts(e3)이며, 아직 없으면 비어
- * 있어 모든 고양이가 책상에 앉는다.
- */
-export const SEATS: Record<string, SeatArt> = {}
 
 /** 이 고양이의 자유 자리(이름과 그림). 책상에 앉으면 null이다. */
 export function seatOf(key: string) {
   const name = seatKindFor(key, Object.keys(SEATS))
-  return name ? { name, art: SEATS[name] } : null
+  return name ? { name, art: SEATS[name as keyof typeof SEATS] as SeatArt } : null
 }
 
 /**

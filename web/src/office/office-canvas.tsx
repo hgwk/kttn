@@ -33,7 +33,13 @@ import { recentMoment } from "@/lib/agent-office-acts"
 import { danceStep } from "@/lib/agent-office-dance"
 import { dancing } from "@/office/dance"
 import { useTowerNearby } from "@/office/use-tower"
-import { drawSeat, seatBox, seatHeadRise, seatOf } from "@/office/seat-draw"
+import {
+  drawSeat,
+  seatBox,
+  seatHeadRise,
+  seatHeadShift,
+  seatOf,
+} from "@/office/seat-draw"
 import { seatFrameFor } from "@/lib/agent-office-seats"
 
 /**
@@ -135,8 +141,9 @@ export function OfficeCanvas({
       if (speech && !(away && trips.get(agent.key)?.shown)) {
         // 머리 위: 발밑에서 앉은 높이(SIT_OFFSET)와 머리(CAT_HEAD)만큼 위
         const at = gone || away ? seatPoint(room, index) : walker
-        const left = `${(at.x / room.w) * 100}%`
-        // 자유 자리에 앉아 있으면 그 그림의 머리 높이를 쓴다.
+        // 자유 자리에 앉아 있으면 그 그림의 머리 자리(높이, 옆으로 치우침)를 쓴다.
+        const shift = sitting ? seatHeadShift(sitting.art) : 0
+        const left = `${((at.x + shift) / room.w) * 100}%`
         const rise = sitting
           ? seatHeadRise(sitting.art) + 3
           : SIT_OFFSET + CAT_HEAD
@@ -174,8 +181,8 @@ export function OfficeCanvas({
                   : idlePose(agent, nowRef.current, towerRef.current, seated)
         if (sitting) {
           const frame = seatFrameFor(pose, agent.state, t)
-          // 확인을 기다리면 자리째 폴짝인다(책상 고양이와 같은 신호).
-          drawSeat(ctx, sitting.name, sitting.art, frame, walker.x, walker.y - hop, coat, tie, agent.state, t)
+          // 확인을 기다리면 고양이만 폴짝인다(책상 고양이와 같은 신호, 가구는 제자리).
+          drawSeat(ctx, sitting.name, sitting.art, frame, walker.x, walker.y, coat, tie, agent.state, t, hop)
         } else drawCat(
           ctx,
           walker.x,
