@@ -156,7 +156,9 @@ function VisitCat({
       el.style.transform = `translate(${shift.x}px, ${shift.y}px)`
       // 걷는 동안은 다른 소품보다 앞에 둔다.
       el.style.zIndex = walking ? "35" : ""
-      follow(agent.key, el.getBoundingClientRect(), ratio)
+      // 둥글게 만 잠은 머리가 낮아(7행부터) 상자를 4px 내려 머리에 붙인다.
+      const low = !walking && POSE[action] === "curl" ? 4 : 0
+      follow(agent.key, el.getBoundingClientRect(), ratio, low)
     }
     frame = requestAnimationFrame(draw)
     return () => {

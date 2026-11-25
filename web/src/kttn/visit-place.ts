@@ -41,14 +41,20 @@ export function placeFor(action: Action, perch: number): CSSProperties {
 
 // 이 고양이의 대사 상자를 휴게 공간의 고양이 머리 위로 옮긴다. 상자는 책상
 // 구역 기준 백분율 자리라 그 바깥(100% 넘게)으로도 놓인다.
-export function follow(key: string, cat: DOMRect, ratio: number) {
+export function follow(
+  key: string,
+  cat: DOMRect,
+  ratio: number,
+  /** 머리가 낮은 자세(둥글게 만 잠)에서 상자를 내리는 만큼(논리 px) */
+  drop = 0
+) {
   const speech = document.querySelector<HTMLElement>(
     `[data-speech-for="${CSS.escape(key)}"]`
   )
   const box = speech?.parentElement?.getBoundingClientRect()
   if (!speech || !box?.width || !box.height) return
   const x = cat.left + cat.width / 2
-  const y = cat.bottom - (SIT_OFFSET + CAT_HEAD) * PIXEL_SCALE * ratio
+  const y = cat.bottom - (SIT_OFFSET + CAT_HEAD - drop) * PIXEL_SCALE * ratio
   speech.style.left = `${((x - box.left) / box.width) * 100}%`
   speech.style.top = `${((y - box.top) / box.height) * 100}%`
   speech.style.zIndex = "45"
