@@ -27,7 +27,12 @@ export type { CatKeys, Grid } from "./sprite-art/palette"
 export { CAT_POSE, POSE_FRAME } from "./sprite-art/cat-pose"
 export { SMOKE } from "./sprite-art/smoke"
 export { KITTEN } from "./sprite-art/kitten"
-export { CAT_BACK_WALK, CAT_FRONT_WALK, CAT_SIDE_WALK } from "./sprite-art/walk"
+export {
+  CAT_BACK_WALK,
+  CAT_FRONT_WALK,
+  CAT_SIDE_PLAY,
+  CAT_SIDE_WALK,
+} from "./sprite-art/walk"
 export { TILES } from "./sprite-art/tiles"
 export { clockAt } from "./sprite-art/clock"
 export { SEATS } from "./sprite-art/seats"

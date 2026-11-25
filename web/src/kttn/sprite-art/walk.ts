@@ -102,3 +102,26 @@ const SIDE_LEGS: Grid[] = [
 export const CAT_SIDE_WALK: Grid[] = SIDE_LEGS.map((legs, i) =>
   walkFrame(i % 2 ? SIDE_UPPER_SWAY : SIDE_UPPER, legs),
 )
+
+// 장난감과 놀기(옆모습, 오른쪽을 본다). 0은 몸을 한 칸 낮춰 웅크리고 꼬리를
+// 흔들고, 1은 뒷발로 서서 앞발 하나를 얼굴 앞으로 휘두른다.
+const CROUCH: Grid = [
+  "................",
+  "................",
+  ...SIDE_UPPER_SWAY.slice(1, 13),
+  "..kffkkkkkffkk..",
+  "..kkkk...kkkk...",
+]
+const SWIPE: Grid = [
+  ...SIDE_UPPER.slice(0, 9),
+  ".k..kssffffffkkk",
+  "kfk.kjjwtwjjkffk",
+  "kfk.kjjjtjjjkffk",
+  ".kfkjjjjjjjjkkk.",
+  "..kkkkkkkkkkkk..",
+  "....kfk.........",
+  "....kkk.........",
+]
+
+/** 옆모습 놀기 두 칸: 웅크리기, 앞발 휘두르기. */
+export const CAT_SIDE_PLAY: Grid[] = [CROUCH, SWIPE]
