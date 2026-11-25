@@ -9,6 +9,7 @@ import type { SessionAgent } from "@/lib/agent-office"
 import type { Spots } from "@/office/use-tower"
 import { VisitCats } from "@/office/visit-cats"
 import { parseMeetings } from "@/office/office-moods"
+import { seatBox } from "@/office/seat-draw"
 
 /**
  * 책상 구역 캔버스 위에 얹는 것들: 고양이 대사 상자, 누를 수 있는 책상 자리,
@@ -95,16 +96,19 @@ export function DeskOverlays({
     {/* 책상·의자·고양이 자리. 집사가 지나가지 못하고, 누르면 집사가 간다. */}
     {agents.map((agent, index) => {
       const seat = seatFor(layout, index)
+      // 자유 자리면 그 그림 상자가 누르는 자리이자 집사가 피하는 곳이다.
+      const free = seatBox(layout, index, agent.key)
+      const box = free ?? { x: seat.x - 16, y: seat.y - 8, w: 32, h: 26 }
       return (
         <CatDesk
           key={`desk-${agent.key}`}
           agentKey={agent.key}
           name={names.get(agent.key) ?? agent.sessionShort}
           style={{
-            left: `${((seat.x - 16) / layout.w) * 100}%`,
-            top: `${((seat.y - 8) / layout.h) * 100}%`,
-            width: `${(32 / layout.w) * 100}%`,
-            height: `${(26 / layout.h) * 100}%`,
+            left: `${(box.x / layout.w) * 100}%`,
+            top: `${(box.y / layout.h) * 100}%`,
+            width: `${(box.w / layout.w) * 100}%`,
+            height: `${(box.h / layout.h) * 100}%`,
           }}
         />
       )

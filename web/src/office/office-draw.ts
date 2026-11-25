@@ -172,15 +172,20 @@ export function drawMinions(
   count: number,
   tie: string,
   key: string,
-  t: number
+  t: number,
+  /** 자유 자리 그림 상자. 있으면 그 양옆 바닥에 선다. */
+  seat?: { cx: number; w: number; bottom: number } | null
 ) {
   const { x, y } = seatFor(layout, index)
   // 새끼 고양이는 10px라 책상 양옆에 11px 간격으로 둘씩 선다.
   for (let i = 0; i < Math.min(count, 4); i++) {
     const side = i % 2 === 0 ? -1 : 1
-    const mx =
-      x + CAT_DX + side * (22 + Math.floor(i / 2) * 11) - (side < 0 ? 6 : 0)
-    drawKitten(ctx, mx, y + 20, coatFor(`${key}:${i}`), tie, t + i * 90)
+    const step = Math.floor(i / 2) * 11
+    const mx = seat
+      ? seat.cx + side * (seat.w / 2 + 6 + step)
+      : x + CAT_DX + side * (22 + step) - (side < 0 ? 6 : 0)
+    const my = seat ? seat.bottom : y + 20
+    drawKitten(ctx, mx, my, coatFor(`${key}:${i}`), tie, t + i * 90)
   }
 }
 

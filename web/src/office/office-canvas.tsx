@@ -33,15 +33,8 @@ import { recentMoment } from "@/lib/agent-office-acts"
 import { danceStep } from "@/lib/agent-office-dance"
 import { dancing } from "@/office/dance"
 import { useTowerNearby } from "@/office/use-tower"
-import { SEATS, drawSeat, seatHeadRise } from "@/office/seat-draw"
-import { seatFrameFor, seatKindFor } from "@/lib/agent-office-seats"
-
-// 자유 자리 그림이 있는 이름들. 고양이 key로 하나를 고르거나 책상에 앉는다.
-const SEAT_NAMES = Object.keys(SEATS)
-const seatArt = (key: string) => {
-  const name = seatKindFor(key, SEAT_NAMES)
-  return name ? { name, art: SEATS[name] } : null
-}
+import { drawSeat, seatBox, seatHeadRise, seatOf } from "@/office/seat-draw"
+import { seatFrameFor } from "@/lib/agent-office-seats"
 
 /**
  * 폴더 방 하나의 책상 구역. 넘겨받은 순서대로 앉는다. 책상 앞 이름표는
@@ -102,7 +95,7 @@ export function OfficeCanvas({
     ctx.translate(EDGE, EDGE)
     drawRoom(ctx, room)
     seated.forEach((agent, index) => {
-      if (!seatArt(agent.key)) drawChair(ctx, room, index)
+      if (!seatOf(agent.key)) drawChair(ctx, room, index)
     })
     // 고개를 드는 고양이(찾아온 고양이가 있거나 일을 마친 동료가 부름)
     const visited = perkedUp(walkers, seated, nowRef.current)
@@ -124,7 +117,7 @@ export function OfficeCanvas({
       // 휴게 공간에 나와 있으면 그 고양이(visit-cats.tsx)가 대사를 옮긴다.
       // 거기 그려지지 못한 고양이(캣타워 층이 모자람 등)는 대사를 자리에 둔다.
       const away = awayOnVisit(walker)
-      const free = seatArt(agent.key)
+      const free = seatOf(agent.key)
       const tie = familyColor(agent.family)
       const coat = coatFor(agent.key)
       // 비밀 키를 누르면 걷지 않는 고양이들이 잠깐 춤춘다(dance.ts). 확인을
@@ -181,7 +174,8 @@ export function OfficeCanvas({
                   : idlePose(agent, nowRef.current, towerRef.current, seated)
         if (sitting) {
           const frame = seatFrameFor(pose, agent.state, t)
-          drawSeat(ctx, sitting.name, sitting.art, frame, walker.x, walker.y, coat, tie, agent.state, t)
+          // 확인을 기다리면 자리째 폴짝인다(책상 고양이와 같은 신호).
+          drawSeat(ctx, sitting.name, sitting.art, frame, walker.x, walker.y - hop, coat, tie, agent.state, t)
         } else drawCat(
           ctx,
           walker.x,
@@ -203,7 +197,7 @@ export function OfficeCanvas({
       if (!free) drawDesk(ctx, room, index, gone ? null : agent.state, t)
       if (!walking && !gone && !walker.visit) {
         if (agent.minions.length)
-          drawMinions(ctx, room, index, agent.minions.length, tie, agent.key, t)
+          drawMinions(ctx, room, index, agent.minions.length, tie, agent.key, t, seatBox(room, index, agent.key))
       }
     })
     const strolling = strollingKeys(walkers)

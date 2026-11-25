@@ -2,8 +2,9 @@
 // 함께 있다(sprite-art/seats.ts). 털·그늘·눈·넥타이(f·s·e·t)는 고양이마다
 // 칠하고, 기기 화면 "!"는 책상 모니터 LED와 같은 색(ledColor)으로 칠한다.
 import type { AgentState } from "@/lib/agent-office"
-import type { SeatFrame } from "@/lib/agent-office-seats"
-import { ledColor } from "@/office/office-draw"
+import { seatKindFor, type SeatFrame } from "@/lib/agent-office-seats"
+import { ledColor, type OfficeLayout } from "@/office/office-draw"
+import { seatPoint } from "@/office/walk-paths"
 import { rect } from "@/office/pixel"
 import { catPalette, sheetCanvas } from "@/office/sprites"
 import type { Grid } from "@/office/sprite-data"
@@ -69,3 +70,25 @@ export const seatHeadRise = (art: SeatArt) => art.anchor.y - art.head.y
  * 있어 모든 고양이가 책상에 앉는다.
  */
 export const SEATS: Record<string, SeatArt> = {}
+
+/** 이 고양이의 자유 자리(이름과 그림). 책상에 앉으면 null이다. */
+export function seatOf(key: string) {
+  const name = seatKindFor(key, Object.keys(SEATS))
+  return name ? { name, art: SEATS[name] } : null
+}
+
+/**
+ * 자유 자리 그림이 놓이는 상자(책상 구역 좌표). 누르는 자리, 이름표,
+ * 새끼 고양이가 이 상자를 기준으로 선다. 책상에 앉으면 null이다.
+ */
+export function seatBox(layout: OfficeLayout, index: number, key: string) {
+  const seat = seatOf(key)
+  if (!seat) return null
+  const at = seatPoint(layout, index)
+  const grid = seat.art.frames.idle
+  const w = grid[0]?.length ?? 0
+  const h = grid.length
+  const x = at.x - seat.art.anchor.x
+  const y = at.y - seat.art.anchor.y
+  return { x, y, w, h, cx: x + w / 2, bottom: y + h }
+}

@@ -8,6 +8,7 @@ import { levelFor, peerTag, type SessionAgent } from "@/lib/agent-office"
 import { modelLabel } from "@/lib/agent-office-acts"
 import { titlesFor } from "@/lib/agent-office-titles"
 import { useCatRecord } from "@/office/catalog"
+import { seatBox } from "@/office/seat-draw"
 
 /**
  * 책상 앞 이름표. 고양이 이름(세션들이 부르는 이름), 레벨, 할 일 수를 단다.
@@ -25,6 +26,11 @@ export function DeskTag({
   index: number
 }) {
   const seat = seatFor(layout, index)
+  // 자유 자리면 그 그림 바로 아래, 책상이면 책상 앞에 단다.
+  const free = seatBox(layout, index, agent.key)
+  const at = free
+    ? { x: free.cx, y: free.bottom + 1 }
+    : { x: seat.x, y: seat.y + 21 }
   const record = useCatRecord(agent.key)
   const titles = titlesFor(
     {
@@ -44,8 +50,8 @@ export function DeskTag({
       }
       className="absolute z-40 -translate-x-1/2 px-1 text-[11px] leading-[14px] whitespace-nowrap text-white"
       style={{
-        left: `${(seat.x / layout.w) * 100}%`,
-        top: `${((seat.y + 21) / layout.h) * 100}%`,
+        left: `${(at.x / layout.w) * 100}%`,
+        top: `${(at.y / layout.h) * 100}%`,
         backgroundColor:
           agent.state === "ended" ? "#9ca3af" : familyColor(agent.family),
       }}
