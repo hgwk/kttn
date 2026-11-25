@@ -87,16 +87,6 @@ func Load(path string) (cfg Config, found bool, err error) {
 	if err := json.Unmarshal(raw, &cfg); err != nil {
 		return Config{Port: DefaultPort}, false, err
 	}
-	// Configs from 0.13 and earlier name it office_name. Read it; the next
-	// Save writes kttn_name only.
-	if cfg.Name == "" {
-		var old struct {
-			Name string `json:"office_name"`
-		}
-		if json.Unmarshal(raw, &old) == nil {
-			cfg.Name = old.Name
-		}
-	}
 	if cfg.Port <= 0 || cfg.Port > 65535 {
 		cfg.Port = DefaultPort
 	}
@@ -108,12 +98,7 @@ func Save(path string, cfg Config) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
-	// office_name repeats the name for one release, so going back to 0.13
-	// or earlier still shows it, and that version's own save keeps it.
-	raw, err := json.MarshalIndent(struct {
-		Config
-		OldName string `json:"office_name,omitempty"`
-	}{cfg, cfg.Name}, "", "  ")
+	raw, err := json.MarshalIndent(cfg, "", "  ")
 	if err != nil {
 		return err
 	}

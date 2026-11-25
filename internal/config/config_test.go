@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -112,28 +111,5 @@ func TestOnlyTheKttnHoldingThisScreenKeyKeepsItsPort(t *testing.T) {
 		if got := PickPort(port, key); got == port || got == 0 {
 			t.Fatalf("key %q took another kttn's port %d", key, got)
 		}
-	}
-}
-
-// A config written before the rename keeps its name, and the next save
-// writes kttn_name, with office_name alongside for one release so a
-// downgrade still finds it.
-func TestAnOldOfficeNameIsReadAndSavedUnderTheNewKey(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "config.json")
-	os.WriteFile(path, []byte(`{"office_name": "우리 팀", "port": 5999, "token": "t"}`), 0o600)
-	cfg, found, err := Load(path)
-	if err != nil || !found || cfg.Name != "우리 팀" {
-		t.Fatalf("got %+v %v %v", cfg, found, err)
-	}
-	if err := Save(path, cfg); err != nil {
-		t.Fatal(err)
-	}
-	raw, _ := os.ReadFile(path)
-	if !strings.Contains(string(raw), `"kttn_name": "우리 팀"`) || !strings.Contains(string(raw), `"office_name": "우리 팀"`) {
-		t.Fatalf("saved %s", raw)
-	}
-	os.WriteFile(path, []byte(`{"kttn_name": "new", "office_name": "old"}`), 0o600)
-	if cfg, _, _ := Load(path); cfg.Name != "new" {
-		t.Fatalf("the new key should win: %q", cfg.Name)
 	}
 }

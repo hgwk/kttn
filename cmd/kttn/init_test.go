@@ -118,27 +118,3 @@ func TestInitRestartsARegisteredServiceSoTheNewSettingsApply(t *testing.T) {
 		t.Fatalf("out %q %v", out.String(), err)
 	}
 }
-
-// --office-name, the flag's name up to 0.13, still works but is not
-// advertised in the usage text.
-func TestTheOldOfficeNameFlagIsAHiddenAlias(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "config.json")
-	t.Setenv("KTTN_CONFIG", path)
-	var out bytes.Buffer
-	if err := runInit([]string{"--yes", "--office-name", "Old"}, strings.NewReader(""), &out, noService(t)); err != nil {
-		t.Fatal(err)
-	}
-	if cfg, _, _ := config.Load(path); cfg.Name != "Old" {
-		t.Fatalf("got %q", cfg.Name)
-	}
-	out.Reset()
-	if err := runInit([]string{"--bogus"}, strings.NewReader(""), &out, noService(t)); err == nil {
-		t.Fatal("unknown flag accepted")
-	}
-	if !strings.Contains(out.String(), "--name NAME") {
-		t.Fatalf("usage missing: %s", out.String())
-	}
-	if strings.Contains(out.String(), "office") {
-		t.Fatalf("usage mentions the alias: %s", out.String())
-	}
-}

@@ -27,8 +27,6 @@ func runInit(args []string, in io.Reader, out io.Writer, service autostart.Servi
 	fs.SetOutput(out)
 	yes := fs.Bool("yes", false, "do not ask; use flags and saved values")
 	name := fs.String("name", cfg.Name, "the name shown on the kttn screen")
-	// --office-name is the flag's name up to 0.13, kept as a hidden alias.
-	fs.StringVar(name, "office-name", cfg.Name, "")
 	lang := fs.String("lang", cfg.Lang, "screen language: ko, en or ja (empty follows the browser)")
 	port := fs.Int("port", cfg.Port, "port for kttn serve")
 	preview := fs.Bool("preview", cfg.Preview, "show the opening of each finished answer")
