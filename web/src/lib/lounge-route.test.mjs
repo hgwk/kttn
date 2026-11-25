@@ -55,6 +55,18 @@ test("찾아가는 소품은 막지 않아 그 위(자는 자리)에도 그대�
   const { rest, path } = loungeRoute(room, props, door, { x: 23, y: -15 })
   assert.deepEqual(rest, { x: 23, y: -15 })
   assert.deepEqual(path.at(-1), { x: 23, y: -15 })
+  // 낮잠과 캣타워 층(keep)은 이웃 소품이 겹쳐도 비키지 않고 그 자리에 선다.
+  const crowded = loungeRoute(room, [...props, box(10, -30, 30, 30)], door, { x: 23, y: -15 }, { keep: true })
+  assert.deepEqual(crowded.rest, { x: 23, y: -15 })
+})
+
+test("넓은 휴게 공간에서도 길 하나를 빨리 찾는다", () => {
+  const room = box(0, 0, 2000, 900)
+  const props = Array.from({ length: 10 }, (_, k) => box(150 + k * 170, 300 + (k % 3) * 150, 60, 50))
+  const started = performance.now()
+  for (let k = 0; k < 10; k++) loungeRoute(room, props, { x: 1000, y: -12 }, { x: 100 + k * 180, y: 880 })
+  const each = (performance.now() - started) / 10
+  assert.ok(each < 15, `길 하나 ${each.toFixed(1)}ms`)
 })
 
 test("제자리가 방 벽에 걸치면 방 안으로, 이웃 소품에 겹치면 옆 빈 칸으로 비킨다", () => {

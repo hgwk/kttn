@@ -12,9 +12,9 @@ import {
   type Point,
 } from "./walk-grid.ts"
 
-// 고양이 몸 반폭(화면 px, 확대 전, 논리 8px × 2)과 격자 한 칸
+// 고양이 몸 반폭(화면 px, 확대 전, 논리 8px × 2)과 격자 한 칸(논리 4px)
 export const LOUNGE_HALF = 16
-const CELL = 4
+const CELL = 8
 // 제자리가 막혔을 때 같은 높이에서 옆으로 찾아보는 칸 수
 const SIDE_STEPS = 12
 
@@ -58,19 +58,24 @@ export function restSpot(grid: Grid, home: Point): Point {
 
 /**
  * 문에서 제자리까지의 꺾은선(첫 점은 문, 마지막 점은 설 자리)과 설 자리. 길을
- * 못 찾으면 예전처럼 세로로 내려온 뒤 가로로 간다(fallback).
+ * 못 찾으면 예전처럼 세로로 내려온 뒤 가로로 간다(fallback). 좌표계는 넘긴
+ * 상자들과 같다.
  */
 export function loungeRoute(
   room: Box,
   props: Box[],
   door: Point,
-  home: Point = { x: 0, y: 0 }
+  home: Point = { x: 0, y: 0 },
+  options: {
+    /** 제자리를 비키지 않는다(소품 위 낮잠, 캣타워 층은 그 자리 그대로다) */
+    keep?: boolean
+    /** 이미 만든 같은 휴게 공간의 격자(loungeGrid) */
+    grid?: Grid
+  } = {}
 ) {
-  const grid = loungeGrid(room, props, door)
-  const rest =
-    grid.bounds.r > grid.bounds.l && grid.bounds.b > grid.bounds.t
-      ? restSpot(grid, home)
-      : home
+  const grid = options.grid ?? loungeGrid(room, props, door)
+  const open = grid.bounds.r > grid.bounds.l && grid.bounds.b > grid.bounds.t
+  const rest = open && !options.keep ? restSpot(grid, home) : home
   const found = route(grid, door, rest)
   if (!found.length)
     return {

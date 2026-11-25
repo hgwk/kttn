@@ -94,8 +94,16 @@ function VisitCat({
     let shift = { x: 0, y: 0 }
     // 문에서 제자리까지의 길(제자리 기준)과 잰 시각, 지난 장면에 걷고 있었는지
     let path: Point[] | null = null
-    let pathAt = 0
+    // 길을 찾은 휴게 공간·소품 자리의 서명과 마지막으로 잰 시각
+    let sig = ""
+    let checkedAt = 0
     let moving = false
+    // 화면에 보이는지. 보이지 않는 동안은 소품 자리를 다시 재지 않는다.
+    let onScreen = true
+    const watch = new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting
+    })
+    if (ref.current) watch.observe(ref.current)
     const draw = () => {
       frame = requestAnimationFrame(draw)
       const el = ref.current
@@ -111,6 +119,7 @@ function VisitCat({
         el.style.visibility = "hidden"
         // 다음 나들이는 그때의 소품 자리로 길을 다시 잰다.
         path = null
+        sig = ""
         return
       }
       trip.shown = true
@@ -122,16 +131,22 @@ function VisitCat({
         x: box.left + box.width / 2 - shift.x * ratio,
         y: box.bottom - shift.y * ratio,
       }
-      // 문(사라진 곳)에서 제자리까지 다른 소품을 피해 가는 길. 걷기 시작할 때
-      // 잰다(소품을 옮겼으면 다음 걸음부터 따른다).
-      const resting = Boolean(path) && !moving
-      if (!path || (resting && t - pathAt > 1000)) {
-        const from = door
-          ? { x: (door.x - origin.x) / ratio, y: (door.y - origin.y) / ratio }
-          : { x: 0, y: 0 }
-        path = door ? loungePath(el, from, origin, ratio) : [from]
-        pathAt = t
+      // 문(사라진 곳)에서 제자리까지 다른 소품을 피해 가는 길. 나들이를 시작할
+      // 때 찾고, 머무는 동안은 1초마다 소품 자리만 재서 바뀌었을 때만 다시
+      // 찾는다(소품을 옮기면 비키고, 다음 걸음은 새 길로 간다).
+      const recheck = !moving && onScreen && t - checkedAt > 1000
+      if (!path || recheck) {
+        checkedAt = t
+        const keep = action === "nap" || action === "perch"
+        const next = door
+          ? loungePath(el, door, origin, ratio, keep, sig)
+          : { path: [{ x: 0, y: 0 }], sig: "" }
+        if (next) {
+          path = next.path
+          sig = next.sig
+        }
       }
+      if (!path) return
       const dist = pathLength(path)
       const walkMs = dist / PIXEL_SCALE / WALK_SPEED
       trip.outMs = walkMs
@@ -176,7 +191,10 @@ function VisitCat({
       follow(agent.key, el.getBoundingClientRect(), ratio)
     }
     frame = requestAnimationFrame(draw)
-    return () => cancelAnimationFrame(frame)
+    return () => {
+      cancelAnimationFrame(frame)
+      watch.disconnect()
+    }
   }, [agent.key, agent.family, kind, action, perch, exit])
   return (
     <canvas
