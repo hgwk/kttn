@@ -1,6 +1,9 @@
 package sessions
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
 // delegating is a session that handed work to two subagents.
 func delegating(t *testing.T) *Store {
@@ -58,5 +61,27 @@ func TestAnUnrelatedEventKeepsASubagentsWaitReleasable(t *testing.T) {
 	store.Apply(ev(t, "PreCompact", nil))
 	if got := store.Apply(ev(t, "PostToolUse", m{"tool": "Bash", "subagent": "ag1"})).State; got == "needs_you" {
 		t.Fatalf("an unrelated parent event made the wait its own: %s", got)
+	}
+}
+
+func TestAQuestionDuringAKittensWaitIsTheParentsOwn(t *testing.T) {
+	store := delegating(t)
+	store.Apply(ev(t, "PermissionRequest", m{"tool": "Bash", "subagent": "ag1"}))
+	store.Apply(ev(t, "Notification", m{"detail": "elicitation_dialog"}))
+	if got := store.Apply(ev(t, "PostToolUse", m{"tool": "Bash", "subagent": "ag1"})).State; got != "needs_you" {
+		t.Fatalf("the parent's question was dropped: %s", got)
+	}
+}
+
+func TestARestoredNeedsYouWithoutItsOriginIsTheSessionsOwn(t *testing.T) {
+	store := delegating(t)
+	store.Apply(ev(t, "PermissionRequest", m{"tool": "Edit"}))
+	saved := store.Snapshot()
+	saved[0].SelfWaiting, saved[0].WaitedFrom = false, "" // as 0.15.0 wrote it
+	raw, _ := json.Marshal(saved)
+	again, _ := clockedStore(nil)
+	again.Restore(raw)
+	if got := again.Apply(ev(t, "PostToolUse", m{"tool": "Bash", "subagent": "ag1"})).State; got != "needs_you" {
+		t.Fatalf("an old file's open prompt was cleared: %s", got)
 	}
 }

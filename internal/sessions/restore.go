@@ -41,6 +41,12 @@ func (s *Store) Restore(data []byte) {
 		if agent.PID <= 1 {
 			agent.PID = 0
 		}
+		// A needs_you a subagent started always records WaitedFrom. One
+		// without it (a file from 0.15.0) is taken as the session's own,
+		// so a subagent's tool cannot clear a prompt still open.
+		if agent.State == "needs_you" && agent.WaitedFrom == "" {
+			agent.SelfWaiting = true
+		}
 		s.agents[agent.Key] = &agent
 	}
 }

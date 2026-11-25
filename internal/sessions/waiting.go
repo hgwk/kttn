@@ -47,15 +47,22 @@ func noteWait(agent *Agent, event Event, next string) string {
 	return next
 }
 
+// permissionNotices follow a permission request. The one after a subagent's
+// request carries no agent_id.
+var permissionNotices = map[string]bool{"permission_prompt": true, "worker_permission_prompt": true}
+
 // asksAPerson tells whether the session's own event is a wait on a person.
-// The notice that follows a subagent's permission request carries no
-// agent_id, so while a subagent waits a bare notice is taken as its.
+// While a subagent waits, a bare permission notice is taken as its; other
+// needs-you notices (a question for the person) stay the session's own.
 func asksAPerson(agent *Agent, event Event) bool {
 	switch event.Event {
 	case "PermissionRequest", "Elicitation":
 		return true
 	case "Notification":
-		return needsYouNotices[event.Detail] && !anyWaiting(agent)
+		if !needsYouNotices[event.Detail] {
+			return false
+		}
+		return !(permissionNotices[event.Detail] && anyWaiting(agent))
 	}
 	return false
 }
