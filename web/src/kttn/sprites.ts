@@ -6,6 +6,7 @@ import {
   CAT_BACK_WALK,
   CAT_FRONT_WALK,
   CAT_POSE,
+  CAT_SIDE_PLAY,
   CAT_SIDE_WALK,
   KITTEN,
   POSE_FRAME,
@@ -89,6 +90,8 @@ const CAT_SHEETS = {
   "front-walk": CAT_FRONT_WALK,
   "back-walk": CAT_BACK_WALK,
   "side-walk": CAT_SIDE_WALK,
+  // 장난감 곁에서 노는 옆모습(웅크림, 앞발 휘두르기)
+  "side-play": CAT_SIDE_PLAY,
   // 하위 에이전트용 새끼 고양이(10×10). 앞발을 번갈아 드는 두 칸이다.
   kitten: KITTEN,
 }
@@ -118,6 +121,7 @@ export type CatPose =
   | "walk"
   | "eat"
   | "hum"
+  | "play"
 export type CatDir = "front" | "back" | "left" | "right"
 
 // 앉은 자세의 프레임. 대기는 가끔 눈을 깜빡이고, 일할 때는 앞발을 번갈아
@@ -156,27 +160,33 @@ export function drawCat(
   size = 16
 ) {
   const walking = pose === "walk"
+  const playing = pose === "play"
   const sheet: SheetName = walking
     ? dir === "left" || dir === "right"
       ? "side-walk"
       : dir === "back"
         ? "back-walk"
         : "front-walk"
-    : pose === "gaze"
-      ? "back-walk"
-      : "pose"
+    : playing
+      ? "side-play"
+      : pose === "gaze"
+        ? "back-walk"
+        : "pose"
   const src = catSheet(coatIndex, tie, sheet)
-  // 창밖 구경(gaze)은 뒤돌아 선 칸(뒷모습 걸음의 첫 칸)에 멈춰 있다.
+  // 창밖 구경(gaze)은 뒤돌아 선 칸(뒷모습 걸음의 첫 칸)에 멈춰 있다. 놀 때는
+  // 웅크렸다 앞발을 휘둘렀다 한다.
   const frame = walking
     ? Math.floor(t / 120) % 4
-    : pose === "gaze"
-      ? 0
-      : poseFrame(pose, t)
+    : playing
+      ? Math.floor(t / 350) % 2
+      : pose === "gaze"
+        ? 0
+        : poseFrame(pose, t)
   ctx.imageSmoothingEnabled = false
   const dx = Math.round(x - size / 2)
   const dy = Math.round(y - size)
-  // 옆모습은 오른쪽을 본다. 왼쪽으로 걸을 때는 뒤집어 그린다.
-  if (walking && dir === "left") {
+  // 옆모습은 오른쪽을 본다. 왼쪽으로 걷거나 놀 때는 뒤집어 그린다.
+  if ((walking || playing) && dir === "left") {
     ctx.save()
     ctx.translate(dx + size, dy)
     ctx.scale(-1, 1)

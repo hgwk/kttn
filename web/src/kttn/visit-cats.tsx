@@ -29,7 +29,7 @@ const POSE: Record<Action, CatPose> = {
   eat: "eat",
   nap: "sleep",
   groove: "hum",
-  play: "walk",
+  play: "play",
   perch: "sleep",
 }
 
@@ -170,8 +170,8 @@ function VisitCat({
             : "back"
       const walking = done < 1
       moving = walking
-      // 까딱이기·뛰어놀기는 1초마다 몸을 한 칸 올렸다 내린다.
-      const bob = action === "groove" || action === "play"
+      // 흥얼거리기는 1초마다 몸을 한 칸 올렸다 내린다(노는 자세는 그림이 움직인다).
+      const bob = action === "groove"
       const up = !walking && bob && Math.floor(t / 1000) % 2 ? 1 : 0
       ctx.clearRect(0, 0, 16, 17)
       drawCat(
@@ -181,7 +181,8 @@ function VisitCat({
         coatFor(agent.key),
         familyColor(agent.family),
         walking ? "walk" : POSE[action],
-        walking ? dir : action === "play" ? "left" : "front",
+        // 노는 고양이는 오른쪽 옆 장난감을 본다(제자리가 소품 왼쪽이다).
+        walking ? dir : action === "play" ? "right" : "front",
         t
       )
       el.style.visibility = ""
