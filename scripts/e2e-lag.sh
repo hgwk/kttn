@@ -21,7 +21,7 @@ fi
 if [ "$WANT" != local ]; then
   # A version npm does not list at all is a typo (or a publish seconds ago):
   # refuse at once rather than wait out the lag loop.
-  if ! npm view @hgwk/kttn versions --json 2>/dev/null | grep -q "\"$WANT\""; then
+  if ! npm view @hgwk/kttn versions --json 2>/dev/null | grep -qF "\"$WANT\""; then
     echo "REFUSE: @hgwk/kttn@$WANT is not on npm; check the version, or run again in a few minutes" >&2
     exit 1
   fi
