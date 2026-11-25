@@ -173,6 +173,14 @@ function VisitCat({
       // 흥얼거리기는 1초마다 몸을 한 칸 올렸다 내린다(노는 자세는 그림이 움직인다).
       const bob = action === "groove"
       const up = !walking && bob && Math.floor(t / 1000) % 2 ? 1 : 0
+      // 노는 고양이는 장난감 쪽을 본다. 제자리는 보통 장난감 왼쪽이지만, 벽이나
+      // 이웃 소품 때문에 비켜서 장난감을 지나쳤으면 왼쪽을 본다.
+      let face: CatDir = "front"
+      if (!walking && action === "play") {
+        const toy = el.closest("[data-visit]")?.getBoundingClientRect()
+        const catX = origin.x + shift.x * ratio
+        face = toy && toy.left + toy.width / 2 < catX - ratio ? "left" : "right"
+      }
       ctx.clearRect(0, 0, 16, 17)
       drawCat(
         ctx,
@@ -181,8 +189,7 @@ function VisitCat({
         coatFor(agent.key),
         familyColor(agent.family),
         walking ? "walk" : POSE[action],
-        // 노는 고양이는 오른쪽 옆 장난감을 본다(제자리가 소품 왼쪽이다).
-        walking ? dir : action === "play" ? "right" : "front",
+        walking ? dir : face,
         t
       )
       el.style.visibility = ""
