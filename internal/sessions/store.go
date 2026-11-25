@@ -21,6 +21,9 @@ const (
 type Minion struct {
 	ID    string `json:"id"`
 	Label string `json:"label"`
+	// Waiting is set while this subagent waits on a person (a permission
+	// request or a needs-you notice from it) and cleared by its next tool.
+	Waiting bool `json:"waiting,omitempty"`
 }
 
 // Agent is one session as the screen sees it.

@@ -43,7 +43,14 @@ func (s *Store) Apply(event Event) Agent {
 	if event.Subagent != "" {
 		switch event.Event {
 		case "PreToolUse", "PostToolUse", "PostToolUseFailure":
+			setWaiting(agent, event.Subagent, false)
 			return agent.clone()
+		case "Elicitation", "PermissionRequest":
+			setWaiting(agent, event.Subagent, true)
+		case "Notification":
+			if needsYouNotices[event.Detail] {
+				setWaiting(agent, event.Subagent, true)
+			}
 		}
 	}
 
@@ -136,6 +143,16 @@ func transition(agent *Agent, event Event, now string) string {
 		agent.Compacting = false
 	}
 	return next
+}
+
+// setWaiting marks the subagent id, if it stands beside the desk, as waiting
+// on a person or not.
+func setWaiting(agent *Agent, id string, waiting bool) {
+	for i := range agent.Minions {
+		if agent.Minions[i].ID == id {
+			agent.Minions[i].Waiting = waiting
+		}
+	}
 }
 
 func hasMinion(agent *Agent, id string) bool {

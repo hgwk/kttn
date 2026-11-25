@@ -50,7 +50,7 @@ func TestSubagentsComeGoCapAndLeaveWithTheSession(t *testing.T) {
 		t.Fatalf("minions %d", n)
 	}
 	store.Apply(ev(t, "SubagentStop", m{"tool_use_id": "a"}))
-	if got := store.Snapshot()[0].Minions; !reflect.DeepEqual(got, []Minion{{"b", "Plan"}}) {
+	if got := store.Snapshot()[0].Minions; !reflect.DeepEqual(got, []Minion{{ID: "b", Label: "Plan"}}) {
 		t.Fatalf("minions %+v", got)
 	}
 	for i := 0; i < 20; i++ {
@@ -129,7 +129,7 @@ func TestSnapshotsAreCopies(t *testing.T) {
 	store, _ := clockedStore(nil)
 	store.Apply(ev(t, "SubagentStart", m{"tool_use_id": "a"}))
 	snap := store.Snapshot()
-	snap[0].Minions = append(snap[0].Minions, Minion{"z", "z"})
+	snap[0].Minions = append(snap[0].Minions, Minion{ID: "z", Label: "z"})
 	if n := len(store.Snapshot()[0].Minions); n != 1 {
 		t.Fatalf("got %d", n)
 	}

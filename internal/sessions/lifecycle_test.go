@@ -52,6 +52,41 @@ func TestToolsInsideASubagentLeaveTheParentAlone(t *testing.T) {
 	}
 }
 
+func TestOnlyTheSubagentThatAskedIsMarkedWaiting(t *testing.T) {
+	store, _ := clockedStore(nil)
+	store.Apply(ev(t, "SubagentStart", m{"detail": "Explore", "tool_use_id": "ag1"}))
+	store.Apply(ev(t, "SubagentStart", m{"detail": "Plan", "tool_use_id": "ag2"}))
+	waiting := func() []bool {
+		out := []bool{}
+		for _, minion := range store.Snapshot()[0].Minions {
+			out = append(out, minion.Waiting)
+		}
+		return out
+	}
+	store.Apply(ev(t, "PermissionRequest", m{"tool": "Bash", "subagent": "ag2"}))
+	if got := waiting(); got[0] || !got[1] {
+		t.Fatalf("after the request: %v", got)
+	}
+	// Another subagent's tool leaves it alone; its own next tool clears it.
+	store.Apply(ev(t, "PreToolUse", m{"tool": "Read", "subagent": "ag1"}))
+	if got := waiting(); !got[1] {
+		t.Fatalf("cleared by a sibling: %v", got)
+	}
+	store.Apply(ev(t, "PostToolUse", m{"tool": "Bash", "subagent": "ag2"}))
+	if got := waiting(); got[1] {
+		t.Fatalf("still waiting: %v", got)
+	}
+	store.Apply(ev(t, "Notification", m{"detail": "permission_prompt", "subagent": "ag1"}))
+	if got := waiting(); !got[0] {
+		t.Fatalf("a needs-you notice: %v", got)
+	}
+	// The parent's own request marks no kitten.
+	store.Apply(ev(t, "PermissionRequest", m{"tool": "Bash"}))
+	if got := waiting(); got[1] {
+		t.Fatalf("parent request marked a kitten: %v", got)
+	}
+}
+
 func TestAFinishedToolClearsAGrantedPermission(t *testing.T) {
 	store, _ := clockedStore(nil)
 	store.Apply(ev(t, "PreToolUse", m{"tool": "Bash"}))
