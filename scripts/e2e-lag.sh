@@ -19,14 +19,21 @@ if [ "$WANT" = latest ]; then
   WANT=$NPM_LATEST
 fi
 if [ "$WANT" != local ]; then
+  # A version npm does not list at all is a typo (or a publish seconds ago):
+  # refuse at once rather than wait out the lag loop.
+  if ! npm view @hgwk/kttn versions --json 2>/dev/null | grep -q "\"$WANT\""; then
+    echo "REFUSE: @hgwk/kttn@$WANT is not on npm; check the version, or run again in a few minutes" >&2
+    exit 1
+  fi
+  status() { curl -sIL -o /dev/null -w '%{http_code}' "$1"; }
   TARBALL=$(npm view "@hgwk/kttn@$WANT" dist.tarball 2>/dev/null)
   for i in $(seq 1 20); do
-    [ -n "$TARBALL" ] && [ "$(curl -sI -o /dev/null -w '%{http_code}' "$TARBALL")" = 200 ] && break
+    [ -n "$TARBALL" ] && [ "$(status "$TARBALL")" = 200 ] && break
     echo "      the $WANT tarball is not downloadable yet (registry lag?); retry $i/20 in 30s"
     sleep 30
     [ -n "$TARBALL" ] || TARBALL=$(npm view "@hgwk/kttn@$WANT" dist.tarball 2>/dev/null)
   done
-  if [ -z "$TARBALL" ] || [ "$(curl -sI -o /dev/null -w '%{http_code}' "$TARBALL")" != 200 ]; then
+  if [ -z "$TARBALL" ] || [ "$(status "$TARBALL")" != 200 ]; then
     fail "registry lag: the $WANT tarball ${TARBALL:-(no address)} is not downloadable after 10 minutes"
     echo "SUMMARY: FAIL registry lag, $WANT"
     exit 1
