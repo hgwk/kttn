@@ -2,7 +2,8 @@ import type { Grid } from "./palette"
 
 // 가구와 기기 1/4. 그린 순서대로 나눠 두었고, sprite-data.ts가 합쳐 ITEMS로 낸다.
 export const ITEMS_1 = {
-  // 자작나무 책상(32×14). 왼쪽은 서랍 둘, 오른쪽은 서랍 둘, 가운데는 그늘진 뒤판.
+  // 자작나무 책상(32×14). 고양이가 뒤에 앉아 우리는 책상 뒷면을 본다: 양쪽 받침과
+  // 가운데 그늘진 뒤판, 아래 받침 띠. 서랍은 고양이 쪽에 있어 보이지 않는다.
   desk: [
     ".kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.",
     "kiiiiiiiiiiiiiiiiiiiiiiiiiiiiiik",
@@ -12,14 +13,14 @@ export const ITEMS_1 = {
     "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
     "kAAAAAAAAAkbbbbbbbbbbbbkAAAAAAAk",
     "kAAAAAAAAAkbbbbbbbbbbbbkAAAAAAAk",
-    "kAAAkkkAAAkbbbbbbbbbbbbkAAkkkAAk",
     "kAAAAAAAAAkbbbbbbbbbbbbkAAAAAAAk",
-    "kkkkkkkkkkkbbbbbbbbbbbbkkkkkkkkk",
-    "kAAAkkkAAAkbbbbbbbbbbbbkAAkkkAAk",
     "kAAAAAAAAAkbbbbbbbbbbbbkAAAAAAAk",
+    "kAAAAAAAAAkbbbbbbbbbbbbkAAAAAAAk",
+    "kAAAAAAAAAkbbbbbbbbbbbbkAAAAAAAk",
+    "kbbbbbbbbbkbbbbbbbbbbbbkbbbbbbbk",
     "kkkkkkkkkkk............kkkkkkkkk",
   ],
-  // 호두나무 책상(32×14). 자작나무 책상과 같은 모양에 색만 짙다.
+  // 호두나무 책상(32×14). 자작나무 책상과 같은 뒷면에 색만 짙다.
   darkDesk: [
     ".kkkkkkkkkkkkkkkkkkkkkkkkkkkkkk.",
     "kppppppppppppppppppppppppppppppk",
@@ -29,11 +30,11 @@ export const ITEMS_1 = {
     "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk",
     "kDDDDDDDDDkEEEEEEEEEEEEkDDDDDDDk",
     "kDDDDDDDDDkEEEEEEEEEEEEkDDDDDDDk",
-    "kDDDkkkDDDkEEEEEEEEEEEEkDDkkkDDk",
     "kDDDDDDDDDkEEEEEEEEEEEEkDDDDDDDk",
-    "kkkkkkkkkkkEEEEEEEEEEEEkkkkkkkkk",
-    "kDDDkkkDDDkEEEEEEEEEEEEkDDkkkDDk",
     "kDDDDDDDDDkEEEEEEEEEEEEkDDDDDDDk",
+    "kDDDDDDDDDkEEEEEEEEEEEEkDDDDDDDk",
+    "kDDDDDDDDDkEEEEEEEEEEEEkDDDDDDDk",
+    "kEEEEEEEEEkEEEEEEEEEEEEkEEEEEEEk",
     "kkkkkkkkkkk............kkkkkkkkk",
   ],
   // 정면 모니터(18×12). 화면은 (3,1)부터 12×6이라 그 위에 화면 내용을 칠할 수 있다.
