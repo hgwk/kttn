@@ -14,7 +14,6 @@ import {
   familyColor,
   colsForWidth,
   deskLayout,
-  poseFor,
 } from "@/kttn/kttn-draw"
 import { awayOnVisit, drawTalk, type Walker } from "@/kttn/kttn-walk"
 import { SIT_OFFSET, seatPoint } from "@/lib/desk-layout"
@@ -225,7 +224,10 @@ export function KttnCanvas({
       if (!free) drawDesk(ctx, room, index, gone ? null : agent.state, t)
       if (!walking && !gone && !walker.visit) {
         if (agent.minions.length)
-          drawMinions(ctx, room, index, agent.minions.length, tie, agent.key, t, seatBox(room, index, agent.key), poseFor(agent.state))
+          // 새끼 고양이는 하위 에이전트가 도는 동안만 보이므로 늘 일하는 중이다.
+          // 부모가 쉬거나 끝나도 자판을 친다. 어느 하위 에이전트가 사람을
+          // 기다리는지는 아직 서버가 알려 주지 않아 고개를 들지 않는다.
+          drawMinions(ctx, room, index, agent.minions.length, tie, agent.key, t, seatBox(room, index, agent.key))
       }
     })
     const strolling = strollingKeys(walkers)

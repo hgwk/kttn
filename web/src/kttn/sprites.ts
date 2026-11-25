@@ -213,7 +213,7 @@ export function drawKitten(
   coatIndex: number,
   tie: string,
   t: number,
-  /** 부모 고양이의 자세. 일하면 자판을 치고, 자면 자고, 부르면 놀란다. */
+  /** 자세. 기본은 자판 치기이고, 쉼·잠·놀람 칸(e3의 KITTEN_IDLE)도 그릴 수 있다. */
   pose: CatPose = "type"
 ) {
   const typing = pose === "type"

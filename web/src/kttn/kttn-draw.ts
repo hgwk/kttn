@@ -119,7 +119,7 @@ export function poseFor(state: AgentState): CatPose {
   return TYPING.has(state) ? "type" : "sit"
 }
 
-/** 하위 에이전트는 책상 옆 새끼 고양이로 보인다. 부모 자세를 따라 한다. */
+/** 하위 에이전트는 책상 옆 새끼 고양이로 보인다. */
 export function drawMinions(
   ctx: CanvasRenderingContext2D,
   layout: DeskLayout,
@@ -130,7 +130,7 @@ export function drawMinions(
   t: number,
   /** 자유 자리 그림 상자. 있으면 그 양옆 바닥에 선다. */
   seat?: { cx: number; w: number; bottom: number } | null,
-  /** 부모 고양이 자세(새끼도 따라 자판을 치거나 자거나 놀란다) */
+  /** 새끼 고양이 자세. 기본은 자판 치기(하위 에이전트는 늘 일하는 중이다). */
   pose: CatPose = "type"
 ) {
   const { x, y } = seatFor(layout, index)
