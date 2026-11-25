@@ -289,7 +289,10 @@ Before pushing a `v*` tag, check a clean `git archive` of the commit:
 3. `npm --prefix web ci`, then `test`, `typecheck` and `build`.
 4. `scripts/e2e-install.sh local`, once with `KTTN_E2E_CLAUDE=0` and once with
    `claude` on the PATH.
-5. After the release is published, `scripts/e2e-install.sh` against npm.
+5. The script must pass on both npm latest and the next release: guard a check of
+   new behaviour with `since <next version>`, and run `scripts/e2e-install.sh`
+   against npm latest too.
+6. After the release is published, `scripts/e2e-install.sh` against npm.
 
 ## Not yet
 

@@ -62,9 +62,9 @@ pass "isolation: temp HOME, CLAUDE_CONFIG_DIR, KTTN_CONFIG/STATE, npm dirs, stub
 # Right after a release the registry lags a few minutes; testing the old
 # latest against this checkout's checks would fail for no real reason. So
 # latest is pinned to the version npm serves once it has caught up.
+older() { node -e 'const [a,b]=process.argv.slice(1).map(v=>v.split(".").map(Number));process.exit((a[0]-b[0]||a[1]-b[1]||a[2]-b[2])<0?0:1)' "$1" "$2"; }
 if [ "$WANT" = latest ]; then
   CHECKOUT=$(json "$REPO/package.json" 'd.version' | tr -d '"')
-  older() { node -e 'const [a,b]=process.argv.slice(1).map(v=>v.split(".").map(Number));process.exit((a[0]-b[0]||a[1]-b[1]||a[2]-b[2])<0?0:1)' "$1" "$2"; }
   for i in $(seq 1 20); do
     NPM_LATEST=$(npm view @hgwk/kttn version 2>/dev/null)
     [ -n "$NPM_LATEST" ] && ! older "$NPM_LATEST" "$CHECKOUT" && break
@@ -106,12 +106,14 @@ check "setup: npx binary copied to a stable path" "[ -x '$KTTN' ]"
 # /private/var), so both are accepted.
 KTTN_SEEN=$KTTN
 KTTN=$(node -e 'try{console.log(require("fs").realpathSync(process.argv[1]))}catch{console.log(process.argv[1])}' "$KTTN")
-VERSION=$("$KTTN" version 2>/dev/null)
-echo "      under test: $VERSION"
+VERSION=$("$KTTN" version 2>/dev/null); echo "      under test: $VERSION"
+# Newer behaviour is checked by the version under test: pass on npm latest and the next release alike.
+since() { ! older "${VERSION#kttn }" "$1"; }
+NAMEKEY=$(since 0.14.0 && echo kttn_name || echo office_name)
 
 CFG=$KTTN_CONFIG
 check "config: written with mode 600" "[ \"\$(stat -f %Lp '$CFG' 2>/dev/null || stat -c %a '$CFG')\" = 600 ]"
-check "config: kttn name and language from stdin" "[ \"\$(json '$CFG' 'd.kttn_name+\"/\"+d.lang')\" = '\"E2E kttn/en\"' ]"
+check "config: kttn name and language from stdin" "[ \"\$(json '$CFG' 'd.$NAMEKEY+\"/\"+d.lang')\" = '\"E2E kttn/en\"' ]"
 check "config: token and screen key present, answer preview and messages off" "json '$CFG' 'd.token.length>=32 && d.screen_key.length>=32 && d.preview===false && d.messages===false' | grep -q true"
 PORT=$(json "$CFG" 'd.port')
 TOKEN=$(json "$CFG" 'd.token' | tr -d '"')
@@ -160,8 +162,8 @@ check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l
 # Never talk to a server this run did not start: if setup picked a port that
 # is already taken, the signal and screen steps would hit someone else's kttn.
 if [ "$PORT_FREE" = 1 ]; then
-# A config from 0.13 or earlier says office_name: serve keeps the name, and init saves it as kttn_name.
-node -e 'const f=process.argv[1],d=JSON.parse(require("fs").readFileSync(f));d.office_name=d.kttn_name;delete d.kttn_name;require("fs").writeFileSync(f,JSON.stringify(d),{mode:0o600})' "$CFG"
+# A config from 0.13 or earlier says office_name: serve keeps the name, and init saves it as kttn_name (office_name too, for one release).
+since 0.14.0 && node -e 'const f=process.argv[1],d=JSON.parse(require("fs").readFileSync(f));d.office_name=d.kttn_name;delete d.kttn_name;require("fs").writeFileSync(f,JSON.stringify(d),{mode:0o600})' "$CFG"
 "$KTTN" serve > "$T/serve.log" 2>&1 &
 SERVE_PID=$!
 KH="X-Kttn-Key: $SKEY"
@@ -173,7 +175,7 @@ check "screen key: snapshot without the key is refused" "[ \"\$(curl -s -o /dev/
 # the new port and the running kttn would hear nothing.
 printf '' | run_setup > "$T/setup3.log" 2>&1
 "$KTTN" init --yes > "$T/init-live.log" 2>&1
-check "config: an old office_name keeps the name on screen, and init moves it to kttn_name" "curl -s -H '$KH' http://127.0.0.1:$PORT/api/snapshot | grep -q '\"kttnName\":\"E2E kttn\"' && [ \"\$(json '$CFG' 'd.kttn_name+\"/\"+(\"office_name\" in d)')\" = '\"E2E kttn/false\"' ]"
+since 0.14.0 && check "config: an old office_name keeps the name on screen, and init saves kttn_name" "curl -s -H '$KH' http://127.0.0.1:$PORT/api/snapshot | grep -q '\"kttnName\":\"E2E kttn\"' && [ \"\$(json '$CFG' 'd.kttn_name+\"/\"+d.office_name')\" = '\"E2E kttn/E2E kttn\"' ]"
 check "rerun: setup and init with kttn running keep port $PORT" "[ \"\$(json '$CFG' 'd.port')\" = '$PORT' ] && ! grep -q 'taken' '$T/setup3.log' '$T/init-live.log'"
 check "screen key: a message forged with the right Origin but no key is refused" \
   "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://127.0.0.1:$PORT' -H 'Content-Type: application/json' -d '{\"key\":\"x\",\"text\":\"!id\"}' http://127.0.0.1:$PORT/api/message)\" = 401 ]"

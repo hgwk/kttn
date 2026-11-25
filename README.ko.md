@@ -273,7 +273,9 @@ npm --prefix web run dev    # 화면을 바로 고쳐 보며 개발, /api는 ktt
 3. `npm --prefix web ci` 다음 `test`, `typecheck`, `build`.
 4. `scripts/e2e-install.sh local`을 `KTTN_E2E_CLAUDE=0`으로 한 번, PATH에
    `claude`가 있는 상태로 한 번.
-5. 릴리스가 나온 뒤 npm 대상으로 `scripts/e2e-install.sh`.
+5. 스크립트는 npm 최신판과 다음 판 둘 다에서 PASS해야 합니다. 새 동작을 보는 검사는
+   `since <다음 판>`으로 감싸고, npm 최신판 대상으로도 `scripts/e2e-install.sh`를 돌립니다.
+6. 릴리스가 나온 뒤 npm 대상으로 `scripts/e2e-install.sh`.
 
 ## 아직
 

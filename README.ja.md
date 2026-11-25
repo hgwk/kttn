@@ -282,7 +282,9 @@ npm --prefix web run dev    # 画面をその場で直しながら開発、/api 
 3. `npm --prefix web ci` のあと `test`、`typecheck`、`build`。
 4. `scripts/e2e-install.sh local` を `KTTN_E2E_CLAUDE=0` で 1 回、PATH に
    `claude` がある状態で 1 回。
-5. リリースが出たあと、npm を相手に `scripts/e2e-install.sh`。
+5. スクリプトは npm の最新版と次の版のどちらでも PASS すること。新しい動作を見る検査は
+   `since <次の版>` で囲み、npm の最新版を相手にも `scripts/e2e-install.sh` を回す。
+6. リリースが出たあと、npm を相手に `scripts/e2e-install.sh`。
 
 ## まだのこと
 

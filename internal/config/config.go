@@ -108,7 +108,12 @@ func Save(path string, cfg Config) error {
 	if err := os.MkdirAll(filepath.Dir(path), 0o700); err != nil {
 		return err
 	}
-	raw, err := json.MarshalIndent(cfg, "", "  ")
+	// office_name repeats the name for one release, so going back to 0.13
+	// or earlier still shows it, and that version's own save keeps it.
+	raw, err := json.MarshalIndent(struct {
+		Config
+		OldName string `json:"office_name,omitempty"`
+	}{cfg, cfg.Name}, "", "  ")
 	if err != nil {
 		return err
 	}

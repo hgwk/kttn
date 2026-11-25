@@ -116,7 +116,8 @@ func TestOnlyTheKttnHoldingThisScreenKeyKeepsItsPort(t *testing.T) {
 }
 
 // A config written before the rename keeps its name, and the next save
-// moves it to kttn_name.
+// writes kttn_name, with office_name alongside for one release so a
+// downgrade still finds it.
 func TestAnOldOfficeNameIsReadAndSavedUnderTheNewKey(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	os.WriteFile(path, []byte(`{"office_name": "우리 팀", "port": 5999, "token": "t"}`), 0o600)
@@ -128,7 +129,7 @@ func TestAnOldOfficeNameIsReadAndSavedUnderTheNewKey(t *testing.T) {
 		t.Fatal(err)
 	}
 	raw, _ := os.ReadFile(path)
-	if !strings.Contains(string(raw), `"kttn_name": "우리 팀"`) || strings.Contains(string(raw), "office_name") {
+	if !strings.Contains(string(raw), `"kttn_name": "우리 팀"`) || !strings.Contains(string(raw), `"office_name": "우리 팀"`) {
 		t.Fatalf("saved %s", raw)
 	}
 	os.WriteFile(path, []byte(`{"kttn_name": "new", "office_name": "old"}`), 0o600)
