@@ -131,10 +131,12 @@ export function OfficeCanvas({
       // 기다리는 고양이는 깜빡이는 신호가 가려지지 않게 춤추지 않는다.
       const resting = !walking && agent.state !== "needs_you"
       const dance = resting && dancing(t) ? danceStep(t) : null
-      // 자유 자리에 앉아 있으면 가구와 고양이를 한 그림으로 그린다. 춤출 때와
-      // 자리를 비울 때는 가구만 남기고 고양이를 따로 그린다.
+      // 자유 자리에 앉아 있으면 가구와 고양이를 한 그림으로 그린다. 춤출 때,
+      // 자리를 비울 때, 오류로 멈춰 X자 눈을 해야 할 때는 가구만 남기고
+      // 고양이를 따로 그린다.
       const sitting =
-        free && !gone && !away && !walking && !dance && !walker.visit
+        free && !gone && !away && !walking && !dance && !walker.visit &&
+        !agent.trouble
           ? free
           : null
       if (speech && !(away && trips.get(agent.key)?.shown)) {
