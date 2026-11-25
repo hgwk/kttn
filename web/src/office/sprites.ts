@@ -72,6 +72,18 @@ export function sheetCanvas(frames: Grid[], palette: Record<string, string>) {
   return canvas
 }
 
+/** 고양이 하나의 팔레트(털·그늘·눈·넥타이를 칠한 기본 팔레트) */
+export function catPalette(coatIndex: number, tie: string) {
+  const coat = COATS[coatIndex]
+  return {
+    ...BASE_PALETTE,
+    f: coat.f,
+    s: coat.s,
+    e: coat.dark ? DARK_EYE : EYE,
+    t: tie,
+  }
+}
+
 const CAT_SHEETS = {
   pose: CAT_POSE,
   "front-walk": CAT_FRONT_WALK,
@@ -89,14 +101,7 @@ function catSheet(coatIndex: number, tie: string, sheet: SheetName) {
   const key = `${coatIndex}|${tie}|${sheet}`
   let canvas = catCache.get(key)
   if (!canvas) {
-    const coat = COATS[coatIndex]
-    canvas = sheetCanvas(CAT_SHEETS[sheet], {
-      ...BASE_PALETTE,
-      f: coat.f,
-      s: coat.s,
-      e: coat.dark ? DARK_EYE : EYE,
-      t: tie,
-    })
+    canvas = sheetCanvas(CAT_SHEETS[sheet], catPalette(coatIndex, tie))
     catCache.set(key, canvas)
   }
   return canvas

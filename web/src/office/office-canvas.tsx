@@ -33,6 +33,15 @@ import { recentMoment } from "@/lib/agent-office-acts"
 import { danceStep } from "@/lib/agent-office-dance"
 import { dancing } from "@/office/dance"
 import { useTowerNearby } from "@/office/use-tower"
+import { SEATS, drawSeat, seatHeadRise } from "@/office/seat-draw"
+import { seatFrameFor, seatKindFor } from "@/lib/agent-office-seats"
+
+// 자유 자리 그림이 있는 이름들. 고양이 key로 하나를 고르거나 책상에 앉는다.
+const SEAT_NAMES = Object.keys(SEATS)
+const seatArt = (key: string) => {
+  const name = seatKindFor(key, SEAT_NAMES)
+  return name ? { name, art: SEATS[name] } : null
+}
 
 /**
  * 폴더 방 하나의 책상 구역. 넘겨받은 순서대로 앉는다. 책상 앞 이름표는
@@ -92,7 +101,9 @@ export function OfficeCanvas({
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height)
     ctx.translate(EDGE, EDGE)
     drawRoom(ctx, room)
-    seated.forEach((_, index) => drawChair(ctx, room, index))
+    seated.forEach((agent, index) => {
+      if (!seatArt(agent.key)) drawChair(ctx, room, index)
+    })
     // 고개를 드는 고양이(찾아온 고양이가 있거나 일을 마친 동료가 부름)
     const visited = perkedUp(walkers, seated, nowRef.current)
     seated.forEach((agent, index) => {
@@ -113,11 +124,28 @@ export function OfficeCanvas({
       // 휴게 공간에 나와 있으면 그 고양이(visit-cats.tsx)가 대사를 옮긴다.
       // 거기 그려지지 못한 고양이(캣타워 층이 모자람 등)는 대사를 자리에 둔다.
       const away = awayOnVisit(walker)
+      const free = seatArt(agent.key)
+      const tie = familyColor(agent.family)
+      const coat = coatFor(agent.key)
+      // 비밀 키를 누르면 걷지 않는 고양이들이 잠깐 춤춘다(dance.ts). 확인을
+      // 기다리는 고양이는 깜빡이는 신호가 가려지지 않게 춤추지 않는다.
+      const resting = !walking && agent.state !== "needs_you"
+      const dance = resting && dancing(t) ? danceStep(t) : null
+      // 자유 자리에 앉아 있으면 가구와 고양이를 한 그림으로 그린다. 춤출 때와
+      // 자리를 비울 때는 가구만 남기고 고양이를 따로 그린다.
+      const sitting =
+        free && !gone && !away && !walking && !dance && !walker.visit
+          ? free
+          : null
       if (speech && !(away && trips.get(agent.key)?.shown)) {
         // 머리 위: 발밑에서 앉은 높이(SIT_OFFSET)와 머리(CAT_HEAD)만큼 위
         const at = gone || away ? seatPoint(room, index) : walker
         const left = `${(at.x / room.w) * 100}%`
-        const top = `${((at.y - SIT_OFFSET - CAT_HEAD) / room.h) * 100}%`
+        // 자유 자리에 앉아 있으면 그 그림의 머리 높이를 쓴다.
+        const rise = sitting
+          ? seatHeadRise(sitting.art) + 3
+          : SIT_OFFSET + CAT_HEAD
+        const top = `${((at.y - rise) / room.h) * 100}%`
         if (speech.style.left !== left) speech.style.left = left
         if (speech.style.top !== top) speech.style.top = top
         // 자리를 떠나면 책상 이름표(z-40)에 가리지 않게 그 위로 올린다.
@@ -125,37 +153,40 @@ export function OfficeCanvas({
         const z = out ? "45" : ""
         if (speech.style.zIndex !== z) speech.style.zIndex = z
       }
-      const tie = familyColor(agent.family)
-      const coat = coatFor(agent.key)
+      if (free && !sitting) {
+        // 고양이가 자리를 비우면 가구와 꺼진 기기만 남는다(고양이보다 먼저 그린다).
+        const seat = seatPoint(room, index)
+        drawSeat(ctx, free.name, free.art, "empty", seat.x, seat.y, coat, tie, null, t)
+      }
       if (!gone && !away) {
-        // 비밀 키를 누르면 걷지 않는 고양이들이 잠깐 춤춘다(dance.ts). 확인을
-        // 기다리는 고양이는 깜빡이는 신호가 가려지지 않게 춤추지 않는다.
-        const resting = !walking && agent.state !== "needs_you"
-        const dance = resting && dancing(t) ? danceStep(t) : null
         const hop = dance
           ? dance.hop
           : agent.state === "needs_you" && !walking
             ? Math.abs(Math.round(Math.sin(t / 160) * 2))
             : 0
-        drawCat(
+        const pose = dance
+          ? dance.pose
+          : walking
+            ? "walk"
+            : // 쉬는 동료 곁에 같이 엎드려 잔다(쉬는 고양이끼리 만남).
+              walker.visit?.nap
+              ? "sleep"
+              : visited.has(agent.key)
+                ? "alert"
+                : // 오류로 멈추면 X자 눈으로 고개를 숙인다.
+                  agent.trouble
+                  ? "dizzy"
+                  : idlePose(agent, nowRef.current, towerRef.current, seated)
+        if (sitting) {
+          const frame = seatFrameFor(pose, agent.state, t)
+          drawSeat(ctx, sitting.name, sitting.art, frame, walker.x, walker.y, coat, tie, agent.state, t)
+        } else drawCat(
           ctx,
           walker.x,
           walker.y - hop,
           coat,
           tie,
-          dance
-            ? dance.pose
-            : walking
-              ? "walk"
-              : // 쉬는 동료 곁에 같이 엎드려 잔다(쉬는 고양이끼리 만남).
-                walker.visit?.nap
-                ? "sleep"
-                : visited.has(agent.key)
-                  ? "alert"
-                  : // 오류로 멈추면 X자 눈으로 고개를 숙인다.
-                    agent.trouble
-                    ? "dizzy"
-                    : idlePose(agent, nowRef.current, towerRef.current, seated),
+          pose,
           dance ? dance.dir : walking ? walker.dir : "front",
           t
         )
@@ -167,7 +198,7 @@ export function OfficeCanvas({
         if (recentMoment(agent, "TaskCompleted", nowRef.current))
           drawCheck(ctx, walker.x, walker.y)
       }
-      drawDesk(ctx, room, index, gone ? null : agent.state, t)
+      if (!free) drawDesk(ctx, room, index, gone ? null : agent.state, t)
       if (!walking && !gone && !walker.visit) {
         if (agent.minions.length)
           drawMinions(ctx, room, index, agent.minions.length, tie, agent.key, t)

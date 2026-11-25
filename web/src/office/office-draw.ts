@@ -129,7 +129,7 @@ function drawMonitorBack(
 }
 
 // 뒷면 LED로 하는 일을 보인다. 확인 필요와 명령 실행은 깜빡인다.
-function ledColor(state: AgentState | null, t: number) {
+export function ledColor(state: AgentState | null, t: number) {
   const blink = Math.floor(t / 350) % 2 === 0
   switch (state) {
     case "editing":
