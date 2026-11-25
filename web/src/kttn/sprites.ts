@@ -122,6 +122,7 @@ export type CatPose =
   | "eat"
   | "hum"
   | "play"
+  | "curl"
 export type CatDir = "front" | "back" | "left" | "right"
 
 // 앉은 자세의 프레임. 대기는 가끔 눈을 깜빡이고, 일할 때는 앞발을 번갈아
@@ -142,6 +143,9 @@ function poseFrame(pose: CatPose, t: number) {
   // 레코드플레이어·피아노 앞. 웃는 눈으로 고개를 좌우로 기울이며 흥얼거린다.
   if (pose === "hum")
     return Math.floor(t / 500) % 2 ? POSE_FRAME.humRight : POSE_FRAME.humLeft
+  // 침대·해먹·캣타워 층에서 몸을 둥글게 말고 잔다. 가끔 귀를 움찔한다.
+  if (pose === "curl")
+    return Math.floor(t / 300) % 8 === 0 ? POSE_FRAME.curlTwitch : POSE_FRAME.curl
   return [POSE_FRAME.sit, POSE_FRAME.sit, POSE_FRAME.blink, POSE_FRAME.sit][
     Math.floor(t / 500) % 4
   ]

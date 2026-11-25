@@ -12,10 +12,10 @@ export type Action = VisitAction | "perch"
 
 export const POSE: Record<Action, CatPose> = {
   eat: "eat",
-  nap: "sleep",
+  nap: "curl",
   groove: "hum",
   play: "play",
-  perch: "sleep",
+  perch: "curl",
 }
 
 // 캣타워(20×29) 층마다 고양이가 엎드리는 자리. 발밑 가운데(논리 픽셀)다.
