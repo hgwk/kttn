@@ -5,6 +5,8 @@ import { CAT_HEAD, familyColor, type deskLayout } from "@/kttn/kttn-draw"
 import { WALK_SPEED } from "@/kttn/kttn-walk"
 import { SIT_OFFSET } from "@/lib/desk-layout"
 import { loungeExit } from "@/lib/desk-walk"
+import type { Point } from "@/lib/walk-grid"
+import { loungePath, pathLength, pointAlong } from "@/kttn/lounge-walk"
 import { PIXEL_SCALE } from "@/kttn/pixel"
 import type { VisitAction } from "@/kttn/props-catalog"
 import { coatFor, drawCat, type CatDir, type CatPose } from "@/kttn/sprites"
@@ -90,6 +92,10 @@ function VisitCat({
     let frame = 0
     // 지금 옮겨 둔 만큼. 제자리를 잴 때 뺀다.
     let shift = { x: 0, y: 0 }
+    // 문에서 제자리까지의 길(제자리 기준)과 잰 시각, 지난 장면에 걷고 있었는지
+    let path: Point[] | null = null
+    let pathAt = 0
+    let moving = false
     const draw = () => {
       frame = requestAnimationFrame(draw)
       const el = ref.current
@@ -103,35 +109,52 @@ function VisitCat({
         t < trip.arrived
       ) {
         el.style.visibility = "hidden"
+        // 다음 나들이는 그때의 소품 자리로 길을 다시 잰다.
+        path = null
         return
       }
       trip.shown = true
       const box = el.getBoundingClientRect()
       const ratio = box.width / (el.offsetWidth || box.width) || 1
       const door = exit()
-      // 문(사라진 곳)에서 제자리 발밑까지. 세로로 먼저 내려온 뒤 가로로 간다.
-      const dx = door
-        ? (door.x - box.left - box.width / 2) / ratio + shift.x
-        : 0
-      const dy = door ? (door.y - box.bottom) / ratio + shift.y : 0
-      const dist = Math.abs(dx) + Math.abs(dy)
+      // 제자리 발밑(화면 자리). 지금 옮겨 둔 만큼을 빼서 잰다.
+      const origin = {
+        x: box.left + box.width / 2 - shift.x * ratio,
+        y: box.bottom - shift.y * ratio,
+      }
+      // 문(사라진 곳)에서 제자리까지 다른 소품을 피해 가는 길. 걷기 시작할 때
+      // 잰다(소품을 옮겼으면 다음 걸음부터 따른다).
+      const resting = Boolean(path) && !moving
+      if (!path || (resting && t - pathAt > 1000)) {
+        const from = door
+          ? { x: (door.x - origin.x) / ratio, y: (door.y - origin.y) / ratio }
+          : { x: 0, y: 0 }
+        path = door ? loungePath(el, from, origin, ratio) : [from]
+        pathAt = t
+      }
+      const dist = pathLength(path)
       const walkMs = dist / PIXEL_SCALE / WALK_SPEED
       trip.outMs = walkMs
       if (awake.current) cutTrip(trip, t)
       const into = t - trip.arrived
       const left = trip.until - t
       const done = walkMs ? Math.min(1, into / walkMs, left / walkMs) : 1
-      const s = (1 - done) * dist
       const leaving = left < into
-      let dir: CatDir = "front"
-      if (s > Math.abs(dx)) {
-        shift = { x: dx, y: dy * ((s - Math.abs(dx)) / Math.abs(dy)) }
-        dir = leaving === dy > 0 ? "front" : "back"
-      } else {
-        shift = { x: Math.abs(dx) ? dx * (s / Math.abs(dx)) : 0, y: 0 }
-        dir = (dx > 0) !== leaving ? "left" : "right"
-      }
+      // 문에서 제자리 쪽으로 간 거리. 나갈 때는 같은 길을 거꾸로 걷는다.
+      const along = pointAlong(path, done * dist)
+      shift = along.at
+      const ax = leaving ? -along.dx : along.dx
+      const ay = leaving ? -along.dy : along.dy
+      const dir: CatDir =
+        Math.abs(ax) > Math.abs(ay)
+          ? ax > 0
+            ? "right"
+            : "left"
+          : ay > 0
+            ? "front"
+            : "back"
       const walking = done < 1
+      moving = walking
       // 까딱이기·뛰어놀기는 1초마다 몸을 한 칸 올렸다 내린다.
       const bob = action === "groove" || action === "play"
       const up = !walking && bob && Math.floor(t / 1000) % 2 ? 1 : 0
