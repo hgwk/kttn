@@ -4,7 +4,7 @@
 import type { AgentState } from "@/lib/agent-office"
 import { catOnly, seatKindFor, type SeatFrame } from "@/lib/agent-office-seats"
 import { ledColor, type OfficeLayout } from "@/office/office-draw"
-import { seatPoint } from "@/office/walk-paths"
+import { seatPoint } from "@/lib/desk-layout"
 import { rect } from "@/office/pixel"
 import { catPalette, sheetCanvas } from "@/office/sprites"
 import { SEATS, type Grid } from "@/office/sprite-data"

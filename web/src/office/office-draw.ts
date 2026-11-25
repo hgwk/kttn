@@ -13,19 +13,21 @@ import {
 
 export { OFFICE_SCALE } from "@/office/pixel"
 
-export const MAX_DESKS = 12
-// 아홉 자리까지는 한 줄에 셋, 그보다 많으면 넷씩 앉혀 방이 너무 길어지지 않게 한다.
-const DESK_COLS = 3
-const WIDE_DESK_COLS = 4
-// 자리 사이를 넓혀 고양이 머리 위 대사 상자가 이웃과 겹치지 않게 한다.
-export const DESK_GAP_X = 92
-const DESK_GAP_Y = 94
-const DESK_TOP = 44
-const MIN_OFFICE_W = 96
-// 고양이는 책상 오른쪽 절반에 앉고 왼쪽 절반에 모니터가 놓인다.
-export const CAT_DX = 7
-/** 앉은 고양이 발밑에서 머리 위까지(대사 상자 꼬리가 닿는 곳) */
-export const CAT_HEAD = 14
+export {
+  CAT_DX,
+  CAT_HEAD,
+  DESK_GAP_X,
+  MAX_DESKS,
+  officeLayout,
+  seatFor,
+  type OfficeLayout,
+} from "@/lib/desk-layout"
+import {
+  CAT_DX,
+  DESK_GAP_X,
+  seatFor,
+  type OfficeLayout,
+} from "@/lib/desk-layout"
 
 const FAMILY_COLORS: Record<string, string> = {
   claude: "#ff8709",
@@ -36,57 +38,10 @@ export function familyColor(family: string) {
   return FAMILY_COLORS[family] ?? "#8b5cf6"
 }
 
-export type OfficeLayout = {
-  cols: number
-  rows: number
-  w: number
-  h: number
-  offsetX: number
-  door: { x: number; y: number }
-}
-
-/** 책상 수에 맞춘 책상 구역 크기. 최대 열두 자리다. */
 /** 화면 너비(px)에 책상이 몇 열까지 들어가는지. 방 너비에 맞춰 열을 고른다. */
 export function colsForWidth(px: number) {
   const logical = px / OFFICE_SCALE
   return Math.max(1, Math.floor((logical - 86) / DESK_GAP_X) + 1)
-}
-
-/**
- * 책상 배치. fitCols가 있으면 방 너비에 들어가는 만큼 열을 늘리거나 줄여
- * 넓은 화면에서는 낮고 넓게, 좁은 화면에서는 높고 좁게 앉힌다.
- */
-export function officeLayout(count: number, fitCols?: number): OfficeLayout {
-  const desks = Math.max(1, Math.min(count, MAX_DESKS))
-  const cols = Math.min(
-    desks,
-    fitCols ?? (desks > 9 ? WIDE_DESK_COLS : DESK_COLS)
-  )
-  const rows = Math.ceil(desks / cols)
-  // 오른쪽 끝 자리의 대사 상자가 구역 밖으로 나가지 않게 오른쪽을 조금 더 둔다.
-  const natural = 86 + (cols - 1) * DESK_GAP_X
-  const w = Math.max(MIN_OFFICE_W, natural)
-  const h = DESK_TOP + (rows - 1) * DESK_GAP_Y + 52
-  return {
-    cols,
-    rows,
-    w,
-    h,
-    offsetX: Math.floor((w - natural) / 2),
-    // 고양이가 드나드는 문(왼쪽 위, 복도 쪽). 그림 밖에서 출발하면 경계에 몸이
-    // 잘려 보이므로 그림 안쪽 첫 줄(몸 높이 16)에 둔다.
-    door: { x: 10, y: 16 },
-  }
-}
-
-// 자리 좌표. 책상 왼쪽 끝에서 15px 들어온 곳이고, 고양이는 책상 뒤에 앉는다.
-export function seatFor(layout: OfficeLayout, index: number) {
-  const col = index % layout.cols
-  const row = Math.floor(index / layout.cols)
-  return {
-    x: layout.offsetX + 36 + col * DESK_GAP_X,
-    y: DESK_TOP + row * DESK_GAP_Y,
-  }
 }
 
 export function drawRoom(ctx: CanvasRenderingContext2D, layout: OfficeLayout) {

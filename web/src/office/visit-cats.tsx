@@ -3,7 +3,8 @@ import { createPortal } from "react-dom"
 
 import { CAT_HEAD, familyColor, type officeLayout } from "@/office/office-draw"
 import { WALK_SPEED } from "@/office/office-walk"
-import { SIT_OFFSET, pathsToTower } from "@/office/walk-paths"
+import { SIT_OFFSET } from "@/lib/desk-layout"
+import { loungeExit } from "@/lib/desk-walk"
 import { OFFICE_SCALE } from "@/office/pixel"
 import type { VisitAction } from "@/office/props-catalog"
 import { coatFor, drawCat, type CatDir, type CatPose } from "@/office/sprites"
@@ -219,7 +220,7 @@ export function VisitCats({
       }
       return null
     }
-    const end = pathsToTower(layout, index).go.at(-1) ?? { x: 0, y: 0 }
+    const end = loungeExit(layout, index)
     let exit = exits.current.get(agent.key)
     if (!exit) {
       exit = () => doors.current.get(agent.key)?.getBoundingClientRect()

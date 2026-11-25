@@ -1,15 +1,12 @@
-// 사무실 고양이의 걸음. 길(walk-paths.ts)을 따라 한 프레임씩 옮기고, 찾아가기·
-// 산책·캣타워·소품 나들이의 단계를 넘긴다. 무엇을 할지는 cat-move.ts가 정하고
-// 그림은 office-canvas.tsx가 그린다.
+// 사무실 고양이의 걸음. 길(격자 위에서 찾은 꺾은선, walk-grid.ts)을 따라 한
+// 프레임씩 옮기고, 찾아가기·산책·캣타워·소품 나들이의 단계를 넘긴다. 길은 늘
+// 지금 선 곳에서 찾는다. 무엇을 할지는 cat-move.ts가 정하고 그림은
+// office-canvas.tsx가 그린다.
 import type { OfficeLayout } from "@/office/office-draw"
 import type { CatDir } from "@/office/sprites"
 import { holdTrip } from "@/office/visit-sync"
-import {
-  pathsToStroll,
-  pathsToTower,
-  pathsToVisit,
-  type Point,
-} from "@/office/walk-paths"
+import { loungeExit, standBeside, strollPoint } from "@/lib/desk-walk"
+import { route, type Grid, type Point } from "@/lib/walk-grid"
 
 export const WALK_SPEED = 0.05 // 논리 픽셀/ms
 
@@ -25,10 +22,6 @@ export type Visit = {
    * 동안은 휴게 공간 쪽(visit-cats.tsx)이 그린다.
    */
   kind?: "tower" | "prop"
-  /** 돌아오는 길(걸으면서 줄지 않게 꺼낼 때마다 복사한다) */
-  back: Point[]
-  /** 돌아오는 길 첫 점(줄 아래 통로). 나들이 중에 퇴근하면 여기서 문으로 간다. */
-  lane: Point
   /** 찾아가서 머무는 시간(ms). 없으면 VISIT_STAY_MS. */
   stayMs?: number
   /** 찾아간 고양이 곁에 엎드려 같이 잔다(얘기 말풍선 없이) */
@@ -48,6 +41,8 @@ export type Walker = Point & {
   leaving?: boolean
   /** 퇴근길 끝에서 문밖으로 나갔다 */
   out?: boolean
+  /** 길을 찾은 배치(바뀌면 지금 선 곳에서 다시 찾는다, cat-move.ts) */
+  plan?: string
 }
 
 // 찾아가서 얘기하는 시간(ms)
@@ -116,38 +111,33 @@ export function startIdleWalk(
   walker: Walker,
   activity: string,
   slot: number,
-  layout: OfficeLayout,
-  index: number,
+  room: { layout: OfficeLayout; grid: Grid; index: number },
   slotMs: number,
   strollStartMs: number,
   now: number
 ) {
+  const { layout, grid, index } = room
   if (activity === "stroll") {
     // 산책은 1분 첫머리에만 나선다(늦게 나서면 대사가 다른 일로 먼저 바뀐다).
     if (walker.strolled === slot || now - slot * slotMs > strollStartMs) return
     walker.strolled = slot
-    const paths = pathsToStroll(layout, index)
-    walker.path = paths.go
-    walker.visit = {
-      stage: "go",
-      to: "",
-      until: 0,
-      back: paths.back,
-      lane: { ...paths.back[0] },
-    }
+    const path = route(grid, walker, strollPoint(layout, index))
+    if (!path.length) return
+    walker.path = path
+    walker.visit = { stage: "go", to: "", until: 0 }
     return
   }
   if (activity !== "tower" && activity !== "prop") return
   if (walker.went === slot || (slot + 1) * slotMs - now < MIN_TRIP_MS) return
   walker.went = slot
-  const paths = pathsToTower(layout, index)
-  walker.path = paths.go
+  // 휴게 공간 입구(책상 구역 아래 끝)까지 걸어가 거기서 휴게 공간으로 넘어간다.
+  const path = route(grid, walker, loungeExit(layout, index))
+  if (!path.length) return
+  walker.path = path
   walker.visit = {
     stage: "go",
     to: "",
     until: (slot + 1) * slotMs,
-    back: paths.back,
-    lane: { ...paths.back[0] },
     kind: activity,
   }
 }
@@ -161,14 +151,16 @@ export function advanceVisit(
   t: number,
   present: (key: string) => boolean,
   /** 이 고양이. 캣타워나 소품에 가 있다가 일을 받아 깨면 걸어서 돌아온다. */
-  agent?: { key: string; state: string }
+  agent: { key: string; state: string } | undefined,
+  /** 지금 선 곳에서 자리로 돌아가는 길 */
+  home: () => Point[]
 ) {
   const visit = walker.visit
   if (!visit) return
   const rest = agent?.state === "sleeping"
   if (visit.kind && agent && holdTrip(agent.key, visit, t, rest)) {
     visit.stage = "back"
-    walker.path = [...visit.back]
+    walker.path = home()
     return
   }
   if (visit.stage === "go" && walker.path.length === 0) {
@@ -177,39 +169,32 @@ export function advanceVisit(
     walker.dir = "left"
   } else if (visit.stage === "stay" && t >= visit.until) {
     visit.stage = "back"
-    walker.path = [...visit.back]
+    walker.path = home()
   } else if (visit.stage === "back" && walker.path.length === 0) {
     walker.visit = undefined
     return
   }
   if (visit.to && visit.stage !== "back" && !present(visit.to)) {
     visit.stage = "back"
-    walker.path = [...visit.back]
+    walker.path = home()
   }
 }
 
 /**
  * 같은 방의 다른 자리(to)로 찾아가 얘기하러(nap이면 곁에서 같이 자러) 출발한다.
- * stayMs만큼 머문다.
+ * stayMs만큼 머문다. 길이 없으면 나서지 않는다.
  */
 export function startVisit(
   walker: Walker,
-  layout: OfficeLayout,
-  from: number,
+  room: { layout: OfficeLayout; grid: Grid },
   to: number,
   toKey: string,
   extra: { stayMs?: number; nap?: boolean } = {}
 ) {
-  const paths = pathsToVisit(layout, from, to)
-  walker.path = paths.go
-  walker.visit = {
-    stage: "go",
-    to: toKey,
-    until: 0,
-    back: paths.back,
-    lane: { ...paths.back[0] },
-    ...extra,
-  }
+  const path = route(room.grid, walker, standBeside(room.layout, to))
+  if (!path.length) return
+  walker.path = path
+  walker.visit = { stage: "go", to: toKey, until: 0, ...extra }
 }
 
 /** 캣타워나 소품에 가 있는 동안. 책상 구역에는 그리지 않는다(휴게 공간에 그린다). */

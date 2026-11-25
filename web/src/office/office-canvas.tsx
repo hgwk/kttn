@@ -16,7 +16,9 @@ import {
   officeLayout,
 } from "@/office/office-draw"
 import { awayOnVisit, drawTalk, type Walker } from "@/office/office-walk"
-import { SIT_OFFSET, seatPoint } from "@/office/walk-paths"
+import { SIT_OFFSET, seatPoint } from "@/lib/desk-layout"
+import { deskGrid } from "@/lib/desk-walk"
+import type { Grid } from "@/lib/walk-grid"
 import { moveCat } from "@/office/cat-move"
 import { coatFor, drawCat } from "@/office/sprites"
 import { DeskOverlays } from "@/office/desk-overlays"
@@ -89,11 +91,27 @@ export function OfficeCanvas({
   const [meetings, setMeetings] = useState("")
   const meetingsRef = useRef("")
   const [hasTower, towerRef] = useTowerNearby(boxRef)
+  // 걷는 격자는 배치(plan)가 바뀔 때만 새로 만든다.
+  const gridRef = useRef<{ plan: string; grid: Grid }>(null)
 
   const canvasRef = usePixelLoop(agents, (ctx, current, dt, t, still) => {
+    // 방 폭에 맞춘 열 수를 알기 전에는 고양이를 놓지 않는다. 서버 배치(기본
+    // 열 수)에 먼저 앉혔다가 방 폭 배치로 바뀌면 열 때마다 자리를 옮겨 걷는다.
+    if (fitCols === undefined) return
     const seated = current.slice(0, MAX_DESKS)
     const room = officeLayout(seated.length, fitCols)
     const walkers = walkersRef.current
+    const plan = [
+      room.w,
+      room.h,
+      room.cols,
+      ...seated.map((agent) => `${agent.key}=${seatOf(agent.key)?.name ?? ""}`),
+    ].join("|")
+    if (gridRef.current?.plan !== plan) {
+      const free = seated.map((agent, index) => seatBox(room, index, agent.key))
+      gridRef.current = { plan, grid: deskGrid(room, seated.length, free) }
+    }
+    const grid = gridRef.current.grid
     // 그림판은 사방으로 EDGE만큼 넓다. 책상 구역 가장자리를 지나는 고양이가
     // 잘리지 않게 그 둘레까지 그리고, 좌표는 책상 구역 기준 그대로 쓴다.
     ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -114,6 +132,8 @@ export function OfficeCanvas({
         dt,
         still,
         nearby: towerRef.current,
+        grid,
+        plan,
       })
       const walking = walker.path.length > 0
       // 퇴근길을 다 걸어 문밖으로 나간 고양이는 그리지 않는다.
