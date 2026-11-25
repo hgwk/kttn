@@ -24,20 +24,25 @@ func runInit(args []string, in io.Reader, out io.Writer, service autostart.Servi
 		return fmt.Errorf("reading %s: %w", path, err)
 	}
 	fs := flag.NewFlagSet("init", flag.ContinueOnError)
+	fs.SetOutput(out)
 	yes := fs.Bool("yes", false, "do not ask; use flags and saved values")
-	name := fs.String("office-name", cfg.OfficeName, "the name shown on the kttn screen")
+	name := fs.String("name", cfg.Name, "the name shown on the kttn screen")
+	// --office-name is the flag's name up to 0.13, kept as a hidden alias.
+	fs.StringVar(name, "office-name", cfg.Name, "")
 	lang := fs.String("lang", cfg.Lang, "screen language: ko, en or ja (empty follows the browser)")
 	port := fs.Int("port", cfg.Port, "port for kttn serve")
 	preview := fs.Bool("preview", cfg.Preview, "show the opening of each finished answer")
 	messages := fs.Bool("messages", cfg.Messages, "let the screen type into a session from its speech bubble")
+	// Usage prints the help text, which leaves the hidden alias out.
+	fs.Usage = func() { fmt.Fprintln(fs.Output(), helps["init"]) }
 	if err := fs.Parse(args); err != nil {
 		return err
 	}
-	cfg.OfficeName, cfg.Lang, cfg.Port, cfg.Preview, cfg.Messages = *name, *lang, *port, *preview, *messages
+	cfg.Name, cfg.Lang, cfg.Port, cfg.Preview, cfg.Messages = *name, *lang, *port, *preview, *messages
 
 	if !*yes {
 		ask := prompter{in: bufio.NewReader(in), out: out}
-		cfg.OfficeName = ask.text("kttn name (kttn 이름 / kttn の名前)", cfg.OfficeName)
+		cfg.Name = ask.text("kttn name (kttn 이름 / kttn の名前)", cfg.Name)
 		cfg.Lang = ask.text("Screen language ko/en/ja (blank: follow the browser)", cfg.Lang)
 		cfg.Port = ask.number("Port", cfg.Port)
 		fmt.Fprintln(out, "Answer preview sends the first 300 characters of each finished answer to the")

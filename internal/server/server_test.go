@@ -10,14 +10,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 const stopBody = `{"source":"claude","session":"s1","project":"myrepo","event":"Stop"}`
 
-func newServer(t *testing.T, token, statePath string) (http.Handler, *office.Store) {
+func newServer(t *testing.T, token, statePath string) (http.Handler, *sessions.Store) {
 	t.Helper()
-	store := office.NewStore(time.Now, func(int) bool { return true })
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
 	return New(Options{Store: store, Token: token, StatePath: statePath, Settings: Settings{Configured: true}}), store
 }
 

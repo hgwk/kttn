@@ -111,7 +111,7 @@ echo "      under test: $VERSION"
 
 CFG=$KTTN_CONFIG
 check "config: written with mode 600" "[ \"\$(stat -f %Lp '$CFG' 2>/dev/null || stat -c %a '$CFG')\" = 600 ]"
-check "config: kttn name and language from stdin" "[ \"\$(json '$CFG' 'd.office_name+\"/\"+d.lang')\" = '\"E2E kttn/en\"' ]"
+check "config: kttn name and language from stdin" "[ \"\$(json '$CFG' 'd.kttn_name+\"/\"+d.lang')\" = '\"E2E kttn/en\"' ]"
 check "config: token and screen key present, answer preview and messages off" "json '$CFG' 'd.token.length>=32 && d.screen_key.length>=32 && d.preview===false && d.messages===false' | grep -q true"
 PORT=$(json "$CFG" 'd.port')
 TOKEN=$(json "$CFG" 'd.token' | tr -d '"')
@@ -160,6 +160,8 @@ check "rerun: hooks still one set" "json '$S' 'Object.values(d.hooks).every(l=>l
 # Never talk to a server this run did not start: if setup picked a port that
 # is already taken, the signal and screen steps would hit someone else's kttn.
 if [ "$PORT_FREE" = 1 ]; then
+# A config from 0.13 or earlier says office_name: serve keeps the name, and init saves it as kttn_name.
+node -e 'const f=process.argv[1],d=JSON.parse(require("fs").readFileSync(f));d.office_name=d.kttn_name;delete d.kttn_name;require("fs").writeFileSync(f,JSON.stringify(d),{mode:0o600})' "$CFG"
 "$KTTN" serve > "$T/serve.log" 2>&1 &
 SERVE_PID=$!
 KH="X-Kttn-Key: $SKEY"
@@ -171,6 +173,7 @@ check "screen key: snapshot without the key is refused" "[ \"\$(curl -s -o /dev/
 # the new port and the running kttn would hear nothing.
 printf '' | run_setup > "$T/setup3.log" 2>&1
 "$KTTN" init --yes > "$T/init-live.log" 2>&1
+check "config: an old office_name keeps the name on screen, and init moves it to kttn_name" "curl -s -H '$KH' http://127.0.0.1:$PORT/api/snapshot | grep -q '\"kttnName\":\"E2E kttn\"' && [ \"\$(json '$CFG' 'd.kttn_name+\"/\"+(\"office_name\" in d)')\" = '\"E2E kttn/false\"' ]"
 check "rerun: setup and init with kttn running keep port $PORT" "[ \"\$(json '$CFG' 'd.port')\" = '$PORT' ] && ! grep -q 'taken' '$T/setup3.log' '$T/init-live.log'"
 check "screen key: a message forged with the right Origin but no key is refused" \
   "[ \"\$(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://127.0.0.1:$PORT' -H 'Content-Type: application/json' -d '{\"key\":\"x\",\"text\":\"!id\"}' http://127.0.0.1:$PORT/api/message)\" = 401 ]"
@@ -231,7 +234,7 @@ check "privacy: no prompt or answer text reached the server" "! grep -q '$SECRET
 [ "$SIGNAL" = payload ] && . "$REPO/scripts/e2e-catalog.sh"
 
 # --- screen -------------------------------------------------------------------
-for p in / /manifest.webmanifest /icons/office-icon-192.png /icons/office-icon-512.png /icons/office-icon-maskable-512.png; do
+for p in / /manifest.webmanifest /icons/kttn-icon-192.png /icons/kttn-icon-512.png /icons/kttn-icon-maskable-512.png; do
   check "screen: GET $p is 200" "[ \"\$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:$PORT$p)\" = 200 ]"
 done
 check "screen: frame-ancestors is kttn itself only by default" "curl -sI http://127.0.0.1:$PORT/ | tr -d '\r' | grep -qix \"content-security-policy: frame-ancestors 'self'\""

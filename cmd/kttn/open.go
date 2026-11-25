@@ -20,7 +20,7 @@ func runOpen(out io.Writer, m machine) error {
 	if !found || cfg.ScreenKey == "" {
 		return errors.New("no screen key yet; run `kttn` (or `kttn init`) first")
 	}
-	m.open(cfg.OfficeURL())
+	m.open(cfg.URL())
 	fmt.Fprintf(out, "Opened http://127.0.0.1:%s/ with your screen key.\n", strconv.Itoa(cfg.Port))
 	return nil
 }

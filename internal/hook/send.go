@@ -23,7 +23,7 @@ type Options struct {
 	Preview bool
 }
 
-// Run forwards one hook payload and never fails the session: the office is
+// Run forwards one hook payload and never fails the session: kttn is
 // decoration, so a stopped server or a bad payload just drops the signal. It
 // writes nothing to stdout because some hook events add stdout to context.
 func Run(stdin io.Reader, opts Options) {

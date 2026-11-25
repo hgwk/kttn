@@ -1,0 +1,127 @@
+import type { RefObject } from "react"
+
+import { CatDesk, CatMessage } from "@/kttn/cat-actions"
+import { useCatNames } from "@/kttn/cat-names"
+import { CatSpeech } from "@/kttn/cat-speech"
+import { DeskTag } from "@/kttn/desk-tag"
+import { CAT_DX, deskLayout, seatFor } from "@/kttn/kttn-draw"
+import type { SessionAgent } from "@/lib/kttn"
+import type { Spots } from "@/kttn/use-tower"
+import { VisitCats } from "@/kttn/visit-cats"
+import { parseMeetings } from "@/kttn/kttn-moods"
+import { seatBox } from "@/kttn/seat-draw"
+
+/**
+ * 책상 구역 캔버스 위에 얹는 것들: 고양이 대사 상자, 누를 수 있는 책상 자리,
+ * 책상 앞 이름표. 캔버스 좌표를 백분율로 바꿔 캔버스와 함께 늘고 준다.
+ */
+export function DeskOverlays({
+  agents,
+  layout,
+  now,
+  levelUps,
+  tower,
+  strollers,
+  meetings,
+  speechRefs,
+}: {
+  /** 자리에 앉은 고양이(MAX_DESKS 이하) */
+  agents: SessionAgent[]
+  layout: ReturnType<typeof deskLayout>
+  now: number
+  levelUps: Set<string>
+  tower: Spots
+  /** 산책 중인 세션 키를 줄바꿈으로 이은 것 */
+  strollers: string
+  /** 실제로 만나는 중인 쉬는 고양이들(kttn-moods.ts의 meetingKeys) */
+  meetings: string
+  /** 세션 키별 대사 상자. 걷는 고양이를 따라 옮길 때 쓴다. */
+  speechRefs: RefObject<Map<string, HTMLDivElement>>
+}) {
+  const names = useCatNames()
+  const met = parseMeetings(meetings)
+  return (
+    <>
+    <VisitCats agents={agents} now={now} nearby={tower} layout={layout} />
+    {agents.map((agent, index) => {
+      const seat = seatFor(layout, index)
+      return (
+        <div
+          key={`speech-${agent.key}`}
+          // 캔버스 루프가 걷는 고양이를 따라 이 상자를 옮긴다(kttn-canvas.tsx).
+          ref={(el) => {
+            if (el) speechRefs.current.set(agent.key, el)
+            else speechRefs.current.delete(agent.key)
+          }}
+          // 대사 상자는 집사(z-30)보다 위에 둔다. 집사가 옆에 서면(data-near)
+          // 다른 상자들보다도 앞으로 나와 잘린 줄을 다 펼친다. 폭은 그대로 두어
+          // 바닥 끝 밖으로 나가지 않고 위로만 길어진다.
+          data-cat-speech=""
+          data-speech-for={agent.key}
+          // 퇴근한 고양이(쓰다듬기에서 뺀다, petting.ts)
+          data-ended={agent.state === "ended" ? "" : undefined}
+          // 쉬는 동료가 곁에 찾아와 있는 동안은 찾아온 고양이 대사만 보인다
+          // (두 상자가 겹친다. 찾아온 쪽이 둘 다를 말한다).
+          hidden={met.get(agent.key)?.host && met.get(agent.key)?.stay}
+          // 확인이 필요한 고양이. 화면 밖이면 그쪽 화살표가 깜빡인다(scroll-hint.tsx).
+          data-alert={agent.state === "needs_you" ? "" : undefined}
+          className="group/speech absolute z-40 w-max max-w-[180px] -translate-x-1/2 -translate-y-full has-[form]:z-[60] data-near:z-50"
+          style={{
+            left: `${((seat.x + CAT_DX) / layout.w) * 100}%`,
+            top: `${((seat.y - 14) / layout.h) * 100}%`,
+          }}
+        >
+          <CatMessage
+            agent={agent}
+            name={names.get(agent.key) ?? agent.sessionShort}
+          >
+            <CatSpeech
+              agent={agent}
+              now={now}
+              levelUp={levelUps.has(agent.key)}
+              tower={tower}
+              mates={agents}
+              strolling={strollers.split("\n").includes(agent.key)}
+              meet={met.get(agent.key)}
+              nameOf={(key) =>
+                names.get(key) ??
+                agents.find((other) => other.key === key)?.sessionShort ??
+                ""
+              }
+            />
+          </CatMessage>
+        </div>
+      )
+    })}
+    {/* 책상·의자·고양이 자리. 집사가 지나가지 못하고, 누르면 집사가 간다. */}
+    {agents.map((agent, index) => {
+      const seat = seatFor(layout, index)
+      // 자유 자리면 그 그림 상자가 누르는 자리이자 집사가 피하는 곳이다.
+      const free = seatBox(layout, index, agent.key)
+      const box = free ?? { x: seat.x - 16, y: seat.y - 8, w: 32, h: 26 }
+      return (
+        <CatDesk
+          key={`desk-${agent.key}`}
+          agentKey={agent.key}
+          name={names.get(agent.key) ?? agent.sessionShort}
+          style={{
+            left: `${(box.x / layout.w) * 100}%`,
+            top: `${(box.y / layout.h) * 100}%`,
+            width: `${(box.w / layout.w) * 100}%`,
+            height: `${(box.h / layout.h) * 100}%`,
+          }}
+        />
+      )
+    })}
+    {agents.map((agent, index) => (
+      <DeskTag
+        key={agent.key}
+        agent={agent}
+        name={names.get(agent.key) ?? agent.sessionShort}
+        layout={layout}
+        index={index}
+      />
+    ))}
+    </>
+  )
+}

@@ -100,7 +100,7 @@ func parseProps(raw []byte) (props, bool) {
 	return out, true
 }
 
-// propsHandlers serves GET and PUT /api/props to the office screen only.
+// propsHandlers serves GET and PUT /api/props to kttn screen only.
 func propsHandlers(f *propsFile) (get, put http.HandlerFunc) {
 	get = func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")

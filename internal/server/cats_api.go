@@ -31,7 +31,7 @@ func catName(raw string) (string, bool) {
 	return name, true
 }
 
-// catsHandlers serves the catalog to the office screen: the list, naming a
+// catsHandlers serves the catalog to kttn screen: the list, naming a
 // cat, and clearing it all. Writes need the screen's own origin.
 func catsHandlers(b *catBook) (list, name, clear http.HandlerFunc) {
 	list = func(w http.ResponseWriter, r *http.Request) {

@@ -6,7 +6,7 @@ export const ja: Record<MessageKey, string> = {
   "app.unreachable": "kttn serve に接続できませんでした。",
   "app.needsKey": "この画面には鍵が必要です。ターミナルで kttn open を実行して kttn を開いてください。",
   "app.opening": "kttn を開いています…",
-  "office.defaultName": "わたしたちの kttn",
+  "kttn.defaultName": "わたしたちの kttn",
   "onboarding.title": "まだ設定されていません",
   "onboarding.body": "ターミナルで {command} を実行して、kttn の名前と言語を決め、フックとサーバーをつなぎます。そのあと kttn serve を起動し直すとこの案内は消えます。",
 
@@ -87,7 +87,7 @@ export const ja: Record<MessageKey, string> = {
   "title.nightOwl": "夜ふかし",
   "title.oldHand": "古株",
   "title.worker": "働き者",
-  "building.heading": "{name}、エリア {offices}か所、ねこ {cats}匹",
+  "building.heading": "{name}、エリア {areas}か所、ねこ {cats}匹",
   "building.headingNeedsYou": "、確認が必要 {n}",
   "building.headingOutside": "、席外し {n}",
   "props.title": "小物",

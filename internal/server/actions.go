@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 	"github.com/hgwk/kttn/internal/terminal"
 )
 
-// screenAction admits a button press from the office screen only: addressed to
+// screenAction admits a button press from kttn screen only: addressed to
 // this computer, sent by a page served from the same address, and JSON. A
 // JSON POST from another site needs a CORS preflight that this server never
 // grants, and its Origin would not match.
@@ -60,15 +60,15 @@ func terminalStatus(w http.ResponseWriter, err error) {
 }
 
 // actionTarget admits a screen request and finds the session it names.
-func actionTarget(w http.ResponseWriter, r *http.Request, store *office.Store, limit int64) (office.Agent, actionBody, bool) {
+func actionTarget(w http.ResponseWriter, r *http.Request, store *sessions.Store, limit int64) (sessions.Agent, actionBody, bool) {
 	if !screenAction(r) {
 		writeJSON(w, http.StatusForbidden, map[string]string{"error": "forbidden"})
-		return office.Agent{}, actionBody{}, false
+		return sessions.Agent{}, actionBody{}, false
 	}
 	body, ok := readAction(r, limit)
 	if !ok {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "bad body"})
-		return office.Agent{}, body, false
+		return sessions.Agent{}, body, false
 	}
 	agent, ok := findAgent(store, body.Key)
 	if !ok {
@@ -78,13 +78,13 @@ func actionTarget(w http.ResponseWriter, r *http.Request, store *office.Store, l
 	return agent, body, true
 }
 
-func findAgent(store *office.Store, key string) (office.Agent, bool) {
+func findAgent(store *sessions.Store, key string) (sessions.Agent, bool) {
 	for _, agent := range store.Snapshot() {
 		if agent.Key == key {
 			return agent, true
 		}
 	}
-	return office.Agent{}, false
+	return sessions.Agent{}, false
 }
 
 // focusHandler brings the clicked cat's terminal tab forward.

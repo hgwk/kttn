@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/web/public/icons/office-icon-192.png" width="96" height="96" alt="kttn 앱 아이콘: 정장에 주황 넥타이를 맨 흰 픽셀 고양이">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/web/public/icons/kttn-icon-192.png" width="96" height="96" alt="kttn 앱 아이콘: 정장에 주황 넥타이를 맨 흰 픽셀 고양이">
 </p>
 
 <h1 align="center">kttn</h1>
@@ -188,7 +188,7 @@ Chrome에서 주소를 여세요. 주소창의 ⊕로 앱처럼 설치하면 따
 | 명령 | 하는 일 |
 | --- | --- |
 | `kttn` 또는 `kttn setup` | 한 번에 설정: 처음이면 kttn 이름과 언어를 묻고, Claude Code 훅, 자동 시작, kttn 열기. |
-| `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | 설정을 묻고(또는 `--yes`로 플래그를 받고), 이전 답을 기본값으로 두고, 원하는 포트를 다른 프로그램이 쓰면 다른 포트를 고르고, 훅과 서버가 함께 쓰는 토큰을 만듭니다. |
+| `kttn init [--yes] [--name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | 설정을 묻고(또는 `--yes`로 플래그를 받고), 이전 답을 기본값으로 두고, 원하는 포트를 다른 프로그램이 쓰면 다른 포트를 고르고, 훅과 서버가 함께 쓰는 토큰을 만듭니다. |
 | `kttn serve [--port N]` | `127.0.0.1`에서 kttn을 띄웁니다. |
 | `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | Claude Code 훅. 표준 입력으로 훅 내용을 받습니다. 설정이 쓴 설정 파일을 `--config`로 고정합니다. |
 | `kttn install` | 플러그인 없이 쓸 때 Claude Code 사용자 설정에 훅을 넣습니다. |

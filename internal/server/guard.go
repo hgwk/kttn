@@ -39,9 +39,9 @@ func withLoopback(next http.Handler) http.Handler {
 	})
 }
 
-// withFrameAncestors lets only the office itself and the listed origins put
-// the office in an iframe. Screen actions inside such a frame still come from
-// the office's own page, so the same-origin check on them is unchanged.
+// withFrameAncestors lets only kttn itself and the listed origins put
+// kttn in an iframe. Screen actions inside such a frame still come from
+// kttn's own page, so the same-origin check on them is unchanged.
 func withFrameAncestors(origins []string, next http.Handler) http.Handler {
 	policy := "frame-ancestors " + strings.Join(append([]string{"'self'"}, origins...), " ")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +58,7 @@ func screenKeyOK(w http.ResponseWriter, r *http.Request, key string) bool {
 	if key == "" || subtle.ConstantTimeCompare([]byte(r.Header.Get("X-Kttn-Key")), []byte(key)) == 1 {
 		return true
 	}
-	writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "screen key required; open the office with kttn open"})
+	writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "screen key required; open it with kttn open"})
 	return false
 }
 

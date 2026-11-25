@@ -3,7 +3,7 @@
 /* 어두운 화면은 시스템 설정을 따른다. */
 @custom-variant dark (@media (prefers-color-scheme: dark));
 
-/* 사무실 글꼴. 한국어·영어는 둥근모꼴(퍼블릭 도메인), 일본어는
+/* kttn 글꼴. 한국어·영어는 둥근모꼴(퍼블릭 도메인), 일본어는
    DotGothic16(Fontworks, SIL OFL 1.1). 출처는 THIRD_PARTY_NOTICES.md. */
 @font-face {
   font-family: "DungGeunMo";
@@ -17,7 +17,7 @@
 }
 
 :root {
-  --font-office: "DungGeunMo", system-ui, sans-serif;
+  --font-kttn: "DungGeunMo", system-ui, sans-serif;
   color-scheme: light;
   --background: oklch(0.985 0.002 75);
   --foreground: oklch(0.147 0.004 49);
@@ -38,7 +38,7 @@
   --radius: 0.375rem;
 }
 :root:lang(ja) {
-  --font-office: "DotGothic16", "DungGeunMo", system-ui, sans-serif;
+  --font-kttn: "DotGothic16", "DungGeunMo", system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -73,7 +73,7 @@
 }
 
 @theme inline {
-  --font-office: var(--font-office);
+  --font-kttn: var(--font-kttn);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -101,7 +101,7 @@
   }
   html {
     min-width: 320px;
-    font-family: var(--font-office);
+    font-family: var(--font-kttn);
     word-break: keep-all;
     overflow-wrap: break-word;
   }
@@ -116,7 +116,7 @@
   }
 }
 
-/* 창밖 눈(office/snow.tsx): 창 위에서 아래로 떨어진다. */
+/* 창밖 눈(kttn/snow.tsx): 창 위에서 아래로 떨어진다. */
 @keyframes kttn-snow {
   from {
     transform: translateY(-4px);

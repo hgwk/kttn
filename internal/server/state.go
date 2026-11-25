@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 // saveDelay batches a burst of hook events into one write.
@@ -31,11 +31,11 @@ func StatePath() string {
 }
 
 // stateFile writes the store's sessions a moment after they change. It is
-// only a restart aid: a missing or broken file starts an empty office, and a
+// only a restart aid: a missing or broken file starts an empty kttn, and a
 // failed write leaves the screen running from memory.
 type stateFile struct {
 	path  string
-	store *office.Store
+	store *sessions.Store
 	mu    sync.Mutex
 	timer *time.Timer
 	// saving lets one save run at a time, so a stop never exits while the

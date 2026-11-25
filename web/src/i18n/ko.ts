@@ -7,7 +7,7 @@ export const ko = {
   "app.unreachable": "kttn serve에 닿지 못했습니다.",
   "app.needsKey": "이 화면은 열쇠가 필요합니다. 터미널에서 kttn open을 실행해 kttn을 여세요.",
   "app.opening": "kttn을 여는 중…",
-  "office.defaultName": "우리 kttn",
+  "kttn.defaultName": "우리 kttn",
   "onboarding.title": "아직 설정 전입니다",
   "onboarding.body": "터미널에서 {command}를 실행해 kttn 이름과 언어를 정하고 훅과 서버를 짝지으세요. 그 뒤 kttn serve를 다시 띄우면 이 안내가 사라집니다.",
 
@@ -88,7 +88,7 @@ export const ko = {
   "title.nightOwl": "올빼미",
   "title.oldHand": "고참",
   "title.worker": "일꾼",
-  "building.heading": "{name}, 구역 {offices}곳, 냥이 {cats}마리",
+  "building.heading": "{name}, 구역 {areas}곳, 냥이 {cats}마리",
   "building.headingNeedsYou": ", 확인 필요 {n}",
   "building.headingOutside": ", 자리 밖 {n}",
   "props.title": "소품",

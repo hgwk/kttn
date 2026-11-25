@@ -41,7 +41,7 @@ type Event struct {
 	Model string `json:"model,omitempty"`
 }
 
-// hookInput is the subset of the Claude Code hook payload the office needs.
+// hookInput is the subset of the Claude Code hook payload kttn needs.
 type hookInput struct {
 	SessionID            string         `json:"session_id"`
 	Cwd                  string         `json:"cwd"`
@@ -54,7 +54,7 @@ type hookInput struct {
 	AgentID              string         `json:"agent_id"`               // Subagent*, tools inside one
 	AgentType            string         `json:"agent_type"`             // Subagent*
 	TranscriptPath       string         `json:"transcript_path"`
-	// The rest each belong to one or two events and only give the office a
+	// The rest each belong to one or two events and only give kttn a
 	// short label. Error texts, summaries and file contents stay behind.
 	Source        string `json:"source"`          // SessionStart, ConfigChange
 	Reason        string `json:"reason"`          // SessionEnd
@@ -111,7 +111,7 @@ func eventFromHook(raw []byte, source string, preview bool) (Event, bool) {
 	return event, true
 }
 
-// stopErrors are the StopFailure kinds the office names; anything else is
+// stopErrors are the StopFailure kinds kttn names; anything else is
 // sent as "other", never as Claude Code's own text.
 var stopErrors = map[string]bool{
 	"rate_limit": true, "server_error": true, "overloaded": true,

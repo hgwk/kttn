@@ -6,7 +6,7 @@ export const en: Record<MessageKey, string> = {
   "app.unreachable": "Could not reach kttn serve.",
   "app.needsKey": "This screen needs its key. Run kttn open in a terminal to open kttn.",
   "app.opening": "Opening kttn…",
-  "office.defaultName": "Our kttn",
+  "kttn.defaultName": "Our kttn",
   "onboarding.title": "Not set up yet",
   "onboarding.body": "Run {command} in a terminal to name your kttn, pick a language and pair the hook with the server. Restart kttn serve afterwards and this note goes away.",
 
@@ -87,7 +87,7 @@ export const en: Record<MessageKey, string> = {
   "title.nightOwl": "Night owl",
   "title.oldHand": "Old hand",
   "title.worker": "Worker",
-  "building.heading": "{name}, areas: {offices}, cats: {cats}",
+  "building.heading": "{name}, areas: {areas}, cats: {cats}",
   "building.headingNeedsYou": ", needs you: {n}",
   "building.headingOutside": ", away: {n}",
   "props.title": "Props",

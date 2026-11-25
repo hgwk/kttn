@@ -1,15 +1,15 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { awayOnVisit } from "../office/office-walk.ts"
-import { moveCat } from "../office/cat-move.ts"
-import { toSessionAgents } from "./agent-office.ts"
-import { officeLayout, seatPoint } from "./desk-layout.ts"
+import { awayOnVisit } from "../kttn/kttn-walk.ts"
+import { moveCat } from "../kttn/cat-move.ts"
+import { toSessionAgents } from "./kttn.ts"
+import { deskLayout, seatPoint } from "./desk-layout.ts"
 import { deskGrid } from "./desk-walk.ts"
 import { isFree } from "./walk-grid.ts"
 
 // 배치가 걷는 중에 바뀌어도 모든 장면에서 고양이 발밑이 그 배치의 걸을 수
-// 있는 칸에 있는지 본다. 그림 쪽(office-canvas)과 같은 차례로 moveCat을 부른다.
+// 있는 칸에 있는지 본다. 그림 쪽(kttn-canvas)과 같은 차례로 moveCat을 부른다.
 
 const START = Date.parse("2026-11-25T05:00:00Z")
 const STATES = ["idle", "sleeping", "idle", "editing", "sleeping", "idle"]
@@ -49,7 +49,7 @@ function run(label, steps) {
   const walkers = new Map()
   let t = START
   for (const { seated, cols, mixed, frames } of steps) {
-    const room = officeLayout(seated.length, cols)
+    const room = deskLayout(seated.length, cols)
     const grid = deskGrid(room, seated.length, freeFor(room, seated, mixed))
     const plan = `${room.w}|${room.h}|${room.cols}|${mixed}|${seated.map((a) => a.key).join(",")}`
     for (let f = 0; f < frames; f++) {

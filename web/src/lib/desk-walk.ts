@@ -5,7 +5,7 @@ import {
   DESK_GAP_X,
   seatFor,
   seatPoint,
-  type OfficeLayout,
+  type DeskLayout,
 } from "./desk-layout.ts"
 import {
   clampToBox,
@@ -31,7 +31,7 @@ export type SeatBox = { x: number; y: number; w: number; h: number }
  * 발밑이 있을 수 있는 범위. 몸(폭 16, 키 16)이 책상 구역 밖으로 나가지 않는다.
  * 문(왼쪽 위)도 이 안이다.
  */
-export const walkBounds = (layout: OfficeLayout): Box => ({
+export const walkBounds = (layout: DeskLayout): Box => ({
   l: HALF_W,
   t: BODY_H,
   r: layout.w - HALF_W,
@@ -53,7 +53,7 @@ function slotted(outer: Box, seat: Point): Box[] {
  * 키를 더한 곳까지, 자유 자리는 가구 그림 상자에 몸 키를 더한 곳까지다.
  */
 export function deskBlocks(
-  layout: OfficeLayout,
+  layout: DeskLayout,
   count: number,
   free: (SeatBox | null)[] = []
 ): Box[] {
@@ -82,7 +82,7 @@ export function deskBlocks(
 
 /** 책상 구역의 걷는 격자. 자리 수(count)와 자유 자리 상자(free)에 따른다. */
 export function deskGrid(
-  layout: OfficeLayout,
+  layout: DeskLayout,
   count: number,
   free: (SeatBox | null)[] = []
 ): Grid {
@@ -102,17 +102,17 @@ export function deskGrid(
   )
 }
 
-const inside = (layout: OfficeLayout, p: Point) =>
+const inside = (layout: DeskLayout, p: Point) =>
   clampToBox(walkBounds(layout), p)
 
 /** 다른 자리(to) 오른쪽 샛길, 앉은 고양이 곁에 서는 곳 */
-export function standBeside(layout: OfficeLayout, to: number): Point {
+export function standBeside(layout: DeskLayout, to: number): Point {
   const seat = seatPoint(layout, to)
   return inside(layout, { x: seatFor(layout, to).x + AISLE_DX, y: seat.y })
 }
 
 /** 산책 끝. 줄 아래 통로를 따라 책상 왼쪽까지 간다. */
-export function strollPoint(layout: OfficeLayout, index: number): Point {
+export function strollPoint(layout: DeskLayout, index: number): Point {
   const desk = seatFor(layout, index)
   return inside(layout, { x: desk.x - 20, y: desk.y + LANE_DY })
 }
@@ -122,7 +122,7 @@ export function strollPoint(layout: OfficeLayout, index: number): Point {
  * 가는 고양이는 여기까지 걸어와 사라지고 휴게 공간(visit-cats.tsx)에서 이어
  * 걷는다.
  */
-export function loungeExit(layout: OfficeLayout, index: number): Point {
+export function loungeExit(layout: DeskLayout, index: number): Point {
   const aisle = seatFor(layout, index).x + AISLE_DX
   return inside(layout, { x: aisle, y: layout.h - 2 })
 }

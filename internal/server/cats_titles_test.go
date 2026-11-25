@@ -27,9 +27,9 @@ func TestACatAtWorkAfterMidnightIsANightOwlForGood(t *testing.T) {
 	}
 }
 
-// peak is the most sessions at the office at once; it stays when they go
+// peak is the most sessions at kttn at once; it stays when they go
 // home and goes with a clear.
-func TestThePeakIsTheBusiestTheOfficeHasBeen(t *testing.T) {
+func TestThePeakIsTheBusiestKttnHasBeen(t *testing.T) {
 	h, _, clock := catServer(t)
 	hookEvent(h, "a", "UserPromptSubmit", "")
 	clock.add(time.Minute)

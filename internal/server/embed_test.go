@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
-func TestOnlyTheListedPagesMayEmbedTheOffice(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
+func TestOnlyTheListedPagesMayEmbedKttn(t *testing.T) {
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
 	h := New(Options{Store: store, EmbedOrigins: []string{"http://127.0.0.1:3000", "http://localhost:3000"}})
 	for _, path := range []string{"/", "/api/snapshot", "/manifest.webmanifest"} {
 		got := get(h, "127.0.0.1:5886", path).Header().Get("Content-Security-Policy")
@@ -25,10 +25,10 @@ func TestOnlyTheListedPagesMayEmbedTheOffice(t *testing.T) {
 	}
 }
 
-// Inside the iframe the office page calls its own server, so the click has
-// the office's Origin and passes; the embedding page calling directly does not.
-func TestScreenActionsFromTheEmbeddedOfficePassButNotFromItsParent(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
+// Inside the iframe kttn page calls its own server, so the click has
+// kttn's Origin and passes; the embedding page calling directly does not.
+func TestScreenActionsFromTheEmbeddedKttnPassButNotFromItsParent(t *testing.T) {
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
 	focused := 0
 	h := New(Options{Store: store, EmbedOrigins: []string{"http://127.0.0.1:3000"}, Focus: func(int) error {
 		focused++
@@ -44,7 +44,7 @@ func TestScreenActionsFromTheEmbeddedOfficePassButNotFromItsParent(t *testing.T)
 		return rec.Code
 	}
 	if code := click("http://127.0.0.1:5886"); code != 200 {
-		t.Fatalf("from the embedded office: %d", code)
+		t.Fatalf("from the embedded kttn: %d", code)
 	}
 	if code := click("http://127.0.0.1:3000"); code != 403 {
 		t.Fatalf("from the embedding page: %d", code)

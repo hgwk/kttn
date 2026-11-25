@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 // A clear racing the timer's save must leave the catalog empty on disk, and
@@ -16,7 +16,7 @@ func TestAClearRacingASaveLeavesTheCatalogEmpty(t *testing.T) {
 	for round := 0; round < 50; round++ {
 		path := filepath.Join(t.TempDir(), "cats.json")
 		b := newCatBook(path, time.Now)
-		b.record(office.Agent{Key: "claude|a", Source: "claude"}, office.Event{}, 1)
+		b.record(sessions.Agent{Key: "claude|a", Source: "claude"}, sessions.Event{}, 1)
 		var wg sync.WaitGroup
 		errs := make(chan error, 8)
 		for i := 0; i < 4; i++ {

@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 // A stopping server writes the last second of events instead of losing it
 // with the save timer.
 func TestSaveNowWritesWhatTheTimerWasWaitingFor(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "state.json")
-	h := New(Options{Store: office.NewStore(time.Now, nil), StatePath: path})
+	h := New(Options{Store: sessions.NewStore(time.Now, nil), StatePath: path})
 	h.SaveNow()
 	if _, err := os.Stat(path); err == nil {
 		t.Fatal("nothing was waiting, yet a file was written")

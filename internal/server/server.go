@@ -1,5 +1,5 @@
 // Package server is `kttn serve`: it receives hook events and serves the
-// office's state and screen, on this computer only.
+// kttn's state and screen, on this computer only.
 package server
 
 import (
@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 	"github.com/hgwk/kttn/internal/terminal"
 )
 
@@ -18,8 +18,8 @@ const maxEventBytes = 4096
 
 // Settings are the onboarding values the screen shows.
 type Settings struct {
-	OfficeName string `json:"officeName"`
-	Lang       string `json:"lang"`
+	Name string `json:"kttnName"`
+	Lang string `json:"lang"`
 	// Messages says whether typing into a session from the screen is on.
 	Messages bool `json:"messages"`
 	// Configured is false until `kttn init` has run; the screen then shows how.
@@ -28,7 +28,7 @@ type Settings struct {
 
 // Options configures a server.
 type Options struct {
-	Store    *office.Store
+	Store    *sessions.Store
 	Settings Settings
 	// Token, when set, must arrive as "Authorization: Bearer <token>".
 	Token string
@@ -42,7 +42,7 @@ type Options struct {
 	Focus func(pid int) error
 	// Send types a message into a session's input.
 	Send func(pid int, state, text string) error
-	// EmbedOrigins may show the office in an iframe; every other site may not.
+	// EmbedOrigins may show kttn in an iframe; every other site may not.
 	EmbedOrigins []string
 	// PropsPath keeps where people dragged lounge props; empty keeps them
 	// nowhere (GET answers an empty layout, PUT is refused).
@@ -53,12 +53,12 @@ type Options struct {
 
 // Snapshot is what the screen polls.
 type Snapshot struct {
-	Agents      []office.Agent `json:"agents"`
-	Settings    Settings       `json:"settings"`
-	GeneratedAt string         `json:"generatedAt"`
+	Agents      []sessions.Agent `json:"agents"`
+	Settings    Settings         `json:"settings"`
+	GeneratedAt string           `json:"generatedAt"`
 }
 
-// Handler serves the office. SaveNow writes the sessions at once, for a
+// Handler serves kttn. SaveNow writes the sessions at once, for a
 // server that is about to stop.
 type Handler struct {
 	http.Handler
@@ -98,7 +98,7 @@ func New(opts Options) *Handler {
 		if !ok {
 			return
 		}
-		event, err := office.ParseEvent(body)
+		event, err := sessions.ParseEvent(body)
 		if err != nil {
 			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
 			return
@@ -111,9 +111,9 @@ func New(opts Options) *Handler {
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "state": agent.State})
 	})
 	mux.HandleFunc("GET /api/snapshot", func(w http.ResponseWriter, r *http.Request) {
-		// An office not set up yet answers anyone with its onboarding
+		// A kttn not set up yet answers anyone with its onboarding
 		// settings and no sessions, so the screen can say how to set up.
-		agents := []office.Agent{}
+		agents := []sessions.Agent{}
 		if opts.Settings.Configured {
 			if !screenKeyOK(w, r, opts.ScreenKey) {
 				return
@@ -144,9 +144,9 @@ func New(opts Options) *Handler {
 	return &Handler{Handler: withLoopback(withFrameAncestors(opts.EmbedOrigins, mux)), state: state, cats: cats}
 }
 
-// liveSessions counts the sessions at the office now: not gone home, not a
+// liveSessions counts the sessions at kttn now: not gone home, not a
 // headless run.
-func liveSessions(store *office.Store) int {
+func liveSessions(store *sessions.Store) int {
 	n := 0
 	for _, a := range store.Snapshot() {
 		if a.State != "ended" && !a.Headless {

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/web/public/icons/office-icon-192.png" width="96" height="96" alt="kttn のアプリアイコン: スーツにオレンジのネクタイの白いピクセル猫">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/web/public/icons/kttn-icon-192.png" width="96" height="96" alt="kttn のアプリアイコン: スーツにオレンジのネクタイの白いピクセル猫">
 </p>
 
 <h1 align="center">kttn</h1>
@@ -192,7 +192,7 @@ Chrome でアドレスを開いてください。アドレスバーの ⊕ か�
 | コマンド | すること |
 | --- | --- |
 | `kttn` または `kttn setup` | まとめて設定: 初回は kttn の名前と言語を聞き、Claude Code のフック、自動起動、kttn を開く。 |
-| `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | 設定を聞き(または `--yes` でフラグを使い)、前の答えを既定値にし、使いたいポートがほかに使われていれば別のポートを選び、フックとサーバーが共有するトークンを作ります。 |
+| `kttn init [--yes] [--name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | 設定を聞き(または `--yes` でフラグを使い)、前の答えを既定値にし、使いたいポートがほかに使われていれば別のポートを選び、フックとサーバーが共有するトークンを作ります。 |
 | `kttn serve [--port N]` | `127.0.0.1` で kttn を動かします。 |
 | `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | Claude Code のフック。標準入力からフックの内容を読みます。設定時に書いた設定ファイルを `--config` で固定します。 |
 | `kttn install` | プラグインを使わない場合に、Claude Code のユーザー設定へフックを入れます。 |

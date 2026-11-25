@@ -1,8 +1,8 @@
 package server
 
-import "github.com/hgwk/kttn/internal/office"
+import "github.com/hgwk/kttn/internal/sessions"
 
-// The catalog's tallies: each cat's day and the office's busiest moment.
+// The catalog's tallies: each cat's day and kttn's busiest moment.
 
 // catDay is one day's work: tools started and tools that failed, outside
 // subagents, as the session's tool count counts them.
@@ -20,7 +20,7 @@ type peak struct {
 
 // countDay adds an event to the cat's day, starting a new day when the
 // date has moved on. newTools is 1 for a tool the session started.
-func (b *catBook) countDay(c *cat, date string, newTools int, event office.Event) {
+func (b *catBook) countDay(c *cat, date string, newTools int, event sessions.Event) {
 	// An interrupt is the person pressing Esc, not a tool failing.
 	failed := event.Event == "PostToolUseFailure" && event.Subagent == "" && event.Detail != "interrupt"
 	if newTools <= 0 && !failed {

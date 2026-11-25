@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 	"github.com/hgwk/kttn/internal/terminal"
 )
 
 func TestFocusTakesOnlyScreenClicksAndReportsWhatHappened(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
 	var focused []int
 	result := error(nil)
 	h := New(Options{Store: store, Focus: func(pid int) error {
@@ -62,7 +62,7 @@ func TestFocusTakesOnlyScreenClicksAndReportsWhatHappened(t *testing.T) {
 }
 
 func TestMessagesGoToTheSessionUnderTheSameGuard(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
 	var got []string
 	h := New(Options{Store: store, Settings: Settings{Messages: true}, Send: func(pid int, state, text string) error {
 		got = append(got, state+":"+text)
@@ -93,7 +93,7 @@ func TestMessagesGoToTheSessionUnderTheSameGuard(t *testing.T) {
 }
 
 func TestMessagesAreOffUnlessTurnedOn(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
 	sent := 0
 	h := New(Options{Store: store, Send: func(int, string, string) error { sent++; return nil }})
 	post(h, "127.0.0.1", jsonType, `{"source":"claude","session":"s1","event":"Stop","pid":4242}`)

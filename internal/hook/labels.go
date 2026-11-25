@@ -46,7 +46,7 @@ func toolDetail(tool string, input map[string]any) string {
 }
 
 // A message names the session it goes to, sometimes with a " [ref]" tag that
-// tells same-named sessions apart. The office matches sessions by name, so the
+// tells same-named sessions apart. kttn matches sessions by name, so the
 // tag is dropped. Socket addresses and paths name no session and are not sent.
 var refTag = regexp.MustCompile(`\s*\[[0-9A-Za-z]+\]$`)
 
@@ -81,9 +81,9 @@ func commandName(command string) string {
 
 // projectName names the repository the session works in, the folder inside
 // it and where that repository sits, so moving into a subfolder keeps the
-// session in the same office. Outside a repository the folder itself is the
-// office and folder is empty; the home folder is called "~". root is the
-// office's path relative to home ("" for home) or absolute outside it.
+// session in the same area. Outside a repository the folder itself is the
+// area and folder is empty; the home folder is called "~". root is the
+// area's path relative to home ("" for home) or absolute outside it.
 func projectName(cwd string) (name, folder, root string) {
 	if cwd == "" {
 		return "", "", ""
@@ -101,7 +101,7 @@ func projectName(cwd string) (name, folder, root string) {
 			break
 		}
 	}
-	// The home folder would otherwise show the account name as an office.
+	// The home folder would otherwise show the account name as an area.
 	if home, err := os.UserHomeDir(); err == nil && filepath.Clean(home) == clean {
 		return "~", "", ""
 	}

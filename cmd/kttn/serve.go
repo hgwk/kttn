@@ -15,8 +15,8 @@ import (
 	"time"
 
 	"github.com/hgwk/kttn/internal/config"
-	"github.com/hgwk/kttn/internal/office"
 	"github.com/hgwk/kttn/internal/server"
+	"github.com/hgwk/kttn/internal/sessions"
 	"github.com/hgwk/kttn/internal/terminal"
 )
 
@@ -48,7 +48,7 @@ func runServe(args []string, stderr io.Writer) error {
 		fmt.Fprintln(stderr, "kttn: added a screen key to the config; open it with `kttn open`")
 	}
 	handler := server.New(server.Options{
-		Store:        office.NewStore(time.Now, office.NewClaudeCheck(nil)),
+		Store:        sessions.NewStore(time.Now, sessions.NewClaudeCheck(nil)),
 		Token:        cfg.Token,
 		ScreenKey:    cfg.ScreenKey,
 		StatePath:    server.StatePath(),
@@ -60,7 +60,7 @@ func runServe(args []string, stderr io.Writer) error {
 			return terminal.Send(terminal.Exec, pid, state, text)
 		},
 		Settings: server.Settings{
-			OfficeName: cfg.OfficeName,
+			Name:       cfg.Name,
 			Lang:       cfg.Lang,
 			Messages:   cfg.Messages,
 			Configured: found,

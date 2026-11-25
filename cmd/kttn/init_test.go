@@ -23,7 +23,7 @@ func TestInitAsksSavesAndKeepsItsAnswersAsNextDefaults(t *testing.T) {
 	if err != nil || !found {
 		t.Fatalf("not saved: %v", err)
 	}
-	if cfg.OfficeName != "우리 팀" || cfg.Lang != "ja" || !cfg.Preview || cfg.Token == "" || cfg.Port == 0 {
+	if cfg.Name != "우리 팀" || cfg.Lang != "ja" || !cfg.Preview || cfg.Token == "" || cfg.Port == 0 {
 		t.Fatalf("got %+v", cfg)
 	}
 	token := cfg.Token
@@ -41,11 +41,11 @@ func TestInitWithYesTakesFlagsAndKeepsPreviewOff(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "config.json")
 	t.Setenv("KTTN_CONFIG", path)
 	var out bytes.Buffer
-	if err := runInit([]string{"--yes", "--office-name", "Lab"}, strings.NewReader(""), &out, noService(t)); err != nil {
+	if err := runInit([]string{"--yes", "--name", "Lab"}, strings.NewReader(""), &out, noService(t)); err != nil {
 		t.Fatal(err)
 	}
 	cfg, _, _ := config.Load(path)
-	if cfg.OfficeName != "Lab" || cfg.Preview || cfg.Lang != "" {
+	if cfg.Name != "Lab" || cfg.Preview || cfg.Lang != "" {
 		t.Fatalf("got %+v", cfg)
 	}
 	if info, _ := os.Stat(path); info.Mode().Perm() != 0o600 {
@@ -116,5 +116,29 @@ func TestInitRestartsARegisteredServiceSoTheNewSettingsApply(t *testing.T) {
 	out.Reset()
 	if err := runInit([]string{"--yes"}, strings.NewReader(""), &out, svc); err != nil || strings.Contains(out.String(), "another config") {
 		t.Fatalf("out %q %v", out.String(), err)
+	}
+}
+
+// --office-name, the flag's name up to 0.13, still works but is not
+// advertised in the usage text.
+func TestTheOldOfficeNameFlagIsAHiddenAlias(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	t.Setenv("KTTN_CONFIG", path)
+	var out bytes.Buffer
+	if err := runInit([]string{"--yes", "--office-name", "Old"}, strings.NewReader(""), &out, noService(t)); err != nil {
+		t.Fatal(err)
+	}
+	if cfg, _, _ := config.Load(path); cfg.Name != "Old" {
+		t.Fatalf("got %q", cfg.Name)
+	}
+	out.Reset()
+	if err := runInit([]string{"--bogus"}, strings.NewReader(""), &out, noService(t)); err == nil {
+		t.Fatal("unknown flag accepted")
+	}
+	if !strings.Contains(out.String(), "--name NAME") {
+		t.Fatalf("usage missing: %s", out.String())
+	}
+	if strings.Contains(out.String(), "office") {
+		t.Fatalf("usage mentions the alias: %s", out.String())
 	}
 }

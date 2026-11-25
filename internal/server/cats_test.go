@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 // catClock is a settable clock. The catalog's save timer reads it from its
@@ -39,7 +39,7 @@ func catServer(t *testing.T) (*Handler, string, *catClock) {
 	t.Helper()
 	clock := &catClock{at: time.Date(2026, 11, 25, 9, 0, 0, 0, time.UTC)}
 	path := filepath.Join(t.TempDir(), "cats.json")
-	store := office.NewStore(clock.now, func(int) bool { return true })
+	store := sessions.NewStore(clock.now, func(int) bool { return true })
 	h := New(Options{Store: store, Now: clock.now, ScreenKey: "k", CatsPath: path, Settings: Settings{Configured: true}})
 	return h, path, clock
 }

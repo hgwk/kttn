@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -15,7 +16,7 @@ func TestConfigRoundTripsAndStaysPrivate(t *testing.T) {
 	if err != nil || found || cfg.Port != DefaultPort {
 		t.Fatalf("missing file: %+v %v %v", cfg, found, err)
 	}
-	want := Config{OfficeName: "우리 팀", Lang: "ja", Port: 5999, Token: "t", Preview: true}
+	want := Config{Name: "우리 팀", Lang: "ja", Port: 5999, Token: "t", Preview: true}
 	if err := Save(path, want); err != nil {
 		t.Fatal(err)
 	}
@@ -111,5 +112,27 @@ func TestOnlyTheKttnHoldingThisScreenKeyKeepsItsPort(t *testing.T) {
 		if got := PickPort(port, key); got == port || got == 0 {
 			t.Fatalf("key %q took another kttn's port %d", key, got)
 		}
+	}
+}
+
+// A config written before the rename keeps its name, and the next save
+// moves it to kttn_name.
+func TestAnOldOfficeNameIsReadAndSavedUnderTheNewKey(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "config.json")
+	os.WriteFile(path, []byte(`{"office_name": "우리 팀", "port": 5999, "token": "t"}`), 0o600)
+	cfg, found, err := Load(path)
+	if err != nil || !found || cfg.Name != "우리 팀" {
+		t.Fatalf("got %+v %v %v", cfg, found, err)
+	}
+	if err := Save(path, cfg); err != nil {
+		t.Fatal(err)
+	}
+	raw, _ := os.ReadFile(path)
+	if !strings.Contains(string(raw), `"kttn_name": "우리 팀"`) || strings.Contains(string(raw), "office_name") {
+		t.Fatalf("saved %s", raw)
+	}
+	os.WriteFile(path, []byte(`{"kttn_name": "new", "office_name": "old"}`), 0o600)
+	if cfg, _, _ := Load(path); cfg.Name != "new" {
+		t.Fatalf("the new key should win: %q", cfg.Name)
 	}
 }

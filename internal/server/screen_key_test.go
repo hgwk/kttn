@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 // Origin and Host can be forged by any program on this computer, so the
 // screen's reads and actions also need the key only this user can read.
 func TestScreenRoutesNeedTheScreenKey(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
 	focused := 0
 	h := New(Options{Store: store, ScreenKey: "screen-secret", Settings: Settings{Configured: true}, PropsPath: filepath.Join(t.TempDir(), "props.json"),
 		Focus: func(int) error { focused++; return nil }})
@@ -58,11 +58,11 @@ func TestScreenRoutesNeedTheScreenKey(t *testing.T) {
 	}
 }
 
-// An office not set up yet has keys nobody knows: the screen still gets its
+// A kttn not set up yet has keys nobody knows: the screen still gets its
 // onboarding, but no sessions, and nothing reaches a terminal.
-func TestAnUnconfiguredOfficeShowsOnboardingAndNothingElse(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
-	store.Apply(office.Event{Source: "claude", Session: "old", Project: "p", Event: "Stop"})
+func TestAnUnconfiguredKttnShowsOnboardingAndNothingElse(t *testing.T) {
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
+	store.Apply(sessions.Event{Source: "claude", Session: "old", Project: "p", Event: "Stop"})
 	focused := 0
 	h := New(Options{Store: store, Token: "t", ScreenKey: "nobody-knows", Focus: func(int) error { focused++; return nil }})
 	rec := get(h, "127.0.0.1:5886", "/api/snapshot")

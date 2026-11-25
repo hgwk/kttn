@@ -1,11 +1,11 @@
-import { MessagesContext } from "@/office/messages-setting"
+import { MessagesContext } from "@/kttn/messages-setting"
 import { useEffect, useState } from "react"
 
 import { pickLang, setLang, t } from "@/i18n"
 import { loadScreenKey } from "@/lib/screen-key"
 import { fetchSnapshot, KeyError, type ServerSnapshot } from "@/lib/snapshot"
-import { AgentOfficeView } from "@/office/agent-office-view"
-import { OnboardingNote } from "@/office/onboarding-note"
+import { KttnView } from "@/kttn/kttn-view"
+import { OnboardingNote } from "@/kttn/onboarding-note"
 
 function applyLang(configured: string) {
   const query = new URLSearchParams(window.location.search).get("lang")
@@ -14,7 +14,7 @@ function applyLang(configured: string) {
   document.documentElement.lang = chosen
 }
 
-// 첫 화면은 스냅숏 하나를 받은 뒤 그린다. 이후 갱신은 사무실 화면이 폴링한다.
+// 첫 화면은 스냅숏 하나를 받은 뒤 그린다. 이후 갱신은 kttn 화면이 폴링한다.
 // 언어는 받은 설정으로 정하고, 받기 전 안내 문구는 브라우저 언어를 따른다.
 applyLang("")
 loadScreenKey()
@@ -38,7 +38,7 @@ export function App() {
       {initial && !initial.settings.configured ? <OnboardingNote /> : null}
       {initial ? (
         <MessagesContext value={initial.settings.messages}>
-          <AgentOfficeView initial={initial} />
+          <KttnView initial={initial} />
         </MessagesContext>
       ) : (
         <p className="text-sm text-muted-foreground">

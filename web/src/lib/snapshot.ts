@@ -2,11 +2,11 @@
 // 세션 저장 모양 그대로 보내고, 화면용 이름·상태 판단은 여기서 한다.
 
 import { apiFetch } from "@/lib/screen-key"
-import { toSessionAgents, type OfficeSnapshot } from "@/lib/agent-office"
+import { toSessionAgents, type KttnSnapshot } from "@/lib/kttn"
 
-export type OfficeSettings = {
-  /** 건물과 홈 폴더 사무실의 이름 */
-  officeName: string
+export type KttnSettings = {
+  /** 건물과 홈 폴더 구역의 이름 */
+  kttnName: string
   /** 화면 언어(ko·en·ja). 없으면 브라우저 언어를 따른다. */
   lang: string
   /** kttn init을 마쳤는지. 아니면 화면이 설정 안내를 보인다. */
@@ -15,7 +15,7 @@ export type OfficeSettings = {
   messages: boolean
 }
 
-export type ServerSnapshot = OfficeSnapshot & { settings: OfficeSettings }
+export type ServerSnapshot = KttnSnapshot & { settings: KttnSettings }
 
 function text(value: unknown) {
   return typeof value === "string" ? value : ""
@@ -32,7 +32,7 @@ export function readSnapshot(raw: unknown): ServerSnapshot {
     agents: toSessionAgents(body, Date.parse(generatedAt)),
     generatedAt,
     settings: {
-      officeName: text(settings.officeName),
+      kttnName: text(settings.kttnName),
       lang: text(settings.lang),
       configured: settings.configured === true,
       messages: settings.messages === true,

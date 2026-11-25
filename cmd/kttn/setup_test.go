@@ -44,7 +44,7 @@ func TestSetupDoesEverythingOnceAndAgainWithoutAsking(t *testing.T) {
 		t.Fatal(err)
 	}
 	cfg, found, _ := config.Load(config.Path())
-	if !found || cfg.OfficeName != "우리 팀" || cfg.Lang != "ja" || cfg.Preview || cfg.Token == "" {
+	if !found || cfg.Name != "우리 팀" || cfg.Lang != "ja" || cfg.Preview || cfg.Token == "" {
 		t.Fatalf("config %+v", cfg)
 	}
 	stable := filepath.Join(m.home, ".local", "bin", "kttn")
@@ -68,7 +68,7 @@ func TestSetupDoesEverythingOnceAndAgainWithoutAsking(t *testing.T) {
 		t.Fatal(err)
 	}
 	again, _, _ := config.Load(config.Path())
-	if again.Token != cfg.Token || again.OfficeName != cfg.OfficeName {
+	if again.Token != cfg.Token || again.Name != cfg.Name {
 		t.Fatalf("config changed: %+v", again)
 	}
 	if entries, _ := os.ReadDir(filepath.Dir(m.service.Path())); len(entries) != 1 {

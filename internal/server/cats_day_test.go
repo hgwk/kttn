@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 func dayBook(t *testing.T, path string) (*catBook, *catClock) {
@@ -15,10 +15,10 @@ func dayBook(t *testing.T, path string) (*catBook, *catClock) {
 	return newCatBook(path, clock.now), clock
 }
 
-func (b *catBook) recordPre(a office.Agent, e office.Event) { b.record(a, e, 1) }
+func (b *catBook) recordPre(a sessions.Agent, e sessions.Event) { b.record(a, e, 1) }
 
-func pre(n int) (office.Agent, office.Event) {
-	return office.Agent{Key: "claude|a", Source: "claude", State: "thinking", ToolCount: n}, office.Event{Event: "PreToolUse"}
+func pre(n int) (sessions.Agent, sessions.Event) {
+	return sessions.Agent{Key: "claude|a", Source: "claude", State: "thinking", ToolCount: n}, sessions.Event{Event: "PreToolUse"}
 }
 
 // Events can be recorded in another order than the store applied them
@@ -30,7 +30,7 @@ func TestEveryStartedToolCountsOnceWhateverTheOrderOrAResume(t *testing.T) {
 		b.recordPre(pre(n))
 	}
 	late, _ := pre(3)
-	b.record(late, office.Event{Event: "PostToolUse"}, 1)
+	b.record(late, sessions.Event{Event: "PostToolUse"}, 1)
 	for _, n := range []int{1, 2} {
 		b.recordPre(pre(n))
 	}
@@ -49,7 +49,7 @@ func TestEveryStartedToolCountsOnceWhateverTheOrderOrAResume(t *testing.T) {
 // 0.7.0 with last_count still loads and keeps counting by events.
 func TestACatMetMidSessionAndA070FileStartWhereTheyAre(t *testing.T) {
 	b, _ := dayBook(t, filepath.Join(t.TempDir(), "cats.json"))
-	b.record(office.Agent{Key: "claude|m", Source: "claude", State: "thinking", ToolCount: 40}, office.Event{Event: "PostToolUse"}, 1)
+	b.record(sessions.Agent{Key: "claude|m", Source: "claude", State: "thinking", ToolCount: 40}, sessions.Event{Event: "PostToolUse"}, 1)
 	if got := b.list()[0]; got.Tools != 40 || got.Day != nil {
 		t.Fatalf("mid-session %d %+v", got.Tools, got.Day)
 	}

@@ -21,9 +21,9 @@ it commercially freely.") The font's own name table also gives its copyright as
 
 ## Sprites
 
-The cats, furniture, office tiles and app icon in `web/src/office/sprite-art/`
+The cats, furniture, floor tiles and app icon in `web/src/kttn/sprite-art/`
 are original pixel art, drawn for this project on character grids. The first
-version of the office used PNGs from a third-party asset pack; those were
+version of kttn used PNGs from a third-party asset pack; those were
 removed and replaced with these grids, and the desk, dark desk, monitor,
 monitor back, keyboard and chair, the pieces that might have carried that
 pack's influence, were later redrawn from scratch at new sizes and shapes. No

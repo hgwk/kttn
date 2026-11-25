@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 func get(h http.Handler, host, path string) *httptest.ResponseRecorder {
@@ -32,7 +32,7 @@ func TestTheInstallableAppIsServedToThisComputer(t *testing.T) {
 		!strings.Contains(manifest.Body.String(), `"display": "standalone"`) {
 		t.Fatalf("manifest: %d %s", manifest.Code, manifest.Header().Get("Content-Type"))
 	}
-	for _, icon := range []string{"/icons/office-icon-192.png", "/icons/office-icon-512.png", "/icons/office-icon-maskable-512.png"} {
+	for _, icon := range []string{"/icons/kttn-icon-192.png", "/icons/kttn-icon-512.png", "/icons/kttn-icon-maskable-512.png"} {
 		if rec := get(h, "127.0.0.1:5886", icon); rec.Code != 200 || rec.Header().Get("Content-Type") != "image/png" {
 			t.Errorf("%s: %d %s", icon, rec.Code, rec.Header().Get("Content-Type"))
 		}
@@ -46,10 +46,10 @@ func TestTheInstallableAppIsServedToThisComputer(t *testing.T) {
 }
 
 func TestTheSnapshotCarriesTheOnboardingSettings(t *testing.T) {
-	store := office.NewStore(time.Now, func(int) bool { return true })
-	h := New(Options{Store: store, Settings: Settings{OfficeName: "우리 팀", Lang: "ko", Configured: true}})
+	store := sessions.NewStore(time.Now, func(int) bool { return true })
+	h := New(Options{Store: store, Settings: Settings{Name: "우리 팀", Lang: "ko", Configured: true}})
 	body := get(h, "127.0.0.1", "/api/snapshot").Body.String()
-	for _, want := range []string{`"officeName":"우리 팀"`, `"lang":"ko"`, `"configured":true`} {
+	for _, want := range []string{`"kttnName":"우리 팀"`, `"lang":"ko"`, `"configured":true`} {
 		if !strings.Contains(body, want) {
 			t.Errorf("snapshot lacks %s: %s", want, body)
 		}

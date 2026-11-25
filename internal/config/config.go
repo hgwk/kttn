@@ -19,8 +19,8 @@ const DefaultPort = 5886
 
 // Config is what onboarding asks for.
 type Config struct {
-	// OfficeName names the building and the home-folder office.
-	OfficeName string `json:"office_name"`
+	// Name is what the screen calls this kttn; the home-folder area takes it too.
+	Name string `json:"kttn_name"`
 	// Lang is the screen language: ko, en or ja. Empty follows the browser.
 	Lang string `json:"lang"`
 	Port int    `json:"port"`
@@ -87,6 +87,16 @@ func Load(path string) (cfg Config, found bool, err error) {
 	if err := json.Unmarshal(raw, &cfg); err != nil {
 		return Config{Port: DefaultPort}, false, err
 	}
+	// Configs from 0.13 and earlier name it office_name. Read it; the next
+	// Save writes kttn_name only.
+	if cfg.Name == "" {
+		var old struct {
+			Name string `json:"office_name"`
+		}
+		if json.Unmarshal(raw, &old) == nil {
+			cfg.Name = old.Name
+		}
+	}
 	if cfg.Port <= 0 || cfg.Port > 65535 {
 		cfg.Port = DefaultPort
 	}
@@ -135,9 +145,9 @@ func (c *Config) EnsureKeys() (bool, error) {
 	return changed, nil
 }
 
-// OfficeURL is the office's address; the key rides in the fragment, which
+// URL is kttn's address; the key rides in the fragment, which
 // browsers never send to the server.
-func (c Config) OfficeURL() string {
+func (c Config) URL() string {
 	return "http://127.0.0.1:" + strconv.Itoa(c.Port) + "/#k=" + c.ScreenKey
 }
 

@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 func TestDraggedPropsAreSavedAndServedBack(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "kttn", "props.json")
-	h := New(Options{Store: office.NewStore(time.Now, func(int) bool { return true }), PropsPath: path})
+	h := New(Options{Store: sessions.NewStore(time.Now, func(int) bool { return true }), PropsPath: path})
 	if body := get(h, "127.0.0.1:5886", "/api/props").Body.String(); strings.TrimSpace(body) != `{"rooms":{}}` {
 		t.Fatalf("empty: %s", body)
 	}

@@ -132,7 +132,7 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 	}
 	if !found {
 		ask := prompter{in: bufio.NewReader(in), out: out}
-		cfg.OfficeName = ask.text("kttn name (kttn 이름 / kttn の名前)", cfg.OfficeName)
+		cfg.Name = ask.text("kttn name (kttn 이름 / kttn の名前)", cfg.Name)
 		cfg.Lang = strings.ToLower(ask.text("Screen language ko/en/ja (blank: follow the browser)", ""))
 		if cfg.Lang != "" && cfg.Lang != "ko" && cfg.Lang != "en" && cfg.Lang != "ja" {
 			return fmt.Errorf("language %q is not ko, en or ja", cfg.Lang)
@@ -184,7 +184,7 @@ func runSetup(in io.Reader, out io.Writer, m machine) error {
 	for tries := 0; tries < 25 && !m.ready(url); tries++ {
 		time.Sleep(200 * time.Millisecond)
 	}
-	m.open(cfg.OfficeURL())
+	m.open(cfg.URL())
 	fmt.Fprintf(out, "kttn is open at %s (`kttn open` opens it again). Sessions show up from their next prompt.\n", url)
 	return nil
 }

@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hgwk/kttn/internal/office"
+	"github.com/hgwk/kttn/internal/sessions"
 )
 
 const (
@@ -51,7 +51,7 @@ type catalog struct {
 // resting states are not work: night_owl counts only the others.
 var resting = map[string]bool{"idle": true, "done": true, "ended": true}
 
-// catBook is the catalog file: every session the office has seen, kept even
+// catBook is the catalog file: every session kttn has seen, kept even
 // while no screen is open. Writes are gathered like the session state's.
 type catBook struct {
 	path  string
@@ -84,9 +84,9 @@ func newCatBook(path string, now func() time.Time) *catBook {
 }
 
 // record notes a session after an event, and live is how many sessions are
-// at the office right now. Headless runs are skipped: they leave as soon as
+// at kttn right now. Headless runs are skipped: they leave as soon as
 // they end and would crowd everything else out.
-func (b *catBook) record(a office.Agent, event office.Event, live int) {
+func (b *catBook) record(a sessions.Agent, event sessions.Event, live int) {
 	if a.Headless || a.Key == "" {
 		return
 	}

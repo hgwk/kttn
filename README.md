@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/web/public/icons/office-icon-192.png" width="96" height="96" alt="kttn app icon: a white pixel cat in a suit and an orange tie">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/web/public/icons/kttn-icon-192.png" width="96" height="96" alt="kttn app icon: a white pixel cat in a suit and an orange tie">
 </p>
 
 <h1 align="center">kttn</h1>
@@ -198,7 +198,7 @@ worktree creation.
 | Command | What it does |
 | --- | --- |
 | `kttn` or `kttn setup` | One-command setup: kttn name and language on the first run, Claude Code hooks, start at login, open kttn. |
-| `kttn init [--yes] [--office-name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
+| `kttn init [--yes] [--name NAME] [--lang ko\|en\|ja] [--port N] [--preview] [--messages]` | Asks for the settings (or takes flags with `--yes`), keeps earlier answers as defaults, picks another port if the one you want is taken by something else, and generates the token the hook and the server share. |
 | `kttn serve [--port N]` | Runs kttn on `127.0.0.1`. |
 | `kttn hook [--config FILE] [--url URL] [--source claude] [--timeout 300ms]` | The Claude Code hook. Reads a hook payload on stdin. Setup pins `--config` to the config it wrote. |
 | `kttn install` | Adds the hook to Claude Code's user settings, for use without the plugin. |

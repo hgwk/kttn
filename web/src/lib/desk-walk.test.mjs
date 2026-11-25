@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import test from "node:test"
 
-import { officeLayout, seatPoint } from "./desk-layout.ts"
+import { deskLayout, seatPoint } from "./desk-layout.ts"
 import {
   deskGrid,
   loungeExit,
@@ -65,7 +65,7 @@ test("모든 배치에서 모든 길이 막힌 칸과 방 밖을 지나지 않�
   for (let count = 1; count <= 12; count++)
     for (let cols = 1; cols <= 4; cols++)
       for (const [p, pattern] of PATTERNS.entries()) {
-        const layout = officeLayout(count, cols)
+        const layout = deskLayout(count, cols)
         const grid = deskGrid(layout, count, freeBoxes(layout, count, pattern))
         const n = Math.min(count, layout.cols * layout.rows)
         for (let index = 0; index < n; index++) {
@@ -88,7 +88,7 @@ test("모든 배치에서 모든 길이 막힌 칸과 방 밖을 지나지 않�
 })
 
 test("방 밖이나 막힌 곳에 있으면 가장 가까운 걸을 수 있는 칸으로 묶는다", () => {
-  const layout = officeLayout(3, 3)
+  const layout = deskLayout(3, 3)
   const grid = deskGrid(layout, 3)
   const bounds = walkBounds(layout)
   for (const p of [
@@ -104,14 +104,14 @@ test("방 밖이나 막힌 곳에 있으면 가장 가까운 걸을 수 있는 �
 })
 
 test("길은 통로를 따라 몇 번만 꺾인다", () => {
-  const layout = officeLayout(8, 4)
+  const layout = deskLayout(8, 4)
   const grid = deskGrid(layout, 8)
   const path = route(grid, seatPoint(layout, 7), layout.door)
   assert.ok(path.length <= 7, JSON.stringify(path))
 })
 
 test("큰 배치에서도 길 하나를 찾는 데 오래 걸리지 않는다", () => {
-  const layout = officeLayout(12, 1)
+  const layout = deskLayout(12, 1)
   const grid = deskGrid(layout, 12)
   const started = performance.now()
   for (let k = 0; k < 12; k++)
