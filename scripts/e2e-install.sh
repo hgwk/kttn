@@ -107,7 +107,7 @@ check "setup: npx binary copied to a stable path" "[ -x '$KTTN' ]"
 KTTN_SEEN=$KTTN
 KTTN=$(node -e 'try{console.log(require("fs").realpathSync(process.argv[1]))}catch{console.log(process.argv[1])}' "$KTTN")
 VERSION=$("$KTTN" version 2>/dev/null); echo "      under test: $VERSION"
-# Newer behaviour is checked by the version under test: pass on npm latest and the next release alike.
+# Newer behaviour is checked by the version under test (since 0.x.y && check ...), so the script passes on npm latest and the next release alike. No caller right now.
 since() { ! older "${VERSION#kttn }" "$1"; }
 
 CFG=$KTTN_CONFIG
