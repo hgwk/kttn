@@ -66,7 +66,7 @@ kttn runs on macOS and Linux (arm64 and x86-64). **Windows is not supported.**
 ## How it looks
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="Animated demo: a new cat walks in from the door, cats switch between running and thinking, a kitten leaves, and a finished cat shows its result">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="Animated demo: a new cat walks in from the door, a cat walks across the room to message another session, cats switch between running and thinking, a kitten leaves, and a finished cat shows its result">
 </p>
 
 <p align="center">

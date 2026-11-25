@@ -65,7 +65,7 @@ kttn은 macOS와 Linux(arm64, x86-64)에서 돕니다. **Windows는 지원하지
 ## 움직이는 모습
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="데모 애니메이션: 새 고양이가 문으로 들어오고, 고양이들이 명령 실행과 생각 중을 오가고, 새끼 고양이 하나가 떠나고, 일을 마친 고양이가 결과를 말한다">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="데모 애니메이션: 새 고양이가 문으로 들어오고, 한 고양이가 다른 세션에 말을 걸러 방을 가로질러 걸어가고, 고양이들이 명령 실행과 생각 중을 오가고, 새끼 고양이 하나가 떠나고, 일을 마친 고양이가 결과를 말한다">
 </p>
 
 <p align="center">
