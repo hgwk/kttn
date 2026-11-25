@@ -34,7 +34,8 @@ export type SessionAgent = {
   state: AgentState
   stateLabel: string
   detail: string
-  minions: { id: string; label: string }[]
+  /** 하위 에이전트. waiting이면 그 하위 에이전트가 사람을 기다린다. */
+  minions: { id: string; label: string; waiting?: boolean }[]
   toolCount: number
   statusSince: string
   updatedAt: string
@@ -109,7 +110,8 @@ export function toSessionAgent(raw: unknown, now: number): SessionAgent | null {
     ? row.minions.flatMap((minion) => {
         if (!minion || typeof minion !== "object") return []
         const item = minion as Record<string, unknown>
-        return [{ id: text(item.id, 200), label: text(item.label) }]
+        const waiting = item.waiting === true ? { waiting: true } : {}
+        return [{ id: text(item.id, 200), label: text(item.label), ...waiting }]
       })
     : []
   return {

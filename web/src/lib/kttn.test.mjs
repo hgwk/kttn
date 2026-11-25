@@ -81,6 +81,29 @@ test("drops malformed rows and payloads instead of guessing", () => {
   assert.deepEqual(agents[0].minions, [{ id: "x", label: "" }])
 })
 
+test("marks only the sub-agent the server says is waiting on a person", () => {
+  const [agent] = toSessionAgents(
+    {
+      agents: [
+        row({
+          key: "w",
+          minions: [
+            { id: "a", label: "Explore", waiting: true },
+            { id: "b", label: "Plan" },
+            { id: "c", label: "Test", waiting: "yes" },
+          ],
+        }),
+      ],
+    },
+    now
+  )
+  assert.deepEqual(agent.minions, [
+    { id: "a", label: "Explore", waiting: true },
+    { id: "b", label: "Plan" },
+    { id: "c", label: "Test" },
+  ])
+})
+
 function agentsOf(rows) {
   return toSessionAgents({ agents: rows }, now)
 }

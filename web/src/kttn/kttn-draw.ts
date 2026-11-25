@@ -119,30 +119,31 @@ export function poseFor(state: AgentState): CatPose {
   return TYPING.has(state) ? "type" : "sit"
 }
 
-/** 하위 에이전트는 책상 옆 새끼 고양이로 보인다. */
+/**
+ * 하위 에이전트는 책상 옆 새끼 고양이로 보인다. 도는 동안만 보이므로 늘 자판을
+ * 치고, 사람을 기다리는 하위 에이전트(waiting)만 고개를 든다.
+ */
 export function drawMinions(
   ctx: CanvasRenderingContext2D,
   layout: DeskLayout,
   index: number,
-  count: number,
+  minions: { waiting?: boolean }[],
   tie: string,
   key: string,
   t: number,
   /** 자유 자리 그림 상자. 있으면 그 양옆 바닥에 선다. */
-  seat?: { cx: number; w: number; bottom: number } | null,
-  /** 새끼 고양이 자세. 기본은 자판 치기(하위 에이전트는 늘 일하는 중이다). */
-  pose: CatPose = "type"
+  seat?: { cx: number; w: number; bottom: number } | null
 ) {
   const { x, y } = seatFor(layout, index)
   // 새끼 고양이는 10px라 책상 양옆에 11px 간격으로 둘씩 선다.
-  for (let i = 0; i < Math.min(count, 4); i++) {
+  for (let i = 0; i < Math.min(minions.length, 4); i++) {
     const side = i % 2 === 0 ? -1 : 1
     const step = Math.floor(i / 2) * 11
     const mx = seat
       ? seat.cx + side * (seat.w / 2 + 6 + step)
       : x + CAT_DX + side * (22 + step) - (side < 0 ? 6 : 0)
     const my = seat ? seat.bottom : y + 20
-    drawKitten(ctx, mx, my, coatFor(`${key}:${i}`), tie, t + i * 90, pose)
+    drawKitten(ctx, mx, my, coatFor(`${key}:${i}`), tie, t + i * 90, minions[i].waiting)
   }
 }
 

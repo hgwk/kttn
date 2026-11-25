@@ -9,8 +9,7 @@ import {
   CAT_SIDE_PLAY,
   CAT_SIDE_WALK,
   KITTEN,
-  KITTEN_FRAME,
-  KITTEN_IDLE,
+  KITTEN_WAIT,
   POSE_FRAME,
   SMOKE,
   type Grid,
@@ -96,8 +95,8 @@ const CAT_SHEETS = {
   "side-play": CAT_SIDE_PLAY,
   // 하위 에이전트용 새끼 고양이(10×10). 앞발을 번갈아 드는 두 칸이다.
   kitten: KITTEN,
-  // 새끼 고양이가 쉬거나 자거나 사람을 부를 때(앉음, 깜빡임, 잠, 놀람)
-  "kitten-idle": KITTEN_IDLE,
+  // 사람을 기다리는 새끼 고양이(한 칸)
+  "kitten-wait": [KITTEN_WAIT],
 }
 
 type SheetName = keyof typeof CAT_SHEETS
@@ -213,21 +212,12 @@ export function drawKitten(
   coatIndex: number,
   tie: string,
   t: number,
-  /** 자세. 기본은 자판 치기이고, 쉼·잠·놀람 칸(e3의 KITTEN_IDLE)도 그릴 수 있다. */
-  pose: CatPose = "type"
+  /** 그 하위 에이전트가 사람을 기다리는 중(고개를 들고 멈춘다) */
+  waiting = false
 ) {
-  const typing = pose === "type"
-  const src = catSheet(coatIndex, tie, typing ? "kitten" : "kitten-idle")
+  const src = catSheet(coatIndex, tie, waiting ? "kitten-wait" : "kitten")
   const size = KITTEN[0].length
-  const frame = typing
-    ? Math.floor(t / 220) % KITTEN.length
-    : pose === "sleep"
-      ? KITTEN_FRAME.sleep
-      : pose === "alert"
-        ? KITTEN_FRAME.alert
-        : [KITTEN_FRAME.sit, KITTEN_FRAME.sit, KITTEN_FRAME.blink, KITTEN_FRAME.sit][
-            Math.floor(t / 500) % 4
-          ]
+  const frame = waiting ? 0 : Math.floor(t / 220) % KITTEN.length
   ctx.imageSmoothingEnabled = false
   ctx.drawImage(
     src,
