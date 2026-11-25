@@ -26,7 +26,7 @@ export { BASE_PALETTE, INK } from "./sprite-art/palette"
 export type { CatKeys, Grid } from "./sprite-art/palette"
 export { CAT_POSE, POSE_FRAME } from "./sprite-art/cat-pose"
 export { SMOKE } from "./sprite-art/smoke"
-export { KITTEN } from "./sprite-art/kitten"
+export { KITTEN, KITTEN_FRAME, KITTEN_IDLE } from "./sprite-art/kitten"
 export {
   CAT_BACK_WALK,
   CAT_FRONT_WALK,
