@@ -96,6 +96,13 @@ test("열 수가 3에서 4로, 다시 2로 바뀌어도(창 폭) 걷는 칸에 �
     { seated: all, cols: 2, frames: 30 },
     { seated: all, cols: 1, frames: LONG },
   ])
+  // 넓은 화면(최대 12열)에서 좁아지는 경우
+  const many = agents(12)
+  run("넓은 열", [
+    { seated: many, cols: 12, mixed: true, frames: SHORT },
+    { seated: many, cols: 6, mixed: true, frames: 40 },
+    { seated: many, cols: 12, mixed: true, frames: LONG },
+  ])
 })
 
 test("자유 자리가 섞이고 고양이가 늘었다 줄었다 해도 걷는 칸에 있다", () => {

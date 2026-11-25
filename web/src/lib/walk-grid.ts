@@ -173,6 +173,27 @@ class Heap {
   }
 }
 
+// 길 찾기에 쓰는 큰 배열은 한 번 만들어 다시 쓴다. 회차 번호(stamp)가 이번
+// 회차와 같은 칸만 값이 있는 것으로 친다(매번 비우지 않아도 된다).
+let buffers = {
+  cost: new Float64Array(0),
+  from4: new Int32Array(0),
+  stamp: new Uint32Array(0),
+  gen: 0,
+}
+function scratch(states: number) {
+  if (buffers.cost.length < states)
+    buffers = {
+      cost: new Float64Array(states),
+      from4: new Int32Array(states),
+      stamp: new Uint32Array(states),
+      gen: 0,
+    }
+  buffers.gen = (buffers.gen + 1) >>> 0 || 1
+  if (buffers.gen === 1) buffers.stamp.fill(0)
+  return buffers
+}
+
 /**
  * from에서 to까지 걸을 수 있는 칸만 지나는 길. 꺾이는 점과 마지막 점을
  * 돌려준다(from은 빼고). 막힌 곳에서 나서거나 막힌 곳으로 가면 가장 가까운
@@ -185,16 +206,21 @@ export function route(grid: Grid, from: Point, to: Point): Point[] {
   if (start < 0 || goal < 0) return []
   const tail = isFree(grid, to) ? [{ x: to.x, y: to.y }] : []
   if (start === goal) return tail.length ? tail : [pointOf(grid, goal)]
-  const states = nx * ny * 4
-  const cost = new Float64Array(states).fill(Infinity)
-  const from4 = new Int32Array(states).fill(-1)
+  const { cost, from4, stamp, gen } = scratch(nx * ny * 4)
+  const known = (s: number) => stamp[s] === gen
   const heap = new Heap()
   const gi = goal % nx
   const gj = Math.floor(goal / nx)
-  const guess = (c: number) =>
-    (Math.abs((c % nx) - gi) + Math.abs(Math.floor(c / nx) - gj)) * CHEAP_COST
+  // 남은 칸 수(통로 값으로)와, 가로세로 모두 남았으면 적어도 한 번 꺾는 값
+  const guess = (c: number) => {
+    const di = Math.abs((c % nx) - gi)
+    const dj = Math.abs(Math.floor(c / nx) - gj)
+    return (di + dj) * CHEAP_COST + (di && dj ? TURN_COST : 0)
+  }
   for (let d = 0; d < 4; d++) {
+    stamp[start * 4 + d] = gen
     cost[start * 4 + d] = 0
+    from4[start * 4 + d] = -1
     heap.push(start * 4 + d, guess(start))
   }
   let found = -1
@@ -218,7 +244,8 @@ export function route(grid: Grid, from: Point, to: Point): Point[] {
         (grid.cheap[n] ? CHEAP_COST : FLOOR_COST) + (nd === d ? 0 : TURN_COST)
       const next = cost[s] + step
       const ns = n * 4 + nd
-      if (next >= cost[ns]) continue
+      if (known(ns) && next >= cost[ns]) continue
+      stamp[ns] = gen
       cost[ns] = next
       from4[ns] = s
       heap.push(ns, next + guess(n))

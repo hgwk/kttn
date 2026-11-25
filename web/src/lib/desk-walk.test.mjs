@@ -11,15 +11,15 @@ import {
 } from "./desk-walk.ts"
 import { isFree, route, settle } from "./walk-grid.ts"
 
-// 자유 자리 그림 크기와 발밑(seat-draw의 SEATS와 같은 값)
-const SEATS = [
-  { w: 24, h: 20, ax: 12, ay: 19 },
-  { w: 30, h: 14, ax: 15, ay: 13 },
-  { w: 26, h: 22, ax: 13, ay: 21 },
-  { w: 32, h: 24, ax: 16, ay: 23 },
-  { w: 26, h: 24, ax: 13, ay: 23 },
-  { w: 28, h: 20, ax: 14, ay: 19 },
-]
+import { SEATS as SEAT_ART } from "../kttn/sprite-art/seats.ts"
+
+// 자유 자리 그림 크기와 발밑(그림 정의에서 바로 읽는다)
+const SEATS = Object.values(SEAT_ART).map((art) => ({
+  w: art.frames.idle[0].length,
+  h: art.frames.idle.length,
+  ax: art.anchor.x,
+  ay: art.anchor.y,
+}))
 
 /** 자리마다 자유 자리 상자(pattern이 0이면 책상) */
 function freeBoxes(layout, count, pattern) {
@@ -63,8 +63,11 @@ function assertWalkable(grid, from, path, label) {
 
 test("모든 배치에서 모든 길이 막힌 칸과 방 밖을 지나지 않는다", () => {
   for (let count = 1; count <= 12; count++)
-    for (let cols = 1; cols <= 4; cols++)
+    // 열은 1부터 방 폭이 허락하는 최대(12)까지. 자리 수보다 많은 열은 같은 배치다.
+    for (let cols = 1; cols <= count; cols++)
       for (const [p, pattern] of PATTERNS.entries()) {
+        // 5열부터는 책상과 자유 자리가 섞인 무늬 하나만 본다(시험 시간).
+        if (cols > 4 && p !== 2) continue
         const layout = deskLayout(count, cols)
         const grid = deskGrid(layout, count, freeBoxes(layout, count, pattern))
         const n = Math.min(count, layout.cols * layout.rows)
