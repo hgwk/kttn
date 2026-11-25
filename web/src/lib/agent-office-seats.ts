@@ -37,3 +37,26 @@ export function seatFrameFor(pose: string, state: string, t: number): SeatFrame 
   if (pose === "type") return Math.floor(t / 220) % 2 ? "work1" : "work0"
   return "idle"
 }
+
+/**
+ * 고양이만 폴짝 뛸 때 들어 올릴 픽셀. 빈 자리(empty)와 다른 픽셀이 고양이이고,
+ * 빈 자리와 같은 외곽선(k)이라도 고양이 픽셀과 맞닿아 있으면 고양이 외곽선으로
+ * 본다(가구 외곽선과 겹친 자리가 비어 보이지 않게). 화면("!")은 가구에 남긴다.
+ */
+export function catOnly(frame: readonly string[], empty: readonly string[]) {
+  const cat = (x: number, y: number) => {
+    const c = frame[y]?.[x]
+    return c !== undefined && c !== "." && c !== "!" && c !== empty[y]?.[x]
+  }
+  return frame.map((row, y) => {
+    let out = ""
+    for (let x = 0; x < row.length; x++) {
+      const c = row[x]
+      const edge =
+        c === "k" &&
+        (cat(x - 1, y) || cat(x + 1, y) || cat(x, y - 1) || cat(x, y + 1))
+      out += cat(x, y) || edge ? c : "."
+    }
+    return out
+  })
+}

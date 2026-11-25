@@ -2,7 +2,7 @@
 // 함께 있다(sprite-art/seats.ts). 털·그늘·눈·넥타이(f·s·e·t)는 고양이마다
 // 칠하고, 기기 화면 "!"는 책상 모니터 LED와 같은 색(ledColor)으로 칠한다.
 import type { AgentState } from "@/lib/agent-office"
-import { seatKindFor, type SeatFrame } from "@/lib/agent-office-seats"
+import { catOnly, seatKindFor, type SeatFrame } from "@/lib/agent-office-seats"
 import { ledColor, type OfficeLayout } from "@/office/office-draw"
 import { seatPoint } from "@/office/walk-paths"
 import { rect } from "@/office/pixel"
@@ -23,8 +23,8 @@ const SCREEN_OFF = "#1f2937"
 type SeatImage = { canvas: HTMLCanvasElement; screen: [number, number][] }
 const cache = new Map<string, SeatImage>()
 
-// 칸 하나를 칠한 그림과 화면("!") 자리. lifted면 빈 자리(empty)와 같은 픽셀과
-// 화면을 비워 고양이만 남긴다(고양이만 폴짝 뛸 때 가구 위에 겹쳐 그린다).
+// 칸 하나를 칠한 그림과 화면("!") 자리. lifted면 고양이만 남긴다(catOnly,
+// 고양이만 폴짝 뛸 때 가구 위에 겹쳐 그린다).
 function seatImage(
   name: string,
   art: SeatArt,
@@ -36,17 +36,12 @@ function seatImage(
   const key = `${name}|${frame}|${coat}|${tie}|${lifted}`
   let hit = cache.get(key)
   if (!hit) {
-    const empty = art.frames.empty
+    const full = art.frames[frame]
     const screen: [number, number][] = []
-    const grid = art.frames[frame].map((row, y) => {
-      let out = ""
-      for (let x = 0; x < row.length; x++) {
-        if (row[x] === SCREEN) screen.push([x, y])
-        const furniture = row[x] === SCREEN || row[x] === empty[y]?.[x]
-        out += lifted && furniture ? "." : row[x]
-      }
-      return out
+    full.forEach((row, y) => {
+      for (let x = 0; x < row.length; x++) if (row[x] === SCREEN) screen.push([x, y])
     })
+    const grid = lifted ? catOnly(full, art.frames.empty) : full
     hit = { canvas: sheetCanvas([grid], catPalette(coat, tie)), screen }
     cache.set(key, hit)
   }
@@ -84,7 +79,12 @@ export function drawSeat(
     )
   } else ctx.drawImage(canvas, left, top)
   const led = (frame !== "empty" && ledColor(state, t)) || SCREEN_OFF
-  for (const [sx, sy] of screen) rect(ctx, left + sx, top + sy, 1, 1, led)
+  // 고양이가 안고 있는 기기(빈 자리에서는 다른 곳에 놓인 화면)는 함께 든다.
+  const empty = art.frames.empty
+  for (const [sx, sy] of screen) {
+    const up = lift > 0 && empty[sy]?.[sx] !== SCREEN ? lift : 0
+    rect(ctx, left + sx, top + sy - up, 1, 1, led)
+  }
 }
 
 /** 발밑에서 머리 꼭대기까지의 높이(대사 꼬리 자리) */

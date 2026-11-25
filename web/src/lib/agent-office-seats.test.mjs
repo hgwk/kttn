@@ -28,3 +28,17 @@ test("자세에 맞춰 칸을 고른다", () => {
   assert.equal(seatFrameFor("sit", "thinking", 0), "idle")
   assert.equal(seatFrameFor("dizzy", "working", 0), "idle")
 })
+
+test("폴짝 뛸 때 가구 외곽선과 겹친 고양이 외곽선도 고양이로 든다", async () => {
+  const { catOnly } = await import("./agent-office-seats.ts")
+  const { SEATS } = await import("../office/sprite-art/seats.ts")
+  const sofa = catOnly(SEATS.sofa.frames.alert, SEATS.sofa.frames.empty)
+  assert.equal(sofa[11][15], "k")
+  assert.equal(sofa[11][16], "k")
+  const sill = catOnly(SEATS.sill.frames.alert, SEATS.sill.frames.empty)
+  assert.notEqual(sill[10][11], ".")
+  assert.notEqual(sill[10][14], ".")
+  // 화면 픽셀과 고양이에서 먼 가구(소파 다리)는 남긴다.
+  assert.ok(!sofa.join("").includes("!"))
+  assert.equal(sofa[22], ".".repeat(32))
+})
