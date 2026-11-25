@@ -64,12 +64,18 @@ export function baseCatName(key: string) {
  *   화면에서 사라진 세션은 지운다.
  * - recorded: 서버 도감에 남은 처음 이름(세션 키 → 이름). 지금 언어의 단어로
  *   읽히면 새로 정할 때 그 단어를 먼저 쓴다.
+ * - revisit: keep에 있어도 다시 정해도 되는 세션(도감이 오기 전에 임시로 정한
+ *   것). 도감 이름이 비어 있으면 그것으로, 아니면 앞서 정한 이름을 그대로 쓴다.
  * 처음 보는 세션은 키에서 정한 단어를 쓰고, 이미 쓰인 단어면 다음 단어로 넘긴다.
  * keep 없이 부르면 새로 고쳐도 같은 이름이다(키 순서로 정한다).
  */
 export function catNames(
   agents: SessionAgent[],
-  options: { keep?: Map<string, number>; recorded?: Map<string, string> } = {}
+  options: {
+    keep?: Map<string, number>
+    recorded?: Map<string, string>
+    revisit?: Set<string>
+  } = {}
 ) {
   const keep = options.keep ?? new Map<string, number>()
   const words = catWords()
@@ -83,16 +89,24 @@ export function catNames(
   // 앞서 정한 이름부터 지킨다.
   for (const key of keys) {
     const index = keep.get(key)
+    if (options.revisit?.has(key)) continue
     if (index === undefined || index >= words.length || used.has(index))
       continue
     used.add(index)
     chosen.set(key, index)
   }
-  // 새로 정할 세션은 도감 이름, 키에서 정한 단어 순서로 비어 있는 것을 고른다.
+  // 새로 정할 세션은 도감 이름, (임시로) 앞서 정한 이름, 키에서 정한 단어
+  // 순서로 비어 있는 것을 고른다.
   for (const key of keys) {
     if (chosen.has(key)) continue
     const saved = byName.get(options.recorded?.get(key) ?? "")
-    let index = saved !== undefined && !used.has(saved) ? saved : wordIndex(key)
+    const kept = keep.get(key)
+    let index =
+      saved !== undefined && !used.has(saved)
+        ? saved
+        : kept !== undefined && kept < words.length && !used.has(kept)
+          ? kept
+          : wordIndex(key)
     for (let tries = 0; used.has(index) && tries < words.length; tries++)
       index = (index + 1) % words.length
     used.add(index)

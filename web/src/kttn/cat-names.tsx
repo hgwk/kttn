@@ -35,11 +35,14 @@ function loadKeep() {
 /**
  * 보이는 세션들의 고양이 이름. 한 번 정한 이름은 그 세션이 화면에 있는 동안
  * 바뀌지 않는다(새 세션이 들어오거나 나가도). 처음 보는 세션은 서버 도감에
- * 남은 처음 이름이 있으면 그것을 쓴다.
+ * 남은 처음 이름이 있으면 그것을 쓴다. 도감은 늦게 오므로, 그 전에 정한 이름은
+ * 도감이 오는 때 한 번만 도감 이름으로 고칠 수 있다.
  */
 export function useStableCatNames(agents: SessionAgent[]) {
   const keep = useRef<Map<string, number>>(null)
   keep.current ??= loadKeep()
+  // 도감이 오기 전에 처음 정한 세션. 도감이 오면 한 번 도감 이름으로 고친다.
+  const provisional = useRef(new Set<string>())
   const catalog = useCatalog()
   const recorded = useMemo(
     () =>
@@ -50,7 +53,20 @@ export function useStableCatNames(agents: SessionAgent[]) {
       ),
     [catalog]
   )
-  const names = catNames(agents, { keep: keep.current, recorded })
+  const before = new Set(keep.current.keys())
+  const names = catNames(agents, {
+    keep: keep.current,
+    recorded,
+    revisit: catalog ? provisional.current : undefined,
+  })
+  if (catalog) provisional.current.clear()
+  else {
+    // 도감이 없는 서버면 계속 비어 있으므로, 보이는 세션만 남긴다.
+    for (const key of provisional.current)
+      if (!names.has(key)) provisional.current.delete(key)
+    for (const key of names.keys())
+      if (!before.has(key)) provisional.current.add(key)
+  }
   const saved = JSON.stringify(Object.fromEntries(keep.current))
   useEffect(() => {
     try {

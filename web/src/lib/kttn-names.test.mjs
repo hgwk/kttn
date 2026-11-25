@@ -108,6 +108,34 @@ test("uses the name the catalog recorded for a new session when it is free", () 
   assert.equal(catNames(cats, { recorded: foreign }).get("claude:b"), base.get("claude:b"))
 })
 
+test("lets the late catalog name replace a name picked before it arrived, once", () => {
+  const cats = [{ key: "claude:a" }, { key: "claude:b" }]
+  // 새 브라우저: 도감이 오기 전 첫 화면에서 이름을 정해 keep에 둔다.
+  const keep = new Map()
+  const early = catNames(cats, { keep })
+  const other = catNames(
+    Array.from({ length: 40 }, (_, i) => ({ key: `claude:y-${i}` }))
+  )
+  const free = [...other.values()].find(
+    (name) => ![...early.values()].includes(name)
+  )
+  const recorded = new Map([["claude:b", free]])
+  // revisit 없이 부르면 앞서 정한 이름이 이긴다(예전 동작).
+  assert.equal(catNames(cats, { keep: new Map(keep), recorded }).get("claude:b"), early.get("claude:b"))
+  // 도감이 온 장면에서 임시로 정한 세션을 다시 정하면 도감 이름을 쓴다.
+  const late = catNames(cats, { keep, recorded, revisit: new Set(["claude:a", "claude:b"]) })
+  assert.equal(late.get("claude:b"), free)
+  assert.equal(late.get("claude:a"), early.get("claude:a"))
+  // 그 뒤로는 keep에 남아 그대로다.
+  assert.equal(catNames(cats, { keep }).get("claude:b"), free)
+  // 도감 이름을 다른 고양이가 쓰고 있으면 임시 이름을 그대로 둔다.
+  const keep2 = new Map()
+  const first = catNames(cats, { keep: keep2 })
+  const taken = new Map([["claude:b", first.get("claude:a")]])
+  const after = catNames(cats, { keep: keep2, recorded: taken, revisit: new Set(["claude:b"]) })
+  assert.equal(after.get("claude:b"), first.get("claude:b"))
+})
+
 test("keeps only a one-line head of a finished session's last answer", () => {
   const now = Date.parse("2026-11-19T11:00:00.000Z")
   const base = {
