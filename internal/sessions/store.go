@@ -53,7 +53,12 @@ type Agent struct {
 	Model      string   `json:"model"`
 	// StartedAs is the last SessionStart source. InstructionsLoaded right
 	// after it overwrites the moment, so it is kept apart.
-	StartedAs   string `json:"started_as"`
+	StartedAs string `json:"started_as"`
+	// SelfWaiting is set while needs_you is the session's own wait, not
+	// only its subagents'. WaitedFrom is the state needs_you replaced, to
+	// go back to when only subagents were waiting and they stop.
+	SelfWaiting bool   `json:"self_waiting,omitempty"`
+	WaitedFrom  string `json:"waited_from,omitempty"`
 	StatusSince string `json:"status_since"`
 	UpdatedAt   string `json:"updated_at"`
 }
