@@ -1,4 +1,4 @@
-import { HEAD } from "./cat-pose"
+import { HEAD } from "./cat-pose.ts"
 import type { Grid } from "./palette"
 
 // 걷는 다리. 0·2는 두 발을 딛고 1·3은 한 발씩 든다. 한 발을 들면 딛은
@@ -29,7 +29,7 @@ const GAIT: [boolean, boolean][] = [
 
 /** 정면 걷기 네 칸. */
 export const CAT_FRONT_WALK: Grid[] = GAIT.map(([l, r]) =>
-  walkFrame(HEAD, WALK_BODY, STEP(l, r))
+  walkFrame(HEAD, WALK_BODY, STEP(l, r)),
 )
 
 // 뒷면. 뒤통수와 셔츠 깃, 정장 등판, 몸 오른쪽으로 세운 꼬리.
@@ -58,13 +58,13 @@ export const CAT_BACK_WALK: Grid[] = GAIT.map(([l, r]) =>
   walkFrame(
     BACK_HEAD,
     BACK_BODY,
-    STEP(l, r).map((row, i) => (i === 0 ? `${row.slice(0, 13)}kk.` : row))
-  )
+    STEP(l, r).map((row, i) => (i === 0 ? `${row.slice(0, 13)}kk.` : row)),
+  ),
 )
 
 // 옆모습(오른쪽을 본다). 정면만큼 큰 머리와 통통한 몸, 짧은 다리, 뒤로 선
 // 꼬리. 왼쪽으로 갈 때는 뒤집어 그린다.
-const SIDE_UPPER: Grid = [
+export const SIDE_UPPER: Grid = [
   "................",
   "......k...k.....",
   ".....knk.knk....",
@@ -100,5 +100,5 @@ const SIDE_LEGS: Grid[] = [
 
 /** 옆 걷기 네 칸. */
 export const CAT_SIDE_WALK: Grid[] = SIDE_LEGS.map((legs, i) =>
-  walkFrame(i % 2 ? SIDE_UPPER_SWAY : SIDE_UPPER, legs)
+  walkFrame(i % 2 ? SIDE_UPPER_SWAY : SIDE_UPPER, legs),
 )

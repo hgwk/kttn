@@ -30,6 +30,8 @@ export { KITTEN } from "./sprite-art/kitten"
 export { CAT_BACK_WALK, CAT_FRONT_WALK, CAT_SIDE_WALK } from "./sprite-art/walk"
 export { TILES } from "./sprite-art/tiles"
 export { clockAt } from "./sprite-art/clock"
+export { SEATS } from "./sprite-art/seats"
+export type { SeatArt, SeatFrame, SeatName } from "./sprite-art/seats"
 
 /** 가구와 기기. 이름별 그림이며 크기는 그림에서 읽는다. */
 export const ITEMS = {

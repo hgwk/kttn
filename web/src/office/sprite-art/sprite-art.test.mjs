@@ -3,6 +3,7 @@ import { readdirSync, readFileSync } from "node:fs"
 import test from "node:test"
 
 import { BASE_PALETTE } from "./palette.ts"
+import { SEATS } from "./seats.ts"
 
 // 소품은 BASE_PALETTE로만 그린다(item-draw.ts). 고양이 털 키(f·s·e·t)처럼
 // 팔레트에 없는 글자는 건너뛰어 빈칸이 되는데 tsc는 잡지 못한다. 그래서
@@ -75,4 +76,50 @@ test("sprite-data.ts가 모든 그림 파일을 합친다", () => {
     )
     .map(({ name }) => name)
   assert.deepEqual(missing, [])
+})
+
+test("자유 자리 그림은 팔레트·고양이 키·화면(!)만 쓰고 칸 크기가 같다", () => {
+  const frames = ["work0", "work1", "idle", "alert", "rest", "empty"]
+  const bad = []
+  for (const [name, seat] of Object.entries(SEATS)) {
+    const first = seat.frames.idle
+    const width = first[0].length
+    const height = first.length
+    if (width > 32 || height > 24)
+      bad.push(`${name}: ${width}x${height} > 32x24`)
+    for (const point of ["anchor", "head"]) {
+      const { x, y } = seat[point]
+      if (x < 0 || y < 0 || x >= width || y >= height)
+        bad.push(`${name}: ${point} (${x},${y}) 밖`)
+    }
+    for (const frame of frames) {
+      const grid = seat.frames[frame]
+      if (!grid) {
+        bad.push(`${name}.${frame} 없음`)
+        continue
+      }
+      if (grid.length !== height)
+        bad.push(`${name}.${frame} 높이 ${grid.length}`)
+      grid.forEach((row, y) => {
+        if (row.length !== width)
+          bad.push(`${name}.${frame} ${y}행 폭 ${row.length}`)
+        ;[...row].forEach((cell, x) => {
+          if (
+            cell !== "." &&
+            cell !== "!" &&
+            !"fset".includes(cell) &&
+            !(cell in BASE_PALETTE)
+          )
+            bad.push(`${name}.${frame} (${x},${y}) "${cell}"`)
+        })
+      })
+    }
+    // 고양이가 있는 칸에는 넥타이(t)가 두 칸 넘게 보이고, 빈자리에는 고양이가 없다.
+    for (const frame of frames) {
+      const ties = seat.frames[frame].join("").split("t").length - 1
+      if (frame === "empty" ? ties > 0 : ties < 2)
+        bad.push(`${name}.${frame} 넥타이 ${ties}칸`)
+    }
+  }
+  assert.deepEqual(bad, [])
 })

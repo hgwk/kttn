@@ -24,20 +24,28 @@ const face = (eyes: Grid, mouth = HEAD[9]): Grid => [
   HEAD[10],
 ]
 // 감은 눈: 눈 아래쪽에 가로줄.
-const BLINK = face(["..kffffffffffk..", ".kffffffffffffk.", ".kffkkkffkkkffk."])
+export const BLINK = face([
+  "..kffffffffffk..",
+  ".kffffffffffffk.",
+  ".kffkkkffkkkffk.",
+])
 // 잠든 눈: 아래로 둥근 반달.
-const SLEEP = face(["..kffffffffffk..", ".kffkfkffkfkffk.", ".kfffkffffkfffk."])
+export const SLEEP = face([
+  "..kffffffffffk..",
+  ".kffkfkffkfkffk.",
+  ".kfffkffffkfffk.",
+])
 // 놀란 얼굴: 눈을 한 칸 더 크게 뜨고 입을 벌린다.
 // 오류로 멈춘 얼굴: X자 눈에 입을 꾹 다문다. 졸린 얼굴과 헷갈리지 않게 한다.
 const DIZZY = face(
   ["..kfefeffefefk..", ".kfffeffffefffk.", ".kffefeffefeffk."],
-  "..kssfkkkkfssk.."
+  "..kssfkkkkfssk..",
 )
-const SURPRISED = face(HEAD.slice(5, 8), "..kffffkkffffk..").map((row, y) =>
-  y === 4 ? "..kffeffffeffk.." : row
+export const SURPRISED = face(HEAD.slice(5, 8), "..kffffkkffffk..").map(
+  (row, y) => (y === 4 ? "..kffeffffeffk.." : row),
 )
 
-const BODY: Grid = [
+export const BODY: Grid = [
   "...kjwwttwwjk...",
   "..kjjjwttwjjjk..",
   "..kfjjjttjjjfk..",
