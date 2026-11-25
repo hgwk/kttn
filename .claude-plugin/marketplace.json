@@ -6,7 +6,7 @@
   "plugins": [
     {
       "name": "kttn",
-      "version": "0.14.2",
+      "version": "0.15.0",
       "source": "./plugin",
       "description": "Shows your Claude Code sessions as pixel cats on this computer."
     }
