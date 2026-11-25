@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import test from "node:test"
 
 import { LOUNGE_HALF, loungeRoute } from "./lounge-route.ts"
-import { isFree } from "./walk-grid.ts"
+import { isFree, routeStats } from "./walk-grid.ts"
 
 // 휴게 공간(화면 px, 확대 전). 제자리 발밑이 (0, 0)이 되게 옮겨 둔 상자들이다.
 const box = (l, t, w, h) => ({ l, t, r: l + w, b: t + h })
@@ -60,13 +60,18 @@ test("찾아가는 소품은 막지 않아 그 위(자는 자리)에도 그대�
   assert.deepEqual(crowded.rest, { x: 23, y: -15 })
 })
 
-test("넓은 휴게 공간에서도 길 하나를 빨리 찾는다", () => {
+test("넓은 휴게 공간에서도 길 하나에 꺼내 보는 상태가 적다", () => {
+  // 시간 대신 계산량(A*가 꺼내 본 칸×방향 수)을 잰다. 기계 속도와 관계없다.
+  // 2000×900에서 지금 최대 약 1,200이다(모든 상태는 약 11만).
   const room = box(0, 0, 2000, 900)
   const props = Array.from({ length: 10 }, (_, k) => box(150 + k * 170, 300 + (k % 3) * 150, 60, 50))
-  const started = performance.now()
-  for (let k = 0; k < 10; k++) loungeRoute(room, props, { x: 1000, y: -12 }, { x: 100 + k * 180, y: 880 })
-  const each = (performance.now() - started) / 10
-  assert.ok(each < 15, `길 하나 ${each.toFixed(1)}ms`)
+  let most = 0
+  for (let k = 0; k < 10; k++) {
+    const { fallback } = loungeRoute(room, props, { x: 1000, y: -12 }, { x: 100 + k * 180, y: 880 })
+    assert.equal(fallback, false)
+    most = Math.max(most, routeStats.expanded)
+  }
+  assert.ok(most < 6000, `꺼내 본 상태 ${most}`)
 })
 
 test("제자리가 방 벽에 걸치면 방 안으로, 이웃 소품에 겹치면 옆 빈 칸으로 비킨다", () => {

@@ -9,7 +9,7 @@ import {
   strollPoint,
   walkBounds,
 } from "./desk-walk.ts"
-import { isFree, route, settle } from "./walk-grid.ts"
+import { isFree, route, routeStats, settle } from "./walk-grid.ts"
 
 import { SEATS as SEAT_ART } from "../kttn/sprite-art/seats.ts"
 
@@ -113,11 +113,15 @@ test("길은 통로를 따라 몇 번만 꺾인다", () => {
   assert.ok(path.length <= 7, JSON.stringify(path))
 })
 
-test("큰 배치에서도 길 하나를 찾는 데 오래 걸리지 않는다", () => {
+test("큰 배치에서도 길 하나에 꺼내 보는 상태가 적다", () => {
+  // 시간 대신 계산량(A*가 꺼내 본 칸×방향 수)을 잰다. 기계 속도와 관계없다.
+  // 12자리 1열(가장 긴 구역)에서 지금 최대 약 2,600이다(모든 상태는 약 9만).
   const layout = deskLayout(12, 1)
   const grid = deskGrid(layout, 12)
-  const started = performance.now()
-  for (let k = 0; k < 12; k++)
-    route(grid, seatPoint(layout, 11 - k), layout.door)
-  assert.ok(performance.now() - started < 600)
+  let most = 0
+  for (let k = 0; k < 12; k++) {
+    assert.ok(route(grid, seatPoint(layout, 11 - k), layout.door).length)
+    most = Math.max(most, routeStats.expanded)
+  }
+  assert.ok(most < 13000, `꺼내 본 상태 ${most}`)
 })

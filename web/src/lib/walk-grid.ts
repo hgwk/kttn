@@ -15,6 +15,8 @@ export type Grid = {
   ny: number
   blocked: Uint8Array
   cheap: Uint8Array
+  /** 한 칸 걷는 가장 싼 값(통로 칸이 없으면 바닥 값). 어림값에 쓴다. */
+  minStep: number
 }
 
 const CELL = 2
@@ -60,7 +62,8 @@ export function makeGrid(
         near(bounds.t + j * cell, cheapY)
       )
         cheap[j * nx + i] = 1
-  return { bounds, cell, nx, ny, blocked, cheap }
+  const minStep = cheap.includes(1) ? CHEAP_COST : FLOOR_COST
+  return { bounds, cell, nx, ny, blocked, cheap, minStep }
 }
 
 const clamp = (v: number, lo: number, hi: number) =>
@@ -195,6 +198,12 @@ function scratch(states: number) {
 }
 
 /**
+ * 마지막 길 찾기에서 꺼내 본 상태(칸×방향) 수. 시험이 기계 속도와 관계없이
+ * 계산량을 재는 데 쓴다.
+ */
+export const routeStats = { expanded: 0 }
+
+/**
  * from에서 to까지 걸을 수 있는 칸만 지나는 길. 꺾이는 점과 마지막 점을
  * 돌려준다(from은 빼고). 막힌 곳에서 나서거나 막힌 곳으로 가면 가장 가까운
  * 걸을 수 있는 칸을 거친다. 길이 없으면 빈 목록이다.
@@ -215,7 +224,7 @@ export function route(grid: Grid, from: Point, to: Point): Point[] {
   const guess = (c: number) => {
     const di = Math.abs((c % nx) - gi)
     const dj = Math.abs(Math.floor(c / nx) - gj)
-    return (di + dj) * CHEAP_COST + (di && dj ? TURN_COST : 0)
+    return (di + dj) * grid.minStep + (di && dj ? TURN_COST : 0)
   }
   for (let d = 0; d < 4; d++) {
     stamp[start * 4 + d] = gen
@@ -224,8 +233,10 @@ export function route(grid: Grid, from: Point, to: Point): Point[] {
     heap.push(start * 4 + d, guess(start))
   }
   let found = -1
+  routeStats.expanded = 0
   while (heap.size) {
     const s = heap.pop()
+    routeStats.expanded++
     const c = s >> 2
     const d = s & 3
     if (c === goal) {

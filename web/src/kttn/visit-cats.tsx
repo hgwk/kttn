@@ -1,17 +1,23 @@
-import { useEffect, useRef, type CSSProperties } from "react"
+import { useEffect, useRef } from "react"
 import { createPortal } from "react-dom"
 
-import { CAT_HEAD, familyColor, type deskLayout } from "@/kttn/kttn-draw"
+import { familyColor, type deskLayout } from "@/kttn/kttn-draw"
 import { WALK_SPEED } from "@/kttn/kttn-walk"
-import { SIT_OFFSET } from "@/lib/desk-layout"
 import { loungeExit } from "@/lib/desk-walk"
 import type { Point } from "@/lib/walk-grid"
 import { loungePath, pathLength, pointAlong } from "@/kttn/lounge-walk"
 import { PIXEL_SCALE } from "@/kttn/pixel"
 import type { VisitAction } from "@/kttn/props-catalog"
-import { coatFor, drawCat, type CatDir, type CatPose } from "@/kttn/sprites"
+import { coatFor, drawCat, type CatDir } from "@/kttn/sprites"
 import type { Spots } from "@/kttn/use-tower"
 import { cutTrip, perchFor, spotFor, trips } from "@/kttn/visit-sync"
+import {
+  PERCHES,
+  POSE,
+  follow,
+  placeFor,
+  type Action,
+} from "@/kttn/visit-place"
 import { type SessionAgent } from "@/lib/kttn"
 import { idleActivity } from "@/lib/kttn-acts"
 
@@ -19,55 +25,9 @@ import { idleActivity } from "@/lib/kttn-acts"
 // 하는 일을 그린다. 책상 구역 그림판의 고양이가 아래 끝에 닿아 사라지면
 // (visit-sync.ts) 그 자리에서 캣타워나 소품까지 걸어 들어오고, 돌아갈 때는 같은
 // 길로 걸어 나간다. 밥그릇·물 분수 앞에서는 고개를 숙여 먹고, 침대·해먹·고타쓰
-// 위와 캣타워 층에서는 자고, 레코드플레이어·피아노 앞에서는 고개를 까딱이고,
-// 장난감 곁에서는 뛰어논다. 어느 소품에 갈지는 대사(cat-speech.tsx)와 같은
+// 위와 캣타워 층에서는 자고, 레코드플레이어·피아노 앞에서는 흥얼거리고,
+// 장난감 곁에서는 뛰어논다(자세와 제자리는 visit-place.ts). 어느 소품에 갈지는 대사(cat-speech.tsx)와 같은
 // 계산(propPick)으로 고른다. 나와 있는 동안 대사 상자도 이 고양이를 따라온다.
-
-type Action = VisitAction | "perch"
-
-const POSE: Record<Action, CatPose> = {
-  eat: "eat",
-  nap: "sleep",
-  groove: "hum",
-  play: "play",
-  perch: "sleep",
-}
-
-// 캣타워(20×29) 층마다 고양이가 엎드리는 자리. 발밑 가운데(논리 픽셀)다.
-const PERCHES = [
-  { x: 10, y: 6 },
-  { x: 9, y: 17 },
-]
-
-// 휴게 공간에서 제자리. 자는 고양이는 소품 위 가운데, 캣타워에서는 층 위,
-// 나머지는 소품 왼쪽 옆 바닥에 선다. transform은 걷는 동안 옮기는 데 쓴다.
-function placeFor(action: Action, perch: number): CSSProperties {
-  if (action === "perch") {
-    const at = PERCHES[perch]
-    return {
-      left: (at.x - 8) * PIXEL_SCALE,
-      top: (at.y - 16) * PIXEL_SCALE,
-    }
-  }
-  if (action === "nap")
-    return { left: "50%", bottom: "35%", marginLeft: -8 * PIXEL_SCALE }
-  return { left: -12 * PIXEL_SCALE, bottom: 0 }
-}
-
-// 이 고양이의 대사 상자를 휴게 공간의 고양이 머리 위로 옮긴다. 상자는 책상
-// 구역 기준 백분율 자리라 그 바깥(100% 넘게)으로도 놓인다.
-function follow(key: string, cat: DOMRect, ratio: number) {
-  const speech = document.querySelector<HTMLElement>(
-    `[data-speech-for="${CSS.escape(key)}"]`
-  )
-  const box = speech?.parentElement?.getBoundingClientRect()
-  if (!speech || !box?.width || !box.height) return
-  const x = cat.left + cat.width / 2
-  const y = cat.bottom - (SIT_OFFSET + CAT_HEAD) * PIXEL_SCALE * ratio
-  speech.style.left = `${((x - box.left) / box.width) * 100}%`
-  speech.style.top = `${((y - box.top) / box.height) * 100}%`
-  speech.style.zIndex = "45"
-}
 
 function VisitCat({
   agent,
@@ -97,6 +57,8 @@ function VisitCat({
     // 길을 찾은 휴게 공간·소품 자리의 서명과 마지막으로 잰 시각
     let sig = ""
     let checkedAt = 0
+    // 노는 고양이가 보는 쪽(길을 찾을 때 장난감 자리로 정한다)
+    let face: CatDir = "right"
     let moving = false
     // 화면에 보이는지. 보이지 않는 동안은 소품 자리를 다시 재지 않는다.
     let onScreen = true
@@ -144,6 +106,12 @@ function VisitCat({
         if (next) {
           path = next.path
           sig = next.sig
+          // 노는 고양이는 장난감 쪽을 본다. 설 자리는 보통 장난감 왼쪽이지만,
+          // 벽이나 이웃 소품 때문에 비켜서 장난감을 지나쳤으면 왼쪽을 본다.
+          const toy = el.closest("[data-visit]")?.getBoundingClientRect()
+          const restX = path[path.length - 1]?.x ?? 0
+          const toyX = toy ? (toy.left + toy.width / 2 - origin.x) / ratio : restX + 1
+          face = toyX < restX - 1 ? "left" : "right"
         }
       }
       if (!path) return
@@ -173,14 +141,6 @@ function VisitCat({
       // 흥얼거리기는 1초마다 몸을 한 칸 올렸다 내린다(노는 자세는 그림이 움직인다).
       const bob = action === "groove"
       const up = !walking && bob && Math.floor(t / 1000) % 2 ? 1 : 0
-      // 노는 고양이는 장난감 쪽을 본다. 제자리는 보통 장난감 왼쪽이지만, 벽이나
-      // 이웃 소품 때문에 비켜서 장난감을 지나쳤으면 왼쪽을 본다.
-      let face: CatDir = "front"
-      if (!walking && action === "play") {
-        const toy = el.closest("[data-visit]")?.getBoundingClientRect()
-        const catX = origin.x + shift.x * ratio
-        face = toy && toy.left + toy.width / 2 < catX - ratio ? "left" : "right"
-      }
       ctx.clearRect(0, 0, 16, 17)
       drawCat(
         ctx,
@@ -189,7 +149,7 @@ function VisitCat({
         coatFor(agent.key),
         familyColor(agent.family),
         walking ? "walk" : POSE[action],
-        walking ? dir : face,
+        walking ? dir : action === "play" ? face : "front",
         t
       )
       el.style.visibility = ""
