@@ -16,44 +16,16 @@
 <p align="center"><a href="README.md">English</a> · <b>한국어</b> · <a href="README.ja.md">日本語</a></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ko.png" width="880" alt="kttn: 저장소 두 곳이 구역, 폴더가 방이고, 책상의 고양이들이 읽기·고치기·명령 실행·확인 대기·답변 완료·졸기를 하고 있으며, 한 고양이 곁에 하위 에이전트 새끼 고양이 둘이 서 있다">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ko.png" width="880" alt="kttn: 저장소의 구역과 폴더의 방에서 책상과 자유 자리(소파, 고타쓰, 태블릿, 방석, 빈백, 창턱)의 고양이들이 읽기, 고치기, 확인 대기, 답변 완료, 졸기를 하고 있고, 한 고양이 곁에 하위 에이전트 새끼 고양이 둘이 서 있다">
   <br><sub><a href="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/full-ko.png">전체 화면 보기</a></sub>
 </p>
 
-```sh
-npx @hgwk/kttn
-```
-
-명령 하나로 kttn 이름을 정하고, Claude Code에 훅을 걸고, 로그인할 때 자동으로 띄우고, 브라우저로 엽니다.
-
 kttn은 내 컴퓨터에서 돌고 있는 Claude Code 세션을 픽셀 고양이로
-보여 줍니다. 저장소마다 구역이, 폴더마다 방이, 세션마다 책상에 앉은 고양이가
-하나씩 생깁니다. 고양이는 세션을 따라 읽고, 고치고, 명령을 돌리고, 사람을
+보여 줍니다. 저장소마다 구역이, 폴더마다 방이, 세션마다 책상이나 자유 자리에 앉은
+고양이가 하나씩 생깁니다. 고양이는 세션을 따라 읽고, 고치고, 명령을 돌리고, 사람을
 기다리고, 졸고, 퇴근합니다. 모든 것이 내 컴퓨터 안에 머뭅니다. Claude Code 훅이
 짧은 표시만 `127.0.0.1`의 작은 서버로 보내고, 화면은 그 서버가 내주는 페이지입니다.
 화면은 한국어, 영어, 일본어를 지원합니다.
-
-## 기능
-
-| | |
-| --- | --- |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="190" alt="말풍선을 띄운 채 책상에 앉은 고양이"> | **세션 하나에 고양이 하나.** 읽고, 고치고, 명령을 돌리고, 생각하고, 한동안 조용하면 졸고, 세션이 끝나면 퇴근합니다. 답변 미리보기를 켜면 일을 마친 고양이가 무엇을 했는지 말합니다. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="저장소와 폴더가 적힌 월드맵"> | **구역은 저장소, 방은 폴더.** 월드맵에 냥이 수와 함께 나오고, 지점을 누르면 그 방으로 갑니다. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="190" alt="책상 옆에 새끼 고양이 둘이 서 있는 고양이"> | **새끼 고양이는 하위 에이전트.** 일이 끝날 때까지 책상 옆에 서 있습니다. 백그라운드로 띄운 것도 마찬가지입니다. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="확인을 부탁하며 깜빡이는 말풍선"> | **확인 필요.** 권한 확인을 기다리는 고양이는 깜빡이고, 그 방과 구역도 함께 표시돼 어디서든 보입니다. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="문 앞의 집사"> | **집사.** 고양이를 누르면 집사가 걸어가 그 세션의 터미널 탭을 앞으로 띄웁니다. 말풍선을 누르면 그 세션에 메시지를 보냅니다. |
-| 🔒 | **짧은 표시만.** 프롬프트, 파일 내용, 명령 인자, 오류 문구는 세션 밖으로 나가지 않습니다. [세션에서 나가는 것](#세션에서-나가는-것)을 보세요. |
-
-## 움직이는 모습
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="데모 애니메이션: 새 고양이가 문으로 들어오고, 고양이들이 명령 실행과 생각 중을 오가고, 새끼 고양이 하나가 떠나고, 일을 마친 고양이가 결과를 말한다">
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-en.png" width="440" alt="영어 화면">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="440" alt="일본어 화면">
-</p>
 
 ## 빠른 시작
 
@@ -67,6 +39,39 @@ kttn이 뜨도록 등록하고(macOS는 LaunchAgent, Linux는 systemd 사용자 
 새로 고칩니다. `kttn uninstall`은 훅과 자동 시작을 다시 뺍니다.
 
 kttn은 macOS와 Linux(arm64, x86-64)에서 돕니다. **Windows는 지원하지 않습니다.**
+
+## 기능
+
+| | |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="190" alt="말풍선을 띄운 채 책상에 앉은 고양이"> | **세션 하나에 고양이 하나.** 읽고, 고치고, 명령을 돌리고, 생각하고, 한동안 조용하면 졸고, 세션이 끝나면 퇴근합니다. 답변 미리보기를 켜면 일을 마친 고양이가 무엇을 했는지 말합니다. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-seats.png" width="438" alt="자유 자리의 고양이 여섯: 소파, 고타쓰, 엎드려 태블릿, 방석 노트북, 빈백, 창턱"> | **책상과 자유 자리.** 책상 말고도 방석 노트북, 엎드려 태블릿, 빈백, 소파, 창턱, 고타쓰에서 일합니다. 고양이마다 자리가 정해져 있습니다. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="저장소와 폴더가 적힌 월드맵"> | **구역은 저장소, 방은 폴더.** 월드맵에 냥이 수와 함께 나오고, 지점을 누르면 그 방으로 갑니다. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="190" alt="책상 옆에 새끼 고양이 둘이 서 있는 고양이"> | **새끼 고양이는 하위 에이전트.** 일이 끝날 때까지 책상 옆에 서 있습니다. 백그라운드로 띄운 것도 마찬가지입니다. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="확인을 부탁하며 깜빡이는 말풍선"> | **확인 필요.** 권한 확인을 기다리는 고양이는 깜빡이고, 그 방과 구역도 함께 표시돼 어디서든 보입니다. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="문 앞의 집사"> | **집사.** 고양이를 누르면 집사가 걸어가 그 세션의 터미널 탭을 앞으로 띄웁니다. 말풍선을 누르면 그 세션에 메시지를 보냅니다. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-catalog.png" width="248" alt="도감 카드 둘: 퇴근한 고양이와 전설, 올빼미, 고참 칭호를 단 Lv.30 고양이"> | **고양이 도감.** 퇴근한 고양이까지 만난 고양이 모두를 레벨, 칭호, 도구 수, 동시 근무 최고 기록과 함께 보여 줍니다. [남기는 것](#세션에서-나가는-것)을 보세요. |
+| 🔒 | **짧은 표시만.** 프롬프트, 파일 내용, 명령 인자, 오류 문구는 세션 밖으로 나가지 않습니다. [세션에서 나가는 것](#세션에서-나가는-것)을 보세요. |
+
+**그 밖에**
+
+- **하루 신문.** 그날의 고양이 이름, 도구 수와 실패 수, 가장 긴 낮잠, 고양이 그림을 PNG로 저장.
+- **하루 타임랩스(기본 꺼짐).** 탭이 보이는 동안 10분마다 자동으로 찍고, 재생하고, WebM으로 저장.
+- **계절.** 12월의 눈과 트리, 새벽의 어두운 조명.
+- **8비트 효과음(기본 꺼짐).**
+- **쓰다듬기와 PNG 저장.** 집사를 고양이 곁에 세우고 스페이스로 쓰다듬기, 캡처로 kttn 전체를 PNG로 저장.
+- **숨은 키.** 어떤 키 순서를 누르면 고양이들이 무언가를 합니다.
+
+## 움직이는 모습
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="데모 애니메이션: 새 고양이가 문으로 들어오고, 고양이들이 명령 실행과 생각 중을 오가고, 새끼 고양이 하나가 떠나고, 일을 마친 고양이가 결과를 말한다">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-en.png" width="440" alt="영어 화면">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="440" alt="일본어 화면">
+</p>
 
 ## 세션에서 나가는 것
 

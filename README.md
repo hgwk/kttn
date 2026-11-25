@@ -16,44 +16,16 @@
 <p align="center"><b>English</b> · <a href="README.ko.md">한국어</a> · <a href="README.ja.md">日本語</a></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-en.png" width="880" alt="kttn: two repositories as areas, folders as rooms, cats at desks reading, editing, running commands, waiting for a permission answer, showing a finished result, napping, and a cat with two subagent kittens">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-en.png" width="880" alt="kttn: a repository's area and a folder's room, with cats at desks and on free seats (a sofa, a kotatsu, a tablet, a cushion, a bean bag, a window sill) reading, editing, waiting for a permission answer, showing a finished result and dozing, and a cat with two subagent kittens">
   <br><sub><a href="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/full-en.png">Full view</a></sub>
 </p>
 
-```sh
-npx @hgwk/kttn
-```
-
-One command: name your kttn, hook Claude Code, start at login, open it in the browser.
-
 kttn shows the Claude Code sessions running on your computer as pixel cats.
-Each repository gets an area, each folder a room, each session a cat at
-a desk. A cat reads, edits, runs commands, waits for you, naps and goes home as
-its session does. Everything stays on your computer: a Claude Code hook sends
+Each repository gets an area, each folder a room, each session a cat at a
+desk or on a free seat. A cat reads, edits, runs commands, waits for you, naps
+and goes home as its session does. Everything stays on your computer: a Claude Code hook sends
 short labels to a small server on `127.0.0.1`, and the screen is a page that
 server serves. The screen speaks English, Korean and Japanese.
-
-## Features
-
-| | |
-| --- | --- |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="190" alt="A cat at its desk with a speech bubble"> | **One cat per session.** It reads, edits, runs commands, thinks, naps after a quiet spell and goes home when the session ends. With answer preview on, a finished cat says what it did. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="The world map listing repositories and folders"> | **Areas are repositories, rooms are folders.** The world map lists them with how many cats are in each; click a spot to jump to that room. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="190" alt="A cat with two kittens beside its desk"> | **Kittens are subagents.** They stand by the desk until they finish, background ones included. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="A blinking speech bubble asking for a look"> | **Needs you.** A cat waiting on a permission prompt blinks, and its room and area light up so you see it from anywhere. |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="The butler at the door"> | **The butler.** Click a cat and the butler walks over and brings its terminal tab to the front; click a speech bubble to type a message into that session. |
-| 🔒 | **Short labels only.** Prompts, file contents, command arguments and error texts never leave the session. See [what leaves a session](#what-leaves-a-session). |
-
-## How it looks
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="Animated demo: a new cat walks in from the door, cats switch between running and thinking, a kitten leaves, and a finished cat shows its result">
-</p>
-
-<p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ko.png" width="440" alt="kttn in Korean">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="440" alt="kttn in Japanese">
-</p>
 
 ## Quick start
 
@@ -68,6 +40,39 @@ settings and refreshes the hooks and the login service. `kttn uninstall`
 takes the hooks and the login service out again.
 
 kttn runs on macOS and Linux (arm64 and x86-64). **Windows is not supported.**
+
+## Features
+
+| | |
+| --- | --- |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="190" alt="A cat at its desk with a speech bubble"> | **One cat per session.** It reads, edits, runs commands, thinks, naps after a quiet spell and goes home when the session ends. With answer preview on, a finished cat says what it did. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-seats.png" width="438" alt="Six cats on free seats: a sofa, a kotatsu, lying down with a tablet, a cushion with a laptop, a bean bag and a window sill"> | **Desks and free seats.** Besides desks, cats work from a cushion with a laptop, lying down with a tablet, a bean bag, the sofa, the window sill or a kotatsu. Each cat keeps its seat. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="The world map listing repositories and folders"> | **Areas are repositories, rooms are folders.** The world map lists them with how many cats are in each; click a spot to jump to that room. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="190" alt="A cat with two kittens beside its desk"> | **Kittens are subagents.** They stand by the desk until they finish, background ones included. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="A blinking speech bubble asking for a look"> | **Needs you.** A cat waiting on a permission prompt blinks, and its room and area light up so you see it from anywhere. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="The butler at the door"> | **The butler.** Click a cat and the butler walks over and brings its terminal tab to the front; click a speech bubble to type a message into that session. |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-catalog.png" width="248" alt="Two catalog cards: a cat that went home and a Lv.30 cat at work with Legend, Night owl and Old hand titles"> | **Cat catalog.** Every cat kttn has met, including ones that went home, with its level, titles, tool count and the most cats at once. [What it keeps](#what-leaves-a-session). |
+| 🔒 | **Short labels only.** Prompts, file contents, command arguments and error texts never leave the session. See [what leaves a session](#what-leaves-a-session). |
+
+**Also**
+
+- **Daily paper.** The day's cat names, tool and failure counts, longest nap and a picture of the cats, saved as a PNG.
+- **Daily timelapse (off by default).** A shot every 10 minutes while the tab is visible, played back and saved as WebM.
+- **Seasons.** Snow and a tree in December, dimmer lights before dawn.
+- **8-bit sound effects (off by default).**
+- **Petting and capture.** Walk the butler up to a cat and press Space to pet it; Capture saves the whole kttn as a PNG.
+- **A hidden key.** Some key sequence makes the cats do something.
+
+## How it looks
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/demo.gif" width="880" alt="Animated demo: a new cat walks in from the door, cats switch between running and thinking, a kitten leaves, and a finished cat shows its result">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ko.png" width="440" alt="kttn in Korean">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="440" alt="kttn in Japanese">
+</p>
 
 ## What leaves a session
 
