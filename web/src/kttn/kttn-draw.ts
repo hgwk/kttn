@@ -2,6 +2,7 @@
 // 캔버스는 투명 바탕에 책상·의자·고양이만 그린다. 논리 해상도로 그린 뒤 CSS로
 // 확대하므로 좌표는 모두 정수 픽셀이다. 상태 판단은 하지 않는다.
 import type { AgentState } from "@/lib/kttn"
+import { shownMinions } from "@/lib/kttn-minions"
 import { PIXEL_SCALE, rect } from "@/kttn/pixel"
 import {
   coatFor,
@@ -127,7 +128,7 @@ export function drawMinions(
   ctx: CanvasRenderingContext2D,
   layout: DeskLayout,
   index: number,
-  minions: { waiting?: boolean }[],
+  minions: { id: string; waiting?: boolean }[],
   tie: string,
   key: string,
   t: number,
@@ -135,15 +136,19 @@ export function drawMinions(
   seat?: { cx: number; w: number; bottom: number } | null
 ) {
   const { x, y } = seatFor(layout, index)
-  // 새끼 고양이는 10px라 책상 양옆에 11px 간격으로 둘씩 선다.
-  for (let i = 0; i < Math.min(minions.length, 4); i++) {
+  // 새끼 고양이는 10px라 책상 양옆에 11px 간격으로 둘씩 선다. 넷까지 그리고,
+  // 가려진 새끼가 사람을 기다리면 그 새끼를 보이는 자리에 들인다.
+  const shown = shownMinions(minions)
+  for (let i = 0; i < shown.length; i++) {
     const side = i % 2 === 0 ? -1 : 1
     const step = Math.floor(i / 2) * 11
     const mx = seat
       ? seat.cx + side * (seat.w / 2 + 6 + step)
       : x + CAT_DX + side * (22 + step) - (side < 0 ? 6 : 0)
     const my = seat ? seat.bottom : y + 20
-    drawKitten(ctx, mx, my, coatFor(`${key}:${i}`), tie, t + i * 90, minions[i].waiting)
+    // 털색은 하위 에이전트마다 정해 자리가 바뀌어도 그대로다.
+    const coat = coatFor(`${key}:${shown[i].id}`)
+    drawKitten(ctx, mx, my, coat, tie, t + i * 90, shown[i].waiting)
   }
 }
 
