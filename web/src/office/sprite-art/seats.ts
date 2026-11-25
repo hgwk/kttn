@@ -153,19 +153,19 @@ const sideFace = (eyes: "open" | "shut" | "wide"): Grid =>
     if (eyes === "wide") return y >= 3 && y <= 6 ? row.replace(/fe/, "ee") : row
     return row
   })
-// 엎드린 정장 몸통과 뒤로 세운 꼬리, 웅크린 뒷발.
+// 엎드린 정장 몸통(짧게 해 고양이로 읽히게)과 뒤로 세운 꼬리, 웅크린 뒷발.
 const LYING: Grid = [
-  "kk..................",
-  "kfk.................",
-  ".kfk................",
-  "..kfk...............",
-  "...kfkkkkkkkkkkkk...",
-  "...kjjjjjjjjjjjjjk..",
-  "..kjjjjjjjjjjjjjjjk.",
-  "..kjjjjjjjjjjjjjjjk.",
-  "..kUUUUUUUUUUUUUUUk.",
-  "..kffk.kkkkkkkkkkk..",
-  "..kkkk..............",
+  "kk..............",
+  "kfk.............",
+  ".kfk............",
+  "..kfk...........",
+  "...kfkkkkkkkk...",
+  "...kjjjjjjjjjk..",
+  "..kjjjjjjjjjjjk.",
+  "..kjjjjjjjjjjjk.",
+  "..kUUUUUUUUUUUk.",
+  "..kffk.kkkkkkk..",
+  "..kkkk..........",
 ]
 // 턱 밑 셔츠 깃과 넥타이(두 줄).
 const SIDE_COLLAR: Grid = ["kjjwtwjjk.", "kjjjtjjjjk"]
@@ -175,7 +175,7 @@ const SIDE_PAW: Grid = ["kffk", "kkkk"]
 const SIDE_PAW_UP: Grid = ["kffk", "kffk", "kkkk"]
 function bellyCat(): Poses {
   const body = (eyes: "open" | "shut" | "wide", y = 0): Layer[] => [
-    [LYING, 0, 2 + y],
+    [LYING, 4, 2 + y],
     [sideFace(eyes), 14, y],
     [SIDE_COLLAR, 18, 9 + y],
   ]
