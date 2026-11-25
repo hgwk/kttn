@@ -133,8 +133,24 @@ const tilt = (dx: -1 | 1): Grid => [
   ...BODY,
 ]
 
+// 몸 말고 자기(옆모습, 오른쪽을 본다). 정장 등을 둥글게 말고 꼬리를 앞으로
+// 감아 턱 밑에 둔다. 턱 밑으로 셔츠 깃과 넥타이가 보인다. 둘째 칸은 귀 하나를
+// 접어 자면서 귀를 쫑긋거린다.
+const curl = (twitch: boolean): Grid => [
+  ...Array<string>(7).fill("................"),
+  twitch ? ".......k........" : ".......k...k....",
+  twitch ? "......knk.kkk..." : "......knk.knk...",
+  "..kkkkfffkfffk..",
+  ".kjjjjkffffffffk",
+  "kjjjjjkffffkkffk",
+  "kjjjjjkfffffcffn",
+  "kjjjjjjkssffffk.",
+  "kffffffkwttwjk..",
+  ".kkkkkkkkkkkkk..",
+]
+
 /** 앉은 자세: 대기, 눈 깜빡임, 들썩임, 졸기, 놀람, 자판 치기 두 칸, 멈춤, 털 고르기 두 칸,
- * 밥 먹기 두 칸, 흥얼거리기 두 칸. */
+ * 밥 먹기 두 칸, 흥얼거리기 두 칸, 몸 말고 자기 두 칸. */
 export const CAT_POSE: Grid[] = [
   [...HEAD, ...BODY],
   [...BLINK, ...BODY],
@@ -150,6 +166,8 @@ export const CAT_POSE: Grid[] = [
   eating(true),
   tilt(-1),
   tilt(1),
+  curl(false),
+  curl(true),
 ]
 
 export const POSE_FRAME = {
@@ -167,4 +185,6 @@ export const POSE_FRAME = {
   eatChew: 11,
   humLeft: 12,
   humRight: 13,
+  curl: 14,
+  curlTwitch: 15,
 } as const
