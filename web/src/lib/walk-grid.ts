@@ -198,10 +198,10 @@ function scratch(states: number) {
 }
 
 /**
- * 마지막 길 찾기에서 꺼내 본 상태(칸×방향) 수. 시험이 기계 속도와 관계없이
- * 계산량을 재는 데 쓴다.
+ * 마지막 길 찾기에서 꺼내 본 상태(칸×방향) 수와 찾은 길의 값. 시험이 기계
+ * 속도와 관계없이 계산량을 재고, 가장 싼 길인지 견주는 데 쓴다.
  */
-export const routeStats = { expanded: 0 }
+export const routeStats = { expanded: 0, cost: 0 }
 
 /**
  * from에서 to까지 걸을 수 있는 칸만 지나는 길. 꺾이는 점과 마지막 점을
@@ -214,6 +214,7 @@ export function route(grid: Grid, from: Point, to: Point): Point[] {
   const goal = nearestFree(grid, cellOf(grid, to))
   if (start < 0 || goal < 0) return []
   const tail = isFree(grid, to) ? [{ x: to.x, y: to.y }] : []
+  routeStats.cost = 0
   if (start === goal) return tail.length ? tail : [pointOf(grid, goal)]
   const { cost, from4, stamp, gen } = scratch(nx * ny * 4)
   const known = (s: number) => stamp[s] === gen
@@ -263,6 +264,7 @@ export function route(grid: Grid, from: Point, to: Point): Point[] {
     }
   }
   if (found < 0) return []
+  routeStats.cost = cost[found]
   // 거꾸로 따라가며 방향이 바뀌는 칸만 남긴다.
   const cells: number[] = []
   for (let s = found; s >= 0; s = from4[s]) cells.push(s)
