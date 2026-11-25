@@ -14,6 +14,7 @@ import {
   familyColor,
   colsForWidth,
   deskLayout,
+  poseFor,
 } from "@/kttn/kttn-draw"
 import { awayOnVisit, drawTalk, type Walker } from "@/kttn/kttn-walk"
 import { SIT_OFFSET, seatPoint } from "@/lib/desk-layout"
@@ -224,7 +225,7 @@ export function KttnCanvas({
       if (!free) drawDesk(ctx, room, index, gone ? null : agent.state, t)
       if (!walking && !gone && !walker.visit) {
         if (agent.minions.length)
-          drawMinions(ctx, room, index, agent.minions.length, tie, agent.key, t, seatBox(room, index, agent.key))
+          drawMinions(ctx, room, index, agent.minions.length, tie, agent.key, t, seatBox(room, index, agent.key), poseFor(agent.state))
       }
     })
     const strolling = strollingKeys(walkers)
