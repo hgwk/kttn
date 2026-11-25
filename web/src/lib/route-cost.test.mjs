@@ -16,14 +16,39 @@ function cheapest(grid, from, to) {
     Math.round((p.x - grid.bounds.l) / grid.cell)
   const goal = cellOf(to)
   const best = new Float64Array(grid.nx * grid.ny * 4).fill(Infinity)
-  const queue = [0, 1, 2, 3].map((d) => [0, cellOf(from) * 4 + d])
-  for (const [, s] of queue) best[s] = 0
-  while (queue.length) {
-    let k = 0
-    for (let i = 1; i < queue.length; i++) if (queue[i][0] < queue[k][0]) k = i
-    const [value, s] = queue[k]
-    queue[k] = queue[queue.length - 1]
-    queue.pop()
+  // 값이 가장 작은 것부터 꺼내는 이진 힙([값, 상태] 쌍)
+  const heap = []
+  const push = (item) => {
+    heap.push(item)
+    for (let k = heap.length - 1; k > 0; ) {
+      const up = (k - 1) >> 1
+      if (heap[up][0] <= heap[k][0]) break
+      ;[heap[up], heap[k]] = [heap[k], heap[up]]
+      k = up
+    }
+  }
+  const pop = () => {
+    const top = heap[0]
+    const last = heap.pop()
+    if (heap.length) {
+      heap[0] = last
+      for (let k = 0; ; ) {
+        let c = 2 * k + 1
+        if (c >= heap.length) break
+        if (c + 1 < heap.length && heap[c + 1][0] < heap[c][0]) c++
+        if (heap[k][0] <= heap[c][0]) break
+        ;[heap[k], heap[c]] = [heap[c], heap[k]]
+        k = c
+      }
+    }
+    return top
+  }
+  for (let d = 0; d < 4; d++) {
+    best[cellOf(from) * 4 + d] = 0
+    push([0, cellOf(from) * 4 + d])
+  }
+  while (heap.length) {
+    const [value, s] = pop()
     if (value > best[s]) continue
     const c = s >> 2
     if (c === goal) return value
@@ -38,7 +63,7 @@ function cheapest(grid, from, to) {
       const next = value + (grid.cheap[n] ? 1 : 3) + (d === (s & 3) ? 0 : 8)
       if (next < best[n * 4 + d]) {
         best[n * 4 + d] = next
-        queue.push([next, n * 4 + d])
+        push([next, n * 4 + d])
       }
     }
   }
