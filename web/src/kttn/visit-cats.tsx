@@ -26,9 +26,9 @@ import { idleActivity } from "@/lib/kttn-acts"
 type Action = VisitAction | "perch"
 
 const POSE: Record<Action, CatPose> = {
-  eat: "groom",
+  eat: "eat",
   nap: "sleep",
-  groove: "alert",
+  groove: "hum",
   play: "walk",
   perch: "sleep",
 }
