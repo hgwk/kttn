@@ -16,7 +16,7 @@
 <p align="center"><a href="README.md">English</a> · <a href="README.ko.md">한국어</a> · <b>日本語</b></p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="880" alt="kttn: リポジトリのエリアとフォルダーの部屋で、机と自由席(ソファ、こたつ、タブレット、座布団、ビーズクッション、窓辺)の猫たちが読む、直す、確認待ち、回答済み、居眠りをしていて、ある猫のそばにサブエージェントの子猫が2匹いる">
+  <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/hero-ja.png" width="880" alt="kttn: リポジトリのエリアとフォルダーの部屋。机と自由席(ソファ、こたつ、タブレット、座布団、ビーズクッション、窓辺)で猫たちが読んだり直したりしていて、確認待ちの猫と回答済みの猫がいて、ある猫のそばにサブエージェントの子猫が2匹いる">
   <br><sub><a href="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/full-ja.png">画面全体を見る</a></sub>
 </p>
 
@@ -45,11 +45,11 @@ kttn は macOS と Linux(arm64、x86-64)で動きます。**Windows には対応
 
 | | |
 | --- | --- |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="190" alt="吹き出しを出して机にいる猫"> | **セッションひとつに猫一匹。** 読む、直す、コマンドを動かす、考える、しばらく静かなら居眠り、セッションが終われば退勤。回答プレビューをオンにすると、仕事を終えた猫が何をしたか話します。 |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-session.png" width="184" alt="吹き出しを出して机にいる猫"> | **セッションひとつに猫一匹。** 読む、直す、コマンドを動かす、考える、しばらく静かなら居眠り、セッションが終われば退勤。回答プレビューをオンにすると、仕事を終えた猫が何をしたか話します。 |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-seats.png" width="438" alt="自由席の猫6匹: ソファ、こたつ、うつぶせでタブレット、座布団でノートパソコン、ビーズクッション、窓辺"> | **机と自由席。** 机のほかに、座布団でノートパソコン、うつぶせでタブレット、ビーズクッション、ソファ、窓辺、こたつでも働きます。猫ごとに席が決まっています。 |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-map.png" width="340" alt="リポジトリとフォルダーが並ぶワールドマップ"> | **エリアはリポジトリ、部屋はフォルダー。** ワールドマップに猫の数と一緒に並び、地点を押すとその部屋へ移動します。 |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="190" alt="机のそばに子猫が2匹いる猫"> | **子猫はサブエージェント。** 仕事が終わるまで机のそばにいます。バックグラウンドで動くものも同じです。 |
-| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="185" alt="確認をお願いして点滅する吹き出し"> | **確認が必要。** 権限の確認を待つ猫は点滅し、その部屋とエリアにも印が付くので、どこからでも分かります。 |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-kittens.png" width="184" alt="机のそばに子猫が2匹いる猫"> | **子猫はサブエージェント。** 仕事が終わるまで机のそばにいます。バックグラウンドで動くものも同じです。 |
+| <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-needs-you.png" width="184" alt="確認をお願いして点滅する吹き出し"> | **確認が必要。** 権限の確認を待つ猫は点滅し、その部屋とエリアにも印が付くので、どこからでも分かります。 |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-butler.png" width="130" alt="入り口にいる執事"> | **執事。** 猫を押すと執事が歩いていき、そのセッションのターミナルのタブを前に出します。吹き出しを押すと、そのセッションにメッセージを送れます。 |
 | <img src="https://raw.githubusercontent.com/hgwk/kttn/main/docs/images/feature-catalog.png" width="248" alt="図鑑のカード2枚: 退勤した猫と、伝説、夜ふかし、古株の称号を持つ Lv.30 の猫"> | **猫図鑑。** 退勤した猫まで、出会った猫すべてをレベル、称号、ツール数、同時勤務の最高記録と一緒に見せます。[残すもの](#セッションから出ていくもの)を見てください。 |
 | 🔒 | **短いラベルだけ。** プロンプト、ファイルの内容、コマンドの引数、エラーの文言はセッションの外に出ません。[セッションから出ていくもの](#セッションから出ていくもの)を見てください。 |
